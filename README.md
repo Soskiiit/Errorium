@@ -49,9 +49,10 @@
 
 | Сервис | Директория | Назначение | Интерфейс |
 | :--- | :--- | :--- | :--- |
-| **Search Engine Core** | `services/search_engine/` | Поисковое ядро, расчет BM25, токенизация стектрейсов и кода, хранение Posting Lists | gRPC Server (`:50051`) |
-| **Gateway & MCP Service** | `services/gateway/` | RAG-оркестрация, вызовы LLM, агрегация результатов поиска, фасады API | REST API (`:8000`), Remote MCP Server (`:8000/sse`) |
-| **Web Frontend** | `services/frontend/` | Пользовательский веб-интерфейс: ввод ошибок, просмотр тредов и сгенерированного ответа | Web UI (`:3000`) |
+| **Search Engine Indexer** | `services/search_engine_indexer/` | [Роль 1] Потоковый парсинг 100GB дампа, токенизация кода/ошибок, построение индекса | Офлайн-процесс, запись в `data/index/` |
+| **Search Engine Core** | `services/search_engine_core/` | [Роль 2] Поисковое ядро, расчет BM25, хранение/чтение Posting Lists, gRPC-сервер | gRPC Server (`:50051`) |
+| **Gateway & MCP Service** | `services/gateway/` | [Роль 3] RAG-оркестрация, вызовы LLM, агрегация результатов поиска, фасады API | REST API (`:8000`), Remote MCP Server (`:8000/sse`) |
+| **Web Frontend** | `services/frontend/` | [Роль 4] Пользовательский веб-интерфейс: ввод ошибок, просмотр тредов и ответа | Web UI (`:3000`) |
 
 ---
 
@@ -78,15 +79,25 @@
 ├── Makefile                   # Автоматизация сборки, тестов, gRPC и бенчмарков
 ├── docker-compose.yml         # Оркестрация локального запуска всех сервисов
 ├── protos/
-│   └── search.proto           # Контракт gRPC (SearchEngine)
+│   └── search.proto           # Контракт gRPC (SearchEngineCore <-> Gateway)
 ├── spec/                      # Спецификации проекта (Spec-Driven Development)
 │   ├── product/               # Требования к продукту и сценарии использования
 │   └── tech/                  # Технические спецификации (поиск, RAG, MCP, сеть)
 ├── services/
-│   ├── search_engine/         # Ядро поиска (BM25, Inverted Index, gRPC)
-│   ├── gateway/               # Шлюз, RAG-оркестратор и MCP-сервер
-│   └── frontend/              # Веб-интерфейс пользователя
-├── benchmark/                 # Набор данных и скрипты оценки качества (Recall@k, MRR)
+│   ├── search_engine_indexer/ # [Роль 1] Потоковый парсер дампа, токенизатор, инвертированный индекс
+│   │   ├── Dockerfile
+│   │   └── README.md
+│   ├── search_engine_core/    # [Роль 2] BM25, Top-K отбор, gRPC-сервер ядра
+│   │   ├── Dockerfile
+│   │   └── README.md
+│   ├── gateway/               # [Роль 3] Шлюз, RAG-оркестратор и MCP-сервер
+│   │   ├── Dockerfile
+│   │   └── README.md
+│   └── frontend/              # [Роль 4] Веб-интерфейс пользователя
+│       ├── Dockerfile
+│       └── README.md
+├── data/                      # Локальные дампы и индексы (в .gitignore)
+├── benchmark/                 # Оценка качества поиска (НИРС: Recall@k, MRR)
 └── tests/
     ├── unit/                  # Модульное тестирование
     └── integration/           # Интеграционное тестирование

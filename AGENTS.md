@@ -7,22 +7,25 @@
 
 ## 1. Архитектура и сервисы
 
-Система представляет собой распределённый поисковый и RAG-сервис по базе знаний Stack Overflow с веб-интерфейсом и поддержкой протокола MCP.
+Система представляет собой распределённый поисковый и RAG-сервис по базе знаний Stack Overflow с веб-интерфейсом и поддержкой протокола MCP. Разработка разделена на 4 независимых микросервиса под отдельные роли участников команды.
 
 ### Компоненты системы
 
 | Компонент | Директория | Роль и зона ответственности | Интерфейсы и порты |
 | :--- | :--- | :--- | :--- |
-| **Search Engine Core** | `services/search_engine/` | Самописный инвертированный индекс, BM25 с нуля, токенизация кода/ошибок | gRPC Server (`:50051`) |
-| **Gateway & MCP Service** | `services/gateway/` | Оркестратор RAG, gRPC-клиент к движку, вызов LLM, фасад API | REST API (`:8000`), Remote MCP Server (HTTP / SSE) |
-| **Web Frontend** | `services/frontend/` | Пользовательский интерфейс поиска решений и вывода RAG-ответов | HTTP UI (`:3000`) |
+| **Search Engine Indexer** | `services/search_engine_indexer/` | [Роль 1] Потоковый парсинг дампа SO (~100 ГБ), токенизация кода/ошибок, построение инвертированного индекса | Офлайн-процесс, запись в `data/index/` |
+| **Search Engine Core** | `services/search_engine_core/` | [Роль 2] Чтение индекса, расчет алгоритма BM25 с нуля, Top-K отбор, gRPC-сервер ядра | gRPC Server (`:50051`) |
+| **Gateway & MCP Service** | `services/gateway/` | [Роль 3] Бэкенд-шлюз, gRPC-клиент к поисковику, RAG-оркестратор (LLM), Remote MCP Server | REST API (`:8000`), Remote MCP Server (HTTP / SSE) |
+| **Web Frontend** | `services/frontend/` | [Роль 4] Веб-интерфейс поиска решений, подсветка синтаксиса и вывод RAG-ответов | HTTP UI (`:3000`) |
 
 ### Направление потоков данных (Data Flow)
-1. **Пользовательский поиск через Web:**
-   `Frontend (:3000)` -> `HTTP REST POST /api/search (:8000)` -> `Gateway` -> `gRPC SearchEngine.Search (:50051)` -> `Search Engine Core`.
-2. **RAG-генерация решения:**
-   `Gateway` получает топ-$K$ кандидатов от `Search Engine Core` по gRPC -> собирает контекст -> отправляет промпт в LLM -> возвращает синтезированный ответ клиенту.
-3. **Поиск через Remote MCP (Cursor / Claude Code):**
+1. **Индексация корпуса (Роль 1):**
+   `search_engine_indexer` читает поток XML/JSON из `data/raw/` -> токенизирует -> строит инвертированный индекс -> сохраняет в бинарном формате в `data/index/`.
+2. **Поисковый запрос (Роль 4 -> Роль 3 -> Роль 2):**
+   `Frontend (:3000)` -> `HTTP REST POST /api/search (:8000)` -> `Gateway` -> `gRPC SearchEngine.Search (:50051)` -> `Search Engine Core` (расчет BM25 по индексу из `data/index/`).
+3. **RAG-генерация решения:**
+   `Gateway` получает релевантные кандидаты от `Search Engine Core` по gRPC -> собирает контекст -> отправляет промпт в LLM -> стримит синтезированный ответ во `Frontend`.
+4. **Поиск через Remote MCP (Cursor / Claude Code):**
    `Внешний AI-агент` -> `Remote MCP Call по SSE/HTTP (:8000/sse)` -> `Gateway MCP Server` -> `Search Engine Core (gRPC)` -> ответ в контекст агента.
 
 ---
@@ -49,9 +52,9 @@
     - $avgdl$ — средняя длина документа в корпусе: $\frac{1}{N}\sum_{d}|d|$.
 
 ### 2.2. Межсервисный протокол (Только gRPC)
-- Связь `services/gateway/` с `services/search_engine/` — **исключительно по gRPC**.
+- Связь `services/gateway/` с `services/search_engine_core/` — **исключительно по gRPC**.
 - Контракт описан в файле `protos/search.proto`.
-- Запрещено использовать прямые HTTP-запросы между сервисами бэкенда или общий доступ к базе/файлу индекса на диске.
+- Запрещено использовать прямые HTTP-запросы между сервисами бэкенда или общий доступ к базе/файлу индекса на диске между Gateway и Search Engine.
 
 ### 2.3. Специфика токенизации кода и ошибок
 - Запрещено применять слепой стемминг/лемматизацию (Porter, Snowball) к стектрейсам и коду без сохранения исходных токенов.
@@ -93,6 +96,8 @@
 ├── CHANGE_HISTORY.md          # История архитектурных и кодовых изменений (SDD)
 ├── Makefile                   # Команды автоматизации (сборка, тесты, proto, бенчмарк)
 ├── docker-compose.yml         # Запуск всех сервисов в контейнерах
+├── protos/
+│   └── search.proto           # Контракт gRPC (SearchEngineCore <-> Gateway)
 ├── spec/                      # Спецификации проекта (SDD)
 │   ├── product/
 │   │   ├── product.md         # Требования к продукту, сценарии использования
@@ -101,17 +106,23 @@
 │       ├── architecture.md    # Сетевая схема, порты, сервисы
 │       ├── search.md          # Алгоритм BM25, структуры индекса, правила токенизации
 │       ├── rag.md             # LLM провайдер, пайплайн обогащения, промпты
+│       ├── api.md             # REST API контракт Gateway <-> Frontend
 │       └── mcp.md             # Спецификация инструментов MCP (схемы параметров)
-├── protos/
-│   └── search.proto           # Контракт gRPC (SearchEngine)
 ├── services/
-│   ├── search_engine/         # Backend 2: Поисковое ядро (BM25, gRPC сервер)
-│   ├── gateway/               # Backend 1: REST API, MCP Server, RAG-оркестратор
-│   └── frontend/              # Frontend (Web UI)
-├── benchmark/                 # Оценка качества поиска (НИРС)
-│   ├── dataset/               # Корпус документов (Stack Overflow)
-│   ├── queries.json           # Запросы и ground-truth соответствия
-│   └── evaluate.py            # Расчет Recall@k и MRR
+│   ├── search_engine_indexer/ # [Роль 1] Парсинг 100GB дампа, токенизатор, построение индекса
+│   │   ├── Dockerfile
+│   │   └── README.md
+│   ├── search_engine_core/    # [Роль 2] BM25, Top-K отбор, gRPC-сервер (:50051)
+│   │   ├── Dockerfile
+│   │   └── README.md
+│   ├── gateway/               # [Роль 3] REST API, MCP Server, RAG-оркестратор
+│   │   ├── Dockerfile
+│   │   └── README.md
+│   └── frontend/              # [Роль 4] Web UI
+│       ├── Dockerfile
+│       └── README.md
+├── data/                      # Локальные дампы и индексы (пустая в репозитории, в .gitignore)
+├── benchmark/                 # Оценка качества поиска (НИРС: Recall@k, MRR, пока пустая)
 └── tests/
     ├── unit/                  # Модульные тесты токенизатора, формул, парсеров
     └── integration/           # Интеграционные тесты gRPC и REST
@@ -135,7 +146,7 @@
 | `make test-unit` | Запустить модульные тесты | `docker compose run --rm gateway pytest tests/unit` |
 | `make test-integration` | Запустить интеграционные тесты | `docker compose run --rm gateway pytest tests/integration` |
 | `make test` | Запустить полный тестовый набор | `make test-unit && make test-integration` |
-| `make benchmark` | Запустить расчёт метрик $Recall@k$ и $MRR$ | `docker compose run --rm search_engine python benchmark/evaluate.py` |
+| `make benchmark` | Запустить расчёт метрик $Recall@k$ и $MRR$ | `docker compose run --rm search_engine_core python benchmark/evaluate.py` |
 
 ---
 
@@ -145,7 +156,7 @@
 | :--- | :--- | :--- |
 | **КТ 1: Спецификации и каркас** | Октябрь | Заполнены `README.md`, `AGENTS.md`, спецификации в `spec/`. Описан `protos/search.proto`. Каркас Web UI с моковыми ответами. Система стартует через `docker compose up --build`. |
 | **КТ 2: Ядро поиска и RAG** | Ноябрь | Самописный BM25 и инвертированный индекс. Расчет $Recall@k$ ($k=3, 5, 10$) и $MRR$ через `benchmark/evaluate.py`. Интеграция с LLM для RAG. |
-| **КТ 3: MCP и защита** | Декабрь | Интеграция Frontend + Gateway + Search Engine + MCP Server. Демонстрация поиска ошибок через MCP в Cursor/Claude. Презентация и отчет. |
+| **КТ 3: MCP и защита** | Декабрь | Интеграция Frontend + Gateway + Search Engine Core + MCP Server. Демонстрация поиска ошибок через MCP в Cursor/Claude. Презентация и отчет. |
 
 ---
 
@@ -155,7 +166,7 @@
 - [ ] Не используются внешние библиотеки поиска (`rank-bm25`, `elasticsearch` и т.д.).
 - [ ] Формула BM25 и параметры ($k_1 \in [1.2, 2.0]$, $b = 0.75$) соответствуют методичке ИУ5.
 - [ ] Токенизатор сохраняет идентификаторы кода и стектрейсы без повреждений.
-- [ ] Взаимодействие Gateway <-> Search Engine идет только по gRPC.
+- [ ] Взаимодействие Gateway <-> Search Engine Core идет только по gRPC.
 - [ ] Все тесты (`pytest tests/`) проходят успешно.
-- [ ] Бенчмарк `python benchmark/evaluate.py` подтверждает качество ранжирования.
+- [ ] Бенчмарк подтверждает качество ранжирования.
 - [ ] Изменения задокументированы в `CHANGE_HISTORY.md`.
