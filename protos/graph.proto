@@ -1,0 +1,101 @@
+syntax = "proto3";
+
+package errorium.graph;
+
+option go_package = "github.com/soskiiit/errorium/protos/graph;graphpb";
+
+// GraphService provides operations to build and query graphs of related Stack Overflow threads
+// built around search results.
+service GraphService {
+  // Get graph of related threads around given doc_ids (the search results)
+  rpc GetThreadGraph(ThreadGraphRequest) returns (ThreadGraphResponse);
+
+  // Get full answer content for a specific thread node
+  rpc GetThreadDetails(ThreadDetailsRequest) returns (ThreadDetailsResponse);
+}
+
+// Category of the thread node in the graph
+enum NodeCategory {
+  NODE_CATEGORY_UNKNOWN = 0;
+  NODE_CATEGORY_PRIMARY_RESULT = 1; // Most relevant BM25 result (green)
+  NODE_CATEGORY_OTHER_RESULT = 2;   // Other Top-K BM25 results (yellow)
+  NODE_CATEGORY_DUPLICATE = 3;      // Threads marked as duplicates on SO (blue)
+  NODE_CATEGORY_LINKED = 4;         // Threads referenced via hyperlinks inside answers (purple)
+}
+
+// Type of relationship between two threads
+enum EdgeType {
+  EDGE_TYPE_UNKNOWN = 0;
+  EDGE_TYPE_DUPLICATE_OF = 1;       // Thread is marked as a duplicate of another
+  EDGE_TYPE_LINKED_IN_ANSWER = 2;   // Thread is linked within an answer of another thread
+}
+
+// Represents a Stack Overflow thread node in the graph
+message ThreadNode {
+  // The Stack Overflow question ID (doc_id)
+  int64 doc_id = 1;
+
+  // The category dictating node color
+  NodeCategory category = 2;
+
+  // Relevance score (used to calculate node size, e.g., proportional to sqrt(Score) or log(Score))
+  double score = 3;
+
+  // The question title
+  string title = 4;
+
+  // A brief snippet of the content for hover preview
+  string snippet = 5;
+
+  // Indicates whether the thread has an accepted answer
+  bool has_accepted_answer = 6;
+
+  // Tags of the SO thread (e.g., ["java", "spring-boot"])
+  repeated string tags = 7;
+
+  // Score (votes) of the best answer, for additional context
+  int32 best_answer_score = 8;
+}
+
+// Represents a directed edge connecting related threads
+message ThreadEdge {
+  // Source thread ID
+  int64 source_doc_id = 1;
+
+  // Target thread ID
+  int64 target_doc_id = 2;
+
+  // The nature of the relationship
+  EdgeType type = 3;
+}
+
+// Request to fetch a thread graph based on search results
+message ThreadGraphRequest {
+  // The doc_ids of the search results serving as the core of the graph
+  repeated int64 doc_ids = 1;
+}
+
+// Graph representation containing nodes and edges
+message ThreadGraphResponse {
+  repeated ThreadNode nodes = 1;
+  repeated ThreadEdge edges = 2;
+}
+
+// Request to fetch full details for a specific thread
+message ThreadDetailsRequest {
+  int64 doc_id = 1;
+}
+
+// Detailed thread content (revealed on click)
+message ThreadDetailsResponse {
+  int64 doc_id = 1;
+  
+  // The original question title
+  string title = 2;
+  
+  // The accepted or best answer content
+  string best_answer_body = 3;
+  
+  // Link to the original Stack Overflow post
+  string original_url = 4;
+}

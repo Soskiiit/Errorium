@@ -1,0 +1,152 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "project": "Errorium",
+  "version": "1.1.1",
+  "updated_at": "2026-09-29T10:00:00Z",
+  "documents": [
+    {
+      "path": "STATUS.md",
+      "type": "root_status",
+      "title": "Текущее состояние и следующий шаг проекта",
+      "status": "active"
+    },
+    {
+      "path": "AGENTS.md",
+      "type": "agent_guidelines",
+      "title": "Инструкции и правила для AI-агентов (SDD)",
+      "status": "active"
+    },
+    {
+      "path": "README.md",
+      "type": "root_readme",
+      "title": "Описание проекта и точка входа",
+      "status": "active"
+    },
+    {
+      "path": "CHANGE_HISTORY.md",
+      "type": "changelog",
+      "title": "Журнал архитектурных и кодовых изменений",
+      "status": "active"
+    },
+    {
+      "path": "docs/README.md",
+      "type": "index",
+      "title": "Карта документации",
+      "status": "active"
+    },
+    {
+      "path": "docs/Product/README.md",
+      "type": "product_index",
+      "title": "Индекс раздела Product",
+      "status": "active"
+    },
+    {
+      "path": "docs/Product/01-context.md",
+      "type": "product_spec",
+      "title": "Контекст, цели и границы продукта",
+      "status": "active"
+    },
+    {
+      "path": "docs/Product/02-users-and-scenarios.md",
+      "type": "product_spec",
+      "title": "Пользовательские роли и ключевые сценарии",
+      "status": "active"
+    },
+    {
+      "path": "docs/Product/03-requirements.md",
+      "type": "product_spec",
+      "title": "Функциональные и нефункциональные требования",
+      "status": "active"
+    },
+    {
+      "path": "docs/Product/04-interface-and-behavior.md",
+      "type": "product_spec",
+      "title": "Интерфейсы, экраны и поведение системы",
+      "status": "active"
+    },
+    {
+      "path": "docs/Product/05-rules-and-data-meaning.md",
+      "type": "product_spec",
+      "title": "Смысл данных, источники и правила обработки",
+      "status": "active"
+    },
+    {
+      "path": "docs/Tech/README.md",
+      "type": "tech_index",
+      "title": "Индекс раздела Tech",
+      "status": "active"
+    },
+    {
+      "path": "docs/Tech/01-architecture.md",
+      "type": "tech_spec",
+      "title": "Архитектура сервисов, потоки данных и протоколы",
+      "status": "active"
+    },
+    {
+      "path": "docs/Tech/02-running.md",
+      "type": "tech_spec",
+      "title": "Инструкции по развертыванию и окружению",
+      "status": "active"
+    },
+    {
+      "path": "docs/Tech/03-data.md",
+      "type": "tech_spec",
+      "title": "Модели данных, хранилища и форматы индексов",
+      "status": "active"
+    },
+    {
+      "path": "docs/Tech/04-api-and-access.md",
+      "type": "tech_spec",
+      "title": "Спецификация API (REST, gRPC, MCP, SSO)",
+      "status": "active"
+    },
+    {
+      "path": "docs/Tech/05-verification.md",
+      "type": "tech_spec",
+      "title": "Методика тестирования и бенчмаркинга",
+      "status": "active"
+    },
+    {
+      "path": "docs/Tech/WORKSPACE_MAP.md",
+      "type": "tech_spec",
+      "title": "Карта кодовой базы и сервисов",
+      "status": "active"
+    },
+    {
+      "path": "docs/Service/README.md",
+      "type": "service_index",
+      "title": "Индекс раздела Service",
+      "status": "active"
+    },
+    {
+      "path": "docs/Service/decisions.md",
+      "type": "service_spec",
+      "title": "Архитектурные решения (ADR)",
+      "status": "active"
+    },
+    {
+      "path": "docs/Service/sources.md",
+      "type": "service_spec",
+      "title": "Источники требований и нормативная база",
+      "status": "active"
+    },
+    {
+      "path": "docs/Service/verification.md",
+      "type": "service_spec",
+      "title": "Результаты проверок контрольных точек",
+      "status": "active"
+    },
+    {
+      "path": "protos/search.proto",
+      "type": "contract",
+      "title": "Контракт gRPC поискового ядра",
+      "status": "active"
+    },
+    {
+      "path": "protos/graph.proto",
+      "type": "contract",
+      "title": "Контракт gRPC графа связанных тредов",
+      "status": "active"
+    }
+  ]
+}
