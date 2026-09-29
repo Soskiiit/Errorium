@@ -28,10 +28,10 @@ build:
 proto:
 	@echo "Генерация gRPC кода для Gateway..."
 	docker compose run --rm gateway python -m grpc_tools.protoc -I./protos \
-		--python_out=./src/grpc_client --grpc_python_out=./src/grpc_client ./protos/search.proto
-	@echo "Генерация gRPC кода для Search Engine..."
-	docker compose run --rm search_engine python -m grpc_tools.protoc -I./protos \
-		--python_out=./src --grpc_python_out=./src ./protos/search.proto
+		--python_out=./src/grpc_client --grpc_python_out=./src/grpc_client ./protos/search.proto ./protos/graph.proto
+	@echo "Генерация gRPC кода для Search Engine Core..."
+	docker compose run --rm search_engine_core python -m grpc_tools.protoc -I./protos \
+		--python_out=./src --grpc_python_out=./src ./protos/search.proto ./protos/graph.proto
 	@echo "Кодогенерация Protobuf успешно завершена!"
 
 # Тестирование
@@ -45,4 +45,4 @@ test: test-unit test-integration
 
 # Бенчмарк (НИРС: Recall@k, MRR)
 benchmark:
-	docker compose run --rm search_engine python benchmark/evaluate.py
+	docker compose run --rm search_engine_core python benchmark/evaluate.py

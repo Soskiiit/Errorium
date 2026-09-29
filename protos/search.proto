@@ -1,0 +1,149 @@
+syntax = "proto3";
+
+package errorium.search;
+
+option go_package = "github.com/soskiiit/errorium/protos/search;searchpb";
+option py_generic_services = true;
+
+// SearchService — сервис поискового ядра Errorium Core.
+// Реализует BM25 ранжирование, токенизацию кода/стектрейсов и доступ к документам.
+service SearchService {
+  // Выполнить лексический поиск кандидатов по алгоритму BM25
+  rpc Search(SearchRequest) returns (SearchResponse);
+
+  // Получить детальную информацию по конкретному документу/треду
+  rpc GetDocument(GetDocumentRequest) returns (GetDocumentResponse);
+
+  // Пакетное получение документов по их идентификаторам
+  rpc BatchGetDocuments(BatchGetDocumentsRequest) returns (BatchGetDocumentsResponse);
+
+  // Получить системную статистику инвертированного индекса (N, avgdl, размер словаря)
+  rpc GetStats(GetStatsRequest) returns (GetStatsResponse);
+
+  // Проверка жизнеспособности сервиса (Health Check)
+  rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse);
+}
+
+// Запрос на поиск
+message SearchRequest {
+  // Текст запроса: ключевые слова, сообщение об ошибке или полный стектрейс
+  string query = 1;
+
+  // Количество возвращаемых результатов (Top-K, по умолчанию 10)
+  int32 top_k = 2;
+
+  // Опциональный список тегов для фильтрации (например: ["java", "spring-boot"])
+  repeated string tags = 3;
+
+  // Опциональный язык программирования
+  string language = 4;
+
+  // Включать ли полный текст треда (body) в выдачу (иначе только сниппет)
+  bool include_raw_body = 5;
+}
+
+// Найденный релевантный документ
+message SearchHit {
+  // Идентификатор треда/поста Stack Overflow
+  int64 doc_id = 1;
+
+  // Оценка релевантности по алгоритму BM25
+  double score = 2;
+
+  // Заголовок вопроса
+  string title = 3;
+
+  // Очищенный текстовый сниппет с подсветкой совпадений
+  string snippet = 4;
+
+  // Полное тело вопроса (заполняется при include_raw_body = true)
+  string raw_body = 5;
+
+  // Теги треда
+  repeated string tags = 6;
+
+  // Рейтинг вопроса на Stack Overflow (голоса)
+  int32 question_score = 7;
+
+  // Идентификатор принятого ответа сообщества (0 если нет)
+  int64 accepted_answer_id = 8;
+
+  // Содержимое принятого или лучшего ответа
+  string best_answer_body = 9;
+
+  // Рейтинг лучшего ответа
+  int32 best_answer_score = 10;
+
+  // Дата создания вопроса (Unix timestamp в секундах)
+  int64 created_at = 11;
+}
+
+// Результат поиска
+message SearchResponse {
+  // Список найденных документов, отсортированных по убыванию BM25 score
+  repeated SearchHit hits = 1;
+
+  // Общее количество документов, содержащих хотя бы один терм запроса
+  int64 total_hits = 2;
+
+  // Время выполнения поиска на ядре (в миллисекундах)
+  double latency_ms = 3;
+
+  // Список нормализованных токенов, выделенных из запроса токенизатором
+  repeated string tokenized_query = 4;
+}
+
+// Запрос одного документа
+message GetDocumentRequest {
+  int64 doc_id = 1;
+}
+
+message GetDocumentResponse {
+  SearchHit document = 1;
+}
+
+// Пакетный запрос документов
+message BatchGetDocumentsRequest {
+  repeated int64 doc_ids = 1;
+}
+
+message BatchGetDocumentsResponse {
+  repeated SearchHit documents = 1;
+}
+
+// Запрос системной статистики
+message GetStatsRequest {}
+
+message GetStatsResponse {
+  // Общее количество документов в индексе (N)
+  int64 total_documents = 1;
+
+  // Средняя длина документа в токенах (avgdl)
+  double avg_doc_length = 2;
+
+  // Размер словаря уникальных терминов
+  int64 vocabulary_size = 3;
+
+  // Объем файлов индекса на диске (в байтах)
+  int64 index_size_bytes = 4;
+
+  // Флаг готовности индекса к обработке запросов
+  bool is_ready = 5;
+
+  // Временная метка построения индекса
+  int64 build_timestamp = 6;
+}
+
+// Health Check
+message HealthCheckRequest {}
+
+message HealthCheckResponse {
+  enum ServingStatus {
+    UNKNOWN = 0;
+    SERVING = 1;
+    NOT_SERVING = 2;
+    REBUILDING_INDEX = 3;
+  }
+  ServingStatus status = 1;
+  string version = 2;
+}
