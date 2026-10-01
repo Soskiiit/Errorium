@@ -48,3 +48,19 @@
 - Unit-тесты `go test -v -race ./...`: **PASS (1.01s)**.
 - Сборка Dockerfile `gateway`: **Успешно**.
 - Сборка Dockerfile `frontend`: **Успешно**.
+
+## [2026-10-01] — Настройка SEO, robots.txt, sitemap.xml и брендинга
+
+### Затронутые компоненты:
+- `services/frontend/static/robots.txt`
+- `services/frontend/static/sitemap.xml`
+- `services/frontend/static/favicon.svg`
+- `services/frontend/static/index.html`
+- `.gitignore`
+
+### Суть изменений:
+1. Создан `robots.txt` с разрешением индексации контента и запретом служебных путей (`/api/`, `/health`, `/admin/`).
+2. Создан `sitemap.xml` для домена `https://errorium.ru/` с ежедневным приоритетом.
+3. Добавлено исключение в `.gitignore` для `services/frontend/static/sitemap.xml`.
+4. Создан брендовый векторный фавикон `favicon.svg`.
+5. Обновлен `index.html` со слоганом «Errorium. Your error has been solved before.», полным набором мета-тегов для поисковиков, Open Graph и Twitter Cards.

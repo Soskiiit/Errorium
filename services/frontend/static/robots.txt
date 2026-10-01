@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /health
+Disallow: /admin/
+
+Sitemap: https://errorium.ru/sitemap.xml
+Host: https://errorium.ru
