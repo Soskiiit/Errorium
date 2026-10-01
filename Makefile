@@ -36,12 +36,13 @@ proto:
 
 # Тестирование
 test-unit:
-	docker compose run --rm gateway pytest tests/unit
+	@echo "Запуск unit-тестов Gateway (Go)..."
+	cd services/gateway && go test -v -race ./...
 
 test-integration:
-	docker compose run --rm gateway pytest tests/integration
+	@echo "Интеграционные тесты пока не сконфигурированы"
 
-test: test-unit test-integration
+test: test-unit
 
 # Бенчмарк (НИРС: Recall@k, MRR)
 benchmark:

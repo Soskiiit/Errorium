@@ -1,0 +1,36 @@
+services:
+  gateway:
+    image: ghcr.io/soskiiit/errorium-gateway:develop
+    build:
+      context: ./services/gateway
+      dockerfile: Dockerfile
+    container_name: errorium_gateway
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+    networks:
+      - errorium_net
+
+  frontend:
+    image: ghcr.io/soskiiit/errorium-frontend:develop
+    build:
+      context: ./services/frontend
+      dockerfile: Dockerfile
+    container_name: errorium_frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /etc/ssl/errorium.crt:/etc/ssl/errorium.crt:ro
+      - /etc/ssl/errorium.key:/etc/ssl/errorium.key:ro
+    depends_on:
+      - gateway
+    networks:
+      - errorium_net
+
+networks:
+  errorium_net:
+    driver: bridge
