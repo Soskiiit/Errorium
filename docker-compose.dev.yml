@@ -1,0 +1,31 @@
+services:
+  gateway:
+    build:
+      context: ./services/gateway
+      dockerfile: Dockerfile
+    container_name: errorium_gateway_dev
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+    networks:
+      - errorium_dev_net
+
+  frontend:
+    image: nginx:1.26-alpine
+    container_name: errorium_frontend_dev
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    volumes:
+      - ./services/frontend/nginx.dev.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./services/frontend/static:/usr/share/nginx/html:ro
+    depends_on:
+      - gateway
+    networks:
+      - errorium_dev_net
+
+networks:
+  errorium_dev_net:
+    driver: bridge

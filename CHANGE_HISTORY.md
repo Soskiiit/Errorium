@@ -1,5 +1,56 @@
 # CHANGE_HISTORY.md — История изменений проекта Errorium
 
+## [2026-10-08] — Реализация адаптивного Web Frontend SPA по дизайн-референсам (No-Frameworks)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/index.html`
+- `services/frontend/static/styles.css`
+- `services/frontend/static/app.js`
+- `services/frontend/static/mascot.png`
+- `services/frontend/static/blue-fire.png`
+- `services/frontend/dev_server.py`
+- `services/frontend/nginx.dev.conf`
+- `docker-compose.dev.yml`
+- `services/frontend/README.md`
+- `docs/Tech/02-running.md`
+- `docs/Product/04-interface-and-behavior.md`
+- `tests/unit/test_frontend_spa.py`
+- `Makefile`
+- `STATUS.md`
+
+### Суть изменений:
+1. **Перенос дизайна точь-в-точь по макетам из `references/`:**
+   - **Экран `Chat-screen.png`:**
+     - Шапка с кнопкой меню (гамбургер), центрированным заголовком `Errorium` и иконкой профиля.
+     - Центральный Hero-блок с парящим фирменным маскотом `mascot.png` на фоне оригинального арта `blue-fire.png` (интегрирующего синюю ауру и световой эллипс спотлайта), фирменными слоганами в моноширинном шрифте:
+       `Element 404. Reacts with developers` (с красным акцентом на `404.`) и `Stack overflow. Issue overknown.`.
+     - Капсульный нижний контейнер ввода с кнопкой `+`, автоувеличением высоты textarea, синей кнопкой отправки `↑` и предупреждением `AI can make mistakes. Check important information.`.
+   - **Боковое меню `Chat-screen-menu-not-authorized.png`:**
+     - Выдвижная панель (Drawer) с анимацией и блюр-бэкдропом.
+     - Поле поиска по недавним чатам `Search`.
+     - Секция `Recent chats` со стрелкой и 7 референсными ошибками (SyntaxError, IndentationError, TypeError, NameError, UnboundLocalError, KeyError) с меню `⋮`.
+     - Навигационные пункты `MCP` и `About us`.
+     - Плавающая белая пилюля `New chat` с иконкой пера/блокнота.
+     - Нижняя строка профиля `Log in` / `Meet new features!` и иконка настроек `⚙`.
+2. **Чистая архитектура SPA без сторонних фреймворков:**
+   - Полное отсутствие React, Vue, Angular, Bootstrap, Tailwind или внешних CDN.
+   - Модульный Vanilla JavaScript (`services/frontend/static/app.js`) с базой знаний типичных ошибок, генерацией ответов RAG, подсветкой синтаксиса и копированием блоков кода.
+   - Модальные окна интеграции Model Context Protocol (MCP) с выдачей персонального Bearer-токена и готового сниппета `mcp.json` для Cursor / Claude Code.
+3. **Адаптивность (Mobile-First):**
+   - Пиксель-перфект верстка под мобильные устройства (390-430px) и плавное масштабирование на планшеты и десктопы.
+4. **Тестирование (SDD):**
+   - Создан тест `tests/unit/test_frontend_spa.py`, проверяющий наличие ассетов, отсутствие фреймворков, соответствие референсным текстам и адаптивность CSS.
+   - Таргет `make test-unit` расширен для запуска тестов фронтенда.
+5. **Устранение горизонтального скролла и окрашивание интерфейса браузера:**
+   - Добавлены мета-теги `theme-color` (`#070a13`) для светлой и темной тем, `apple-mobile-web-app-status-bar-style: black-translucent` и `viewport-fit=cover` для бесшовной интеграции со статус-баром телефона.
+   - Настроены ограничения `overflow-x: hidden` на `html, body, .app-container, .main-viewport, .view-content, .hero-screen`.
+   - Закрытое боковое меню получило `visibility: hidden; pointer-events: none; box-shadow: none;` для предотвращения расширения виртуального скролла на мобильных устройствах.
+   - Текст слогана и фон `blue-fire.png` адаптированы через `clamp()` и `max-width: 94vw`.
+
+### Результаты верификации:
+- Unit-тесты `make test-unit`: **PASS (Go tests PASS 1.014s, Python SPA tests PASS 0.001s)**.
+- Docker build `services/frontend`: **Успешно (2.6s)**.
+
 ## [2026-10-01] — Настройка CI/CD автодеплоя (Gateway + Frontend)
 
 ### Затронутые компоненты и спецификации:
