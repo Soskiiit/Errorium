@@ -1,0 +1,12 @@
+name: errorium-frontend-dev
+
+services:
+  frontend-dev:
+    build:
+      context: ./services/frontend
+      dockerfile: Dockerfile.dev
+    init: true
+    ports:
+      - "${FRONTEND_DEV_PORT:-3000}:8080"
+    volumes:
+      - ./services/frontend/static:/app:ro

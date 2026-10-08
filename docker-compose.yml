@@ -7,7 +7,7 @@ services:
     container_name: errorium_gateway
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "${GATEWAY_PORT:-8000}:8000"
     environment:
       - PORT=8000
     networks:
@@ -21,8 +21,8 @@ services:
     container_name: errorium_frontend
     restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
+      - "${FRONTEND_HTTP_PORT:-80}:80"
+      - "${FRONTEND_HTTPS_PORT:-443}:443"
     volumes:
       - /etc/ssl/errorium.crt:/etc/ssl/errorium.crt:ro
       - /etc/ssl/errorium.key:/etc/ssl/errorium.key:ro

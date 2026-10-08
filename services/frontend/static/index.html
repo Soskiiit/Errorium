@@ -1,63 +1,128 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Errorium — Your error has been solved before.</title>
-
-    <meta name="description" content="Errorium — intelligent search engine for code exceptions, stack traces, and software engineering solutions. Your error has been solved before.">
-    <meta name="keywords" content="errorium, stack trace search, exception finder, code errors, stack overflow search, debug tool, java, python, go, c++">
-    <link rel="canonical" href="https://errorium.ru/">
-
-    <!-- Open Graph / Social Media -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://errorium.ru/">
-    <meta property="og:title" content="Errorium — Your error has been solved before.">
-    <meta property="og:description" content="Intelligent search engine for code exceptions, stack traces, and software engineering solutions. Your error has been solved before.">
-    <meta property="og:image" content="https://errorium.ru/favicon.png">
-    <meta property="og:site_name" content="Errorium">
-
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Errorium — Your error has been solved before.">
-    <meta name="twitter:description" content="Intelligent search engine for code exceptions, stack traces, and software engineering solutions. Your error has been solved before.">
-    <meta name="twitter:image" content="https://errorium.ru/favicon.png">
-
-    <link rel="icon" type="image/png" href="/favicon.png">
-    <link rel="apple-touch-icon" href="/favicon.png">
-    <style>
-        body {
-            background-color: #0d1117;
-            color: #f0f6fc;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            text-align: center;
-            padding: 1rem;
-        }
-        h1 {
-            font-size: 3rem;
-            font-weight: 700;
-            letter-spacing: -0.03em;
-            margin-bottom: 0.75rem;
-        }
-        h1 span {
-            color: #58a6ff;
-        }
-        p {
-            font-size: 1.25rem;
-            color: #8b949e;
-            font-weight: 400;
-            letter-spacing: -0.01em;
-        }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#050816">
+  <title>Errorium — Your error has been solved before.</title>
+  <meta name="description" content="Errorium — intelligent search for code exceptions, stack traces and engineering solutions.">
+  <meta name="keywords" content="errorium, stack trace search, exception finder, code errors, stack overflow search, debug tool">
+  <link rel="canonical" href="https://errorium.ru/">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://errorium.ru/">
+  <meta property="og:title" content="Errorium — Your error has been solved before.">
+  <meta property="og:description" content="Intelligent search for code exceptions, stack traces and engineering solutions.">
+  <meta property="og:image" content="https://errorium.ru/favicon.png">
+  <meta property="og:site_name" content="Errorium">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Errorium — Your error has been solved before.">
+  <meta name="twitter:description" content="Intelligent search for code exceptions, stack traces and engineering solutions.">
+  <meta name="twitter:image" content="https://errorium.ru/favicon.png">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="apple-touch-icon" href="/favicon.png">
+  <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-    <h1>Error<span>ium</span></h1>
-    <p>Your error has been solved before.</p>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar" aria-label="Chat navigation">
+      <div class="sidebar__top">
+        <a class="wordmark wordmark--sidebar" href="/">Errorium</a>
+        <button class="icon-button sidebar__close" type="button" aria-label="Close menu" data-close-menu>
+          <span class="close-icon" aria-hidden="true"></span>
+        </button>
+      </div>
+
+      <label class="sidebar-search">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7.5"/><path d="m16.7 16.7 4 4"/></svg>
+        <input type="search" placeholder="Search" aria-label="Search chats">
+      </label>
+
+      <section class="recent">
+        <button class="recent__heading" type="button" aria-expanded="true">Recent chats <span class="chevron" aria-hidden="true"></span></button>
+        <ul class="chat-list">
+          <li><button type="button"><span>SyntaxError: invalid syntax</span><b aria-hidden="true">⋮</b></button></li>
+          <li><button type="button"><span>IndentationError: unexpected indent</span><b aria-hidden="true">⋮</b></button></li>
+          <li><button type="button"><span>TypeError: ‘list’ object cannot be interpreted</span><b aria-hidden="true">⋮</b></button></li>
+          <li><button type="button"><span>NameError: name ‘foobar’ is not defined</span><b aria-hidden="true">⋮</b></button></li>
+          <li><button type="button"><span>UnboundLocalError: local variable ‘foobar’</span><b aria-hidden="true">⋮</b></button></li>
+          <li><button type="button"><span>TypeError: ‘str’ object does not support item assignment</span><b aria-hidden="true">⋮</b></button></li>
+          <li><button type="button"><span>KeyError: ‘spam’</span><b aria-hidden="true">⋮</b></button></li>
+        </ul>
+      </section>
+
+      <nav class="sidebar__actions" aria-label="Secondary navigation">
+        <div class="sidebar__action-row">
+          <div class="sidebar__links">
+            <a href="#mcp"><span aria-hidden="true">⌁</span>MCP</a>
+            <a href="#about"><span aria-hidden="true">ⓘ</span>About us</a>
+          </div>
+          <button class="new-chat" type="button"><span aria-hidden="true">▣</span> New chat</button>
+        </div>
+        <div class="guest-row">
+          <a class="login" href="/auth/login">
+            <svg class="profile-icon" width="34" height="34" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8.86114 32.3973C9.87502 30.0086 12.2422 28.3333 15.0007 28.3333H25.0007C27.7591 28.3333 30.1263 30.0086 31.1402 32.3973M26.6673 15.8333C26.6673 19.5151 23.6825 22.4999 20.0007 22.4999C16.3188 22.4999 13.334 19.5151 13.334 15.8333C13.334 12.1514 16.3188 9.16659 20.0007 9.16659C23.6825 9.16659 26.6673 12.1514 26.6673 15.8333ZM36.6673 19.9999C36.6673 29.2047 29.2054 36.6666 20.0007 36.6666C10.7959 36.6666 3.33398 29.2047 3.33398 19.9999C3.33398 10.7952 10.7959 3.33325 20.0007 3.33325C29.2054 3.33325 36.6673 10.7952 36.6673 19.9999Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke="#B8CEF1"/>
+            </svg>
+            <span><strong>Log in</strong><small>Meet new features!</small></span>
+          </a>
+          <button class="settings" type="button" aria-label="Settings">⚙</button>
+        </div>
+      </nav>
+    </aside>
+
+    <button class="backdrop" type="button" aria-label="Close menu" data-close-menu></button>
+
+    <main class="chat-main">
+      <header class="chat-header">
+        <button class="icon-button menu-button" type="button" aria-label="Open menu" aria-controls="sidebar" aria-expanded="false" data-open-menu>
+          <svg class="hamburger-icon" width="26" height="18" viewBox="0 0 26 18" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect width="26" height="2.5" rx="1.25" fill="#a4bde6"/>
+            <rect y="7.75" width="26" height="2.5" rx="1.25" fill="#a4bde6"/>
+            <rect y="15.5" width="26" height="2.5" rx="1.25" fill="#a4bde6"/>
+          </svg>
+        </button>
+        <a class="wordmark" href="/">Errorium</a>
+        <a class="profile-button" href="/auth/login" aria-label="Open profile">
+          <svg class="profile-icon" width="34" height="34" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8.86114 32.3973C9.87502 30.0086 12.2422 28.3333 15.0007 28.3333H25.0007C27.7591 28.3333 30.1263 30.0086 31.1402 32.3973M26.6673 15.8333C26.6673 19.5151 23.6825 22.4999 20.0007 22.4999C16.3188 22.4999 13.334 19.5151 13.334 15.8333C13.334 12.1514 16.3188 9.16659 20.0007 9.16659C23.6825 9.16659 26.6673 12.1514 26.6673 15.8333ZM36.6673 19.9999C36.6673 29.2047 29.2054 36.6666 20.0007 36.6666C10.7959 36.6666 3.33398 29.2047 3.33398 19.9999C3.33398 10.7952 10.7959 3.33325 20.0007 3.33325C29.2054 3.33325 36.6673 10.7952 36.6673 19.9999Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke="#B8CEF1"/>
+          </svg>
+        </a>
+      </header>
+
+      <section class="hero" aria-labelledby="hero-title">
+        <img class="hero-bg" src="/blue-fire.png" alt="" aria-hidden="true" width="814" height="757">
+        <div class="hero-content">
+          <div class="mascot-wrap">
+            <img class="mascot" src="/mascot.png" alt="Errorium mascot" width="130" height="85">
+          </div>
+          <div class="hero-copy">
+            <h1 id="hero-title">Element <span class="accent-red">404.</span> Reacts with developers</h1>
+            <p>Stack overflow. Issue overknown.</p>
+          </div>
+        </div>
+      </section>
+
+      <div class="composer-wrap">
+        <form class="composer" action="/search" method="get">
+          <button class="attach" type="button" aria-label="Attach file">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+              <line x1="12" y1="4" x2="12" y2="20"></line>
+              <line x1="4" y1="12" x2="20" y2="12"></line>
+            </svg>
+          </button>
+          <label class="sr-only" for="query">Describe what went wrong</label>
+          <textarea id="query" name="q" rows="1" placeholder="What went wrong?"></textarea>
+          <button class="send" type="submit" aria-label="Send query">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="12" y1="19" x2="12" y2="5"></line>
+              <polyline points="5 12 12 5 19 12"></polyline>
+            </svg>
+          </button>
+        </form>
+        <p class="disclaimer">AI can make mistakes. Check important information.</p>
+      </div>
+    </main>
+  </div>
+  <script src="/app.js" defer></script>
 </body>
 </html>

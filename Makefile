@@ -1,4 +1,4 @@
-.PHONY: help up down build proto test-unit test-integration test benchmark
+.PHONY: help up down build frontend-dev-server proto test-unit test-integration test benchmark
 
 # По умолчанию выводим справку
 help:
@@ -7,6 +7,7 @@ help:
 	@echo "  make up                - Собрать и запустить все сервисы системы"
 	@echo "  make down              - Остановить и удалить контейнеры"
 	@echo "  make build             - Пересобрать Docker-образы сервисов"
+	@echo "  make frontend-dev-server - Запустить frontend с live reload"
 	@echo "  make proto             - Скомпилировать Protobuf контракты (gRPC) через Docker"
 	@echo "  make test-unit         - Запустить модульные тесты через Docker"
 	@echo "  make test-integration  - Запустить интеграционные тесты через Docker"
@@ -23,6 +24,9 @@ down:
 
 build:
 	docker compose build
+
+frontend-dev-server:
+	docker compose -f docker-compose.dev.yml up --build --remove-orphans frontend-dev
 
 # Кодогенерация gRPC контрактов
 proto:

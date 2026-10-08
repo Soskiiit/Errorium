@@ -1,0 +1,9 @@
+FROM node:22-alpine
+
+RUN npm install --global browser-sync@3.0.4
+
+WORKDIR /app
+
+EXPOSE 8080
+
+CMD ["browser-sync", "start", "--server", "/app", "--files", "/app/**/*", "--host", "0.0.0.0", "--port", "8080", "--no-open", "--no-ui", "--no-notify"]

@@ -43,11 +43,14 @@ INDEX_DIR=/app/data/index
 
 # === Gateway & MCP Service (Роль 3) ===
 PORT=8000
+GATEWAY_PORT=8000
 SEARCH_ENGINE_HOST=search_engine_core
 SEARCH_ENGINE_PORT=50051
 
 # === Web Frontend (Роль 4) ===
-FRONTEND_PORT=3000
+FRONTEND_HTTP_PORT=80
+FRONTEND_HTTPS_PORT=443
+FRONTEND_DEV_PORT=3000
 GATEWAY_API_URL=http://gateway:8000
 
 # === Аутентификация, JWT и SSO ===
@@ -95,4 +98,12 @@ make test
 
 # 5. Остановка всех контейнеров:
 make down
+
+# Запуск только frontend в режиме разработки с live reload:
+make frontend-dev-server
 ```
+
+Production Compose использует `GATEWAY_PORT`, `FRONTEND_HTTP_PORT` и
+`FRONTEND_HTTPS_PORT` только для портов хоста. Внутри Docker-сети сервисы
+продолжают слушать фиксированные порты `8000`, `80` и `443`. Dev-сервер
+доступен по HTTP на `FRONTEND_DEV_PORT`, по умолчанию `3000`.
