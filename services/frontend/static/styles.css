@@ -1,10 +1,12 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
 /* ==========================================================================
    Errorium Design System (Pure Vanilla CSS, Mobile-First & Fully Adaptive)
    Matching Chat-screen.png and Chat-screen-menu-not-authorized.png
    ========================================================================== */
 
 :root {
-    --bg-primary: #070a13;
+    --bg-primary: #090d17;
     --bg-secondary: #0c1122;
     --bg-drawer: #090e1a;
     --bg-card: #101628;
@@ -22,8 +24,8 @@
     --color-red-404: #ff4a4a;
     --color-green-accepted: #10b981;
 
-    --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif;
-    --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    --font-ui: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
 
     --sidebar-width: 330px;
     --header-height: 58px;
@@ -34,6 +36,30 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+    -webkit-tap-highlight-color: transparent !important;
+}
+
+button,
+a,
+[role="button"],
+.icon-btn {
+    -webkit-tap-highlight-color: transparent !important;
+    -webkit-touch-callout: none;
+    user-select: none;
+    -webkit-user-select: none;
+    outline: none;
+}
+
+button:focus,
+button:active,
+a:focus,
+a:active,
+[role="button"]:focus,
+[role="button"]:active,
+.icon-btn:focus,
+.icon-btn:active {
+    outline: none !important;
+    -webkit-tap-highlight-color: transparent !important;
 }
 
 html {
@@ -181,7 +207,7 @@ body {
 .sidebar-toggle-btn:hover,
 .header-sidebar-toggle-btn:hover {
     color: #ffffff;
-    background-color: rgba(255, 255, 255, 0.08);
+    background-color: rgb(34 49 89 / 0.2);
 }
 
 .sidebar-toggle-btn svg path,
@@ -355,11 +381,11 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 7px;
-    background-color: #ffffff;
     color: #080c18;
     border: none;
     border-radius: 24px;
     padding: 9px 16px;
+    margin-right: 3px;
     font-size: 0.92rem;
     font-weight: 600;
     cursor: pointer;
@@ -462,12 +488,14 @@ body {
 .icon-btn {
     background: transparent;
     border: none;
+    outline: none;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 8px;
     transition: opacity 0.15s, background-color 0.15s;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .header-menu-btn,
@@ -716,6 +744,7 @@ body {
     height: 26px;
     border-radius: 50%;
     background-color: rgba(37, 87, 232, 0.2);
+    filter: drop-shadow(0 0px 6px rgba(0, 0, 0, 0.95));
     display: flex;
     align-items: center;
     justify-content: center;
@@ -859,19 +888,31 @@ body {
     box-sizing: border-box;
 }
 
-/* Attachment Popover */
+/* Attachment Popover (Liquid Glass) */
 .attach-popover {
     position: absolute;
     bottom: 84px;
     left: 20px;
-    background-color: #11172a;
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    border-radius: 12px;
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.09) 0%,
+        rgba(17, 24, 44, 0.75) 45%,
+        rgba(10, 15, 30, 0.88) 100%
+    );
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-top: 1px solid rgba(255, 255, 255, 0.32);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
     padding: 6px;
     display: flex;
     flex-direction: column;
     gap: 2px;
-    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.6);
+    box-shadow:
+        inset 0 1px 1px 0 rgba(255, 255, 255, 0.2),
+        0 14px 40px rgba(0, 0, 0, 0.65),
+        0 2px 10px rgba(37, 87, 232, 0.15);
     z-index: 40;
     min-width: 210px;
 }
@@ -903,42 +944,105 @@ body {
     font-family: var(--font-mono);
 }
 
-/* Capsule Input Container (Chat-screen.png) */
+/* Liquid Glass Capsule Input Container (Apple VisionOS / High-end Designer Glass) */
 .prompt-bar-container {
+    position: relative;
     display: flex;
     align-items: center;
     width: 100%;
     max-width: 720px;
-    background-color: var(--bg-input);
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    border-radius: 30px;
-    padding: 6px 8px 6px 14px;
-    gap: 8px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
-    transition: border-color 0.15s, box-shadow 0.15s;
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.03) 10%,
+        rgba(15, 23, 42, 0.35) 70%,
+        rgba(10, 16, 32, 0.5) 100%
+    );
+    backdrop-filter: blur(28px) saturate(210%) brightness(108%);
+    -webkit-backdrop-filter: blur(28px) saturate(210%) brightness(108%);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 9999px;
+    padding: 7px 10px 7px 14px;
+    gap: 10px;
+    box-shadow:
+        0 24px 50px -12px rgba(0, 0, 0, 0.75),
+        0 8px 24px -4px rgba(2, 6, 23, 0.6),
+        inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.3),
+        inset 0 8px 20px -6px rgba(255, 255, 255, 0.15),
+        inset 0 -2px 6px 0 rgba(147, 197, 253, 0.15),
+        inset 0 -12px 28px 0 rgba(5, 10, 25, 0.5);
+    transition:
+        border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+        box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+        background 0.3s ease,
+        transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     box-sizing: border-box;
+    overflow: hidden;
+}
+
+.prompt-bar-container:hover {
+    box-shadow:
+        0 24px 50px -12px rgba(0, 0, 0, 0.75),
+        0 8px 24px -4px rgba(2, 6, 23, 0.6),
+        inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.3),
+        inset 0 8px 20px -6px rgba(255, 255, 255, 0.15),
+        inset 0 -2px 6px 0 rgba(147, 197, 253, 0.15),
+        inset 0 -12px 28px 0 rgba(5, 10, 25, 0.5),
+        0 0 25px 2px rgb(56 110 248 / 0.1);
+    transition:
+            box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1)
 }
 
 .prompt-bar-container:focus-within {
-    border-color: rgba(59, 130, 246, 0.55);
-    box-shadow: 0 0 0 2px rgba(37, 87, 232, 0.25);
+    border-color: rgba(147, 197, 253, 0.7);
+    box-shadow:
+        0 30px 65px -8px rgba(0, 0, 0, 0.85),
+        0 0 45px 2px rgb(56 110 248 / 0.2),
+        0 0 0 1.5px rgba(147, 197, 253, 0.1),
+        inset 0 12px 28px -4px rgba(255, 255, 255, 0.1),
+        inset 0 -3px 8px 0 rgb(78 149 255 / 0.2),
+        inset 0 -16px 36px 0 rgba(5, 10, 25, 0.6);
 }
 
+/* Standalone Plus Action Button (No circle plate) */
 .prompt-plus-btn {
     width: 32px;
     height: 32px;
     color: #94a3b8;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    border-radius: 0;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
     flex-shrink: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: color 0.2s ease, transform 0.15s ease;
+    position: relative;
+    z-index: 2;
 }
 
 .prompt-plus-btn:hover {
     color: #ffffff;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    transform: scale(1.12);
+}
+
+.prompt-plus-btn:active {
+    transform: scale(0.92);
 }
 
 .prompt-input-wrapper {
     flex: 1;
     display: flex;
     align-items: center;
+    position: relative;
+    z-index: 2;
 }
 
 #prompt-input {
@@ -946,42 +1050,71 @@ body {
     background: transparent;
     border: none;
     outline: none;
-    color: var(--text-primary);
+    color: #f8fafc;
     font-size: 0.98rem;
     font-family: inherit;
     resize: none;
-    line-height: 1.4;
+    line-height: 1.45;
     max-height: 140px;
-    padding: 6px 0;
+    padding: 6px 4px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
 #prompt-input::placeholder {
-    color: #718198;
+    color: rgba(203, 213, 225, 0.65);
+    text-shadow: none;
 }
 
-/* Circular Blue Send Button */
+/* Liquid Sapphire Droplet Send Button */
 .prompt-send-btn {
     width: 38px;
     height: 38px;
     border-radius: 50%;
-    background-color: var(--color-accent-blue);
+    background: radial-gradient(
+        100% 100% at 32% 22%,
+        #60a5fa 0%,
+        #3b82f6 35%,
+        #2563eb 70%,
+        #1d4ed8 100%
+    );
     color: #ffffff;
-    border: none;
+    border: 1px solid rgba(255, 255, 255, 0.45);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    transition: background-color 0.15s, transform 0.15s;
+    box-shadow:
+        inset 0 -2px 4px 0 rgba(15, 23, 42, 0.6),
+        0 6px 18px 0 rgba(37, 99, 235, 0.3),
+        0 0 14px 0 rgba(96, 165, 250, 0.2);
+    transition:
+        background 0.25s,
+        transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    z-index: 2;
 }
 
 .prompt-send-btn:hover {
-    background-color: var(--color-accent-blue-hover);
-    transform: scale(1.04);
+    background: radial-gradient(
+        100% 100% at 32% 22%,
+        #60a5fa 35%,
+        #3b82f6 70%,
+        #2563eb 100%
+    );
+    transform: scale(1.03);
+    box-shadow:
+        inset 0 2px 2px 0 rgb(255 255 255 / 0.1),
+        inset 0 -2px 4px 0 rgba(15, 23, 42, 0.5),
+        0 8px 24px 0 rgba(37, 99, 235, 0.5),
+        0 0 20px 0 rgba(96, 165, 250, 0.2);
 }
 
 .prompt-send-btn:active {
-    transform: scale(0.96);
+    transform: scale(0.98);
+    box-shadow:
+        inset 0 1px 2px 0 rgba(0, 0, 0, 0.4),
+        0 3px 10px 0 rgba(37, 99, 235, 0.45);
 }
 
 /* Disclaimer Text */
@@ -1501,7 +1634,7 @@ input:checked + .toggle-slider:before {
     /* Header aligns remaining elements (profile/auth button) to the right */
     .app-header {
         justify-content: flex-end;
-        box-shadow: #070a13 0 0 40px;
+        box-shadow: var(--bg-primary) 0 0 40px;
     }
 
     /* Collapsible sidebar on wide screens */
