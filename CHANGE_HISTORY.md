@@ -1,5 +1,108 @@
 # CHANGE_HISTORY.md — История изменений проекта Errorium
 
+## [2026-10-08] — Устранение эффекта передергивания (FOUC) при перезагрузке со свернутым меню
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/index.html`
+- `services/frontend/static/styles.css`
+- `services/frontend/static/app.js`
+- `tests/unit/test_frontend_spa.py`
+- `STATUS.md`
+
+### Суть изменений:
+1. **Ранняя синхронизация состояния в `<head>`:**
+   - Добавлен компактный синхронный скрипт в `<head>` [index.html](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/index.html), который проверяет `localStorage` на сохраненное состояние `'collapsed'` до первого рендера DOM и навешивает класс `sidebar-collapsed` на `<html>`.
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) добавлены селекторы `html.sidebar-collapsed .sidebar-drawer` и шапки, чтобы браузер рендерил свернутое состояние с самого первого кадра без сдвига верстки (zero layout shift).
+2. **Блокировка CSS-переходов на время начальной загрузки (`preload`):**
+   - Добавлен класс `preload` на `<body>` и стили `.preload * { transition: none !important; }`.
+   - В [app.js](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/app.js) класс `.preload` безопасно снимается после первой отрисовки через `requestAnimationFrame`, возвращая плавную анимацию для пользовательских кликов.
+3. **Синхронизация в JS и фикс видимости кнопки разворачивания меню:**
+   - Методы `collapseDesktopSidebar` и `expandDesktopSidebar` синхронно переключают класс на `document.documentElement`.
+   - Кнопка разворачивания сайдбара в шапке `.header-sidebar-toggle-btn` (`#btn-expand-sidebar`) приведена к визуальному стилю мобильного гамбургер-меню (3 белые полоски через `.hamburger-bar`).
+   - Исправлен конфликт каскада стилей, из-за которого кнопка открывания не исчезала при разворачивании меню, а съезжала в правую часть шапки: добавлено явное скрытие `display: none !important` при раскрытом сайдбаре.
+4. **Тестирование (SDD):**
+   - Расширен `test_collapsible_sidebar_desktop_feature` в [tests/unit/test_frontend_spa.py](file:///home/mariam/WebstormProjects/Errorium/tests/unit/test_frontend_spa.py).
+
+### Результаты верификации:
+- Unit-тесты `python3 -m unittest tests/unit/test_frontend_spa.py`: **PASS (11 unit tests PASS)**.
+
+## [2026-10-08] — Возможность сворачивания бокового меню на десктопе по кнопке с фирменной SVG-иконкой
+
+### Затронутые компоненты и спецификации:
+- `docs/Product/04-interface-and-behavior.md`
+- `tests/unit/test_frontend_spa.py`
+- `services/frontend/static/index.html`
+- `services/frontend/static/styles.css`
+- `services/frontend/static/app.js`
+- `STATUS.md`
+
+### Суть изменений:
+1. **Кнопка сворачивания/разворачивания бокового меню (`.sidebar-toggle-btn` и `.header-sidebar-toggle-btn`):**
+   - Добавлена кнопка со специализированной SVG-иконкой панели (`M6.5 17.5L6.5 6.5...`) в шапку сайдбара и шапку приложения.
+   - Стилизована обводка `stroke: currentColor !important`, обеспечивающая адаптацию под тему оформления и подсветку при наведении.
+2. **Логика и стили сворачивания на широких экранах:**
+   - По умолчанию боковое меню гарантированно открыто (раскрыто) на всех экранах от 768px и выше.
+   - Состояние сохраняется в `localStorage` по ключу `errorium_sidebar_state` (`expanded` / `collapsed`).
+   - Изначально (при первом визите или отсутствии явного сохранения) сайдбар всегда раскрыт. Состояние сворачивания восстанавливается только если пользователь явно свернул его ранее.
+   - Очищен устаревший ключ `errorium_sidebar_collapsed`, чтобы исключить ошибочное открытие в свернутом виде из-за предыдущих тестовых кликов.
+   - По клику на кнопку в сайдбаре меню плавно сворачивается влево (`margin-left: -var(--sidebar-width)`), расширяя рабочую область на 100% ширины экрана.
+   - В шапке основного экрана при свернутом сайдбаре отображаются кнопка разворачивания (с аналогичной SVG-иконкой) и логотип `Errorium`.
+   - Повторный клик разворачивает меню в исходное состояние. Добавлено сочетание клавиш `Ctrl+B` / `Cmd+B`.
+3. **Тестирование (SDD):**
+   - Добавлен тест `test_collapsible_sidebar_desktop_feature` в `tests/unit/test_frontend_spa.py`, проверяющий разметку, SVG, стили и логику управления состоянием в localStorage.
+
+### Результаты верификации:
+- Unit-тесты `python3 -m unittest discover tests/unit`: **PASS (11 unit tests PASS)**.
+
+## [2026-10-08] — Адаптивное масштабирование синего огонька маскота на экранах с малой высотой (Samsung Galaxy Fold)
+
+### Затронутые компоненты и спецификации:
+- `docs/Product/04-interface-and-behavior.md`
+- `tests/unit/test_frontend_spa.py`
+- `services/frontend/static/styles.css`
+- `STATUS.md`
+
+### Суть изменений:
+1. **Ограничение размеров `.hero-glow-aura` и `.blue-fire-bg`:**
+   - По умолчанию максимальный размер ауры уменьшен с чрезмерных `900px / 140vw` до безопасных `min(520px, 120vw)` с ограничением `max-height: 56vh`.
+   - Для фонового изображения `.blue-fire-bg` включено свойство `object-fit: contain; max-height: 100%; max-width: 100%;`, предотвращающее растяжение по вертикали.
+2. **Медиа-запросы для экранов с малой высотой (Galaxy Fold cover screen / Landscape):**
+   - Добавлен `@media (max-height: 720px)`: уменьшение ширины ауры до `380px` (`max-width: 90vw; max-height: 48vh;`).
+   - Добавлен `@media (max-height: 600px)`: уменьшение ширины ауры до `290px` (`max-width: 80vw; max-height: 40vh;`), маскота до `84px` и компактные отступы секции.
+3. **Тестирование (SDD):**
+   - Добавлен модульный тест `test_short_viewport_height_scaling` в `tests/unit/test_frontend_spa.py`.
+
+### Результаты верификации:
+- Unit-тесты `make test-unit`: **PASS (Go PASS, Python SPA 9 tests PASS 0.56s)**.
+
+## [2026-10-08] — Адаптация бокового меню для широких экранов: постоянный сайдбар и скрытие дублирующего логотипа
+
+### Затронутые компоненты и спецификации:
+- `docs/Product/04-interface-and-behavior.md`
+- `tests/unit/test_frontend_spa.py`
+- `services/frontend/static/index.html`
+- `services/frontend/static/styles.css`
+- `services/frontend/static/app.js`
+- `STATUS.md`
+
+### Суть изменений:
+1. **Постоянная боковая панель недавних чатов на широких экранах (≥1024px):**
+   - Сайдбар больше не сворачивается в мобильный Drawer, а отображается в статичном лейауте слева (`position: relative`, `transform: none`, `visibility: visible`, `width: var(--sidebar-width)`).
+   - Затемняющий фон-бэкдроп (`.drawer-backdrop`) скрыт на широких экранах (`display: none`).
+   - Кнопка закрытия `✕` (`.close-btn`) в шапке сайдбара скрыта, так как панель больше не закрывается.
+2. **Исключение дублирования бренда Errorium в интерфейсе:**
+   - Посередине экрана в шапке основного контента заголовок `Errorium` (`.header-logo`) скрыт, исключая повторение названия проекта (название остается единственным — в шапке боковой панели).
+   - Кнопка гамбургер-меню (`.header-menu-btn`) скрыта на широких экранах.
+   - Оставшаяся кнопка профиля/аутентификации аккуратно выровнена по правому краю шапки (`justify-content: flex-end`).
+   - Логотип `Errorium` в шапке сайдбара сделан интерактивным и кликабельным (клик переключает на Hero-экран / создание нового чата).
+3. **Безопасное управление состоянием в JavaScript:**
+   - Добавлена проверка ширины окна в `openSidebar`, предотвращающая блокировку `overflow: hidden` на десктопе.
+4. **Тестирование (SDD):**
+   - Добавлен модульный тест `test_desktop_sidebar_and_header_rules` в `tests/unit/test_frontend_spa.py`.
+
+### Результаты верификации:
+- Unit-тесты `make test-unit`: **PASS (Go PASS, Python SPA 8 tests PASS 0.54s)**.
+
 ## [2026-10-08] — Реализация адаптивного Web Frontend SPA по дизайн-референсам (No-Frameworks)
 
 ### Затронутые компоненты и спецификации:

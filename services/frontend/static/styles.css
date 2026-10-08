@@ -61,6 +61,18 @@ body {
     padding: 0;
 }
 
+/* Suppress transitions on initial page load to eliminate FOUC and twitching */
+.preload,
+.preload *,
+.preload *::before,
+.preload *::after {
+    -webkit-transition: none !important;
+    -moz-transition: none !important;
+    -ms-transition: none !important;
+    -o-transition: none !important;
+    transition: none !important;
+}
+
 /* ==========================================================================
    App Container & Responsive Shell
    ========================================================================== */
@@ -136,6 +148,13 @@ body {
     font-weight: 700;
     letter-spacing: -0.02em;
     color: var(--text-primary);
+    cursor: pointer;
+    user-select: none;
+    transition: opacity 0.15s ease;
+}
+
+.sidebar-brand:hover {
+    opacity: 0.85;
 }
 
 .close-btn {
@@ -144,6 +163,30 @@ body {
 
 .close-btn:hover {
     color: #ffffff;
+}
+
+.sidebar-toggle-btn,
+.header-sidebar-toggle-btn {
+    color: #cbd5e1;
+    width: 36px;
+    height: 36px;
+    display: none !important;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.sidebar-toggle-btn:hover,
+.header-sidebar-toggle-btn:hover {
+    color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+.sidebar-toggle-btn svg path,
+.header-sidebar-toggle-btn svg path {
+    stroke: currentColor !important;
 }
 
 /* Sidebar Search Box */
@@ -207,6 +250,7 @@ body {
 
 .recent-chats-nav {
     flex: 1;
+    min-height: 0;
     overflow-y: auto;
     padding: 4px 10px;
     scrollbar-width: thin;
@@ -269,6 +313,8 @@ body {
 
 /* Sidebar Bottom Controls */
 .sidebar-bottom {
+    margin-top: auto;
+    flex-shrink: 0;
     padding: 14px 18px 18px;
     background-color: var(--bg-drawer);
     border-top: 1px solid rgba(255, 255, 255, 0.05);
@@ -346,7 +392,7 @@ body {
 .user-info-group {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
     cursor: pointer;
     padding: 4px 0;
     border-radius: 8px;
@@ -424,7 +470,8 @@ body {
     transition: opacity 0.15s, background-color 0.15s;
 }
 
-.header-menu-btn {
+.header-menu-btn,
+.header-sidebar-toggle-btn {
     width: 36px;
     height: 36px;
     display: flex;
@@ -497,8 +544,8 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 900px;
-    max-width: 140vw;
+    width: min(520px, 120vw);
+    max-height: 56vh;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -508,9 +555,11 @@ body {
 }
 
 .blue-fire-bg {
-    width: 100%;
+    width: auto;
     max-width: 100%;
+    max-height: 100%;
     height: auto;
+    object-fit: contain;
     display: block;
     user-select: none;
     -webkit-user-drag: none;
@@ -527,9 +576,9 @@ body {
 }
 
 .mascot-wrapper {
-    margin-bottom: 22px;
+    margin-bottom: 18px;
     filter: drop-shadow(0 10px 24px rgba(37, 87, 232, 0.35));
-    animation: mascotFloat 4s ease-in-out infinite;
+    animation: mascotFloat 2s ease-in-out infinite;
 }
 
 @keyframes mascotFloat {
@@ -566,6 +615,7 @@ body {
     letter-spacing: -0.04em;
     line-height: 1.25;
     white-space: nowrap;
+    text-shadow: 0 4px 4px rgba(0, 0, 0, 0.4);
 }
 
 .error-code-red {
@@ -580,10 +630,11 @@ body {
     letter-spacing: -0.04em;
     line-height: 1.25;
     white-space: nowrap;
+    text-shadow: 0 4px 4px rgba(0, 0, 0, 0.4);
 }
 
 .space {
-    letter-spacing: -0.02em;
+    letter-spacing: -0.2em;
 }
 
 /* Floor Spotlight Ellipse Beam (already integrated in blue-fire.png) */
@@ -1267,8 +1318,34 @@ input:checked + .toggle-slider:before {
 }
 
 /* ==========================================================================
-   Responsive Adaptations (Tablet & Desktop)
+   Responsive Adaptations (Small Height, Tablet & Desktop)
    ========================================================================== */
+
+/* Short height screens (e.g. Samsung Galaxy Fold external cover screen, landscape, compact viewports) */
+@media (max-height: 720px) {
+    .hero-glow-aura {
+        max-width: 120vw;
+        max-height: 130vh;
+    }
+}
+
+@media (max-height: 600px) {
+    .hero-screen {
+        padding: 12px 12px 36px;
+    }
+
+    .hero-glow-aura {
+        max-width: 100vw;
+    }
+
+    .mascot-image {
+        width: 84px;
+    }
+
+    .mascot-wrapper {
+        margin-bottom: 14px;
+    }
+}
 
 @media (min-width: 768px) {
     :root {
@@ -1289,10 +1366,173 @@ input:checked + .toggle-slider:before {
 
     .hero-glow-aura {
         width: 560px;
+        max-height: 65vh;
+    }
+
+    /* Sidebar is open by default on screens ≥768px */
+    .sidebar-drawer {
+        position: relative;
+        top: auto;
+        bottom: auto;
+        left: auto;
+        width: var(--sidebar-width);
+        min-width: var(--sidebar-width);
+        max-width: var(--sidebar-width);
+        height: 100%;
+        transform: none !important;
+        visibility: visible !important;
+        pointer-events: auto !important;
+        box-shadow: none !important;
+        transition: margin-left 0.28s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.28s !important;
+        flex-shrink: 0;
+        z-index: 10;
+    }
+
+    .drawer-backdrop {
+        display: none !important;
+    }
+
+    .close-btn {
+        display: none !important;
+    }
+
+    .sidebar-toggle-btn {
+        display: flex !important;
+    }
+
+    .header-menu-btn {
+        display: none !important;
+    }
+
+    .header-sidebar-toggle-btn {
+        display: none !important;
+    }
+
+    .header-logo {
+        display: none !important;
+    }
+
+    .app-header {
+        justify-content: flex-end;
+        box-shadow: #070a13 0 0 40px;
+    }
+
+    html.sidebar-collapsed .sidebar-drawer,
+    .sidebar-drawer.collapsed,
+    .app-container.sidebar-collapsed .sidebar-drawer {
+        margin-left: calc(-1 * var(--sidebar-width)) !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+    }
+
+    html.sidebar-collapsed .header-sidebar-toggle-btn,
+    .app-container.sidebar-collapsed .header-sidebar-toggle-btn {
+        display: flex !important;
+    }
+
+    html.sidebar-collapsed .header-logo,
+    .app-container.sidebar-collapsed .header-logo {
+        display: block !important;
+    }
+
+    html.sidebar-collapsed .app-header,
+    .app-container.sidebar-collapsed .app-header {
+        justify-content: space-between !important;
+    }
+
+    .main-viewport {
+        min-width: 0;
     }
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 930px) {
+    /* Persistent Sidebar (default open on wide screens, collapsible by toggle button) */
+    .sidebar-drawer {
+        position: relative;
+        top: auto;
+        bottom: auto;
+        left: auto;
+        width: var(--sidebar-width);
+        min-width: var(--sidebar-width);
+        max-width: var(--sidebar-width);
+        height: 100%;
+        transform: none !important;
+        visibility: visible !important;
+        pointer-events: auto !important;
+        box-shadow: none !important;
+        transition: margin-left 0.28s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.28s !important;
+        flex-shrink: 0;
+        z-index: 10;
+    }
+    .prompt-bar-container {
+        margin-bottom: 6px;
+    }
+    
+    /* Backdrop is never shown on wide screens */
+    .drawer-backdrop {
+        display: none !important;
+    }
+
+    /* Cross/close button in sidebar disappears as menu uses dedicated collapse button */
+    .close-btn {
+        display: none !important;
+    }
+
+    /* Dedicated sidebar collapse button shown in sidebar header */
+    .sidebar-toggle-btn {
+        display: flex !important;
+    }
+
+    /* Hamburger menu button in header disappears as sidebar is open by default */
+    .header-menu-btn {
+        display: none !important;
+    }
+
+    /* Open/expand button in header is hidden by default when sidebar is open */
+    .header-sidebar-toggle-btn {
+        display: none !important;
+    }
+
+    /* Errorium text in the center of header disappears to prevent duplicate project names */
+    .header-logo {
+        display: none !important;
+    }
+
+    /* Header aligns remaining elements (profile/auth button) to the right */
+    .app-header {
+        justify-content: flex-end;
+        box-shadow: #070a13 0 0 40px;
+    }
+
+    /* Collapsible sidebar on wide screens */
+    html.sidebar-collapsed .sidebar-drawer,
+    .sidebar-drawer.collapsed,
+    .app-container.sidebar-collapsed .sidebar-drawer {
+        margin-left: calc(-1 * var(--sidebar-width)) !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+    }
+
+    html.sidebar-collapsed .header-sidebar-toggle-btn,
+    .app-container.sidebar-collapsed .header-sidebar-toggle-btn {
+        display: flex !important;
+    }
+
+    html.sidebar-collapsed .header-logo,
+    .app-container.sidebar-collapsed .header-logo {
+        display: block !important;
+    }
+
+    html.sidebar-collapsed .app-header,
+    .app-container.sidebar-collapsed .app-header {
+        justify-content: space-between !important;
+    }
+
+    /* Main viewport takes remaining width cleanly */
+    .main-viewport {
+        min-width: 0;
+    }
+
     /* On wide screens, prompt bar expands gracefully */
     .prompt-bar-container {
         max-width: 800px;

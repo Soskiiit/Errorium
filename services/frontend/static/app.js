@@ -131,7 +131,10 @@
         app: document.getElementById('app'),
         backdrop: document.getElementById('backdrop'),
         sidebar: document.getElementById('sidebar'),
+        sidebarBrand: document.getElementById('sidebar-brand'),
         btnMenu: document.getElementById('btn-menu'),
+        btnToggleSidebar: document.getElementById('btn-toggle-sidebar'),
+        btnExpandSidebar: document.getElementById('btn-expand-sidebar'),
         btnCloseSidebar: document.getElementById('btn-close-sidebar'),
         headerLogo: document.getElementById('header-logo'),
         btnProfile: document.getElementById('btn-profile'),
@@ -174,9 +177,24 @@
     };
 
     // =========================================================================
-    // Sidebar Drawer Controls
+    // Sidebar Drawer & Desktop Collapse Controls
     // =========================================================================
+    const SIDEBAR_STATE_KEY = 'errorium_sidebar_state';
+
+    // Clear legacy boolean key if present to prevent accidental default collapsed state
+    try {
+        localStorage.removeItem('errorium_sidebar_collapsed');
+    } catch (e) {}
+
+    function isWideScreen() {
+        return window.innerWidth >= 768;
+    }
+
     function openSidebar() {
+        if (isWideScreen()) {
+            expandDesktopSidebar(true);
+            return;
+        }
         elements.sidebar.classList.add('open');
         elements.backdrop.classList.add('active');
         document.body.style.overflow = 'hidden';
@@ -188,7 +206,75 @@
         document.body.style.overflow = '';
     }
 
-    elements.btnMenu?.addEventListener('click', openSidebar);
+    function collapseDesktopSidebar(saveState = true) {
+        document.documentElement.classList.add('sidebar-collapsed');
+        elements.app.classList.add('sidebar-collapsed');
+        elements.sidebar.classList.add('collapsed');
+        if (saveState) {
+            try {
+                localStorage.setItem(SIDEBAR_STATE_KEY, 'collapsed');
+            } catch (e) {}
+        }
+    }
+
+    function expandDesktopSidebar(saveState = true) {
+        document.documentElement.classList.remove('sidebar-collapsed');
+        elements.app.classList.remove('sidebar-collapsed');
+        elements.sidebar.classList.remove('collapsed');
+        if (saveState) {
+            try {
+                localStorage.setItem(SIDEBAR_STATE_KEY, 'expanded');
+            } catch (e) {}
+        }
+    }
+
+    function toggleDesktopSidebar() {
+        if (elements.app.classList.contains('sidebar-collapsed')) {
+            expandDesktopSidebar(true);
+        } else {
+            collapseDesktopSidebar(true);
+        }
+    }
+
+    // Default state: initially EXPANDED (open by default).
+    // Only if user explicitly collapsed it and saved preference, restore collapsed state.
+    try {
+        const savedState = localStorage.getItem(SIDEBAR_STATE_KEY);
+        if (savedState === 'collapsed' && isWideScreen()) {
+            collapseDesktopSidebar(false);
+        } else {
+            expandDesktopSidebar(false);
+        }
+    } catch (e) {
+        expandDesktopSidebar(false);
+    }
+
+    // Safely remove preload class after first paint to re-enable smooth interactive transitions
+    function removePreload() {
+        requestAnimationFrame(() => {
+            setTimeout(() => {
+                document.body.classList.remove('preload');
+            }, 60);
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        window.addEventListener('DOMContentLoaded', removePreload);
+    } else {
+        removePreload();
+    }
+
+    elements.btnToggleSidebar?.addEventListener('click', toggleDesktopSidebar);
+    elements.btnExpandSidebar?.addEventListener('click', toggleDesktopSidebar);
+
+    elements.btnMenu?.addEventListener('click', () => {
+        if (isWideScreen()) {
+            toggleDesktopSidebar();
+        } else {
+            openSidebar();
+        }
+    });
+
     elements.btnCloseSidebar?.addEventListener('click', closeSidebar);
     elements.backdrop?.addEventListener('click', () => {
         closeSidebar();
@@ -213,7 +299,7 @@
     elements.recentChatsToggle?.addEventListener('click', function () {
         const isCollapsed = this.classList.toggle('collapsed');
         if (elements.recentChatsContainer) {
-            elements.recentChatsContainer.style.display = isCollapsed ? 'none' : 'block';
+            elements.recentChatsContainer.style.display = isCollapsed ? 'none' : '';
         }
     });
 
@@ -384,6 +470,10 @@
         switchToHeroView();
     });
 
+    elements.sidebarBrand?.addEventListener('click', () => {
+        switchToHeroView();
+    });
+
     // Render Chat Messages
     function loadChatByQuery(query, chatId = null) {
         switchToChatView();
@@ -531,11 +621,18 @@
         }
     };
 
-    // Global keyboard shortcuts (ESC to close modals and sidebar)
+    // Global keyboard shortcuts (ESC to close modals/sidebar, Ctrl/Cmd+B to toggle sidebar)
     document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') {
             closeAllModals();
             closeSidebar();
+        } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'b') {
+            e.preventDefault();
+            if (isWideScreen()) {
+                toggleDesktopSidebar();
+            } else {
+                elements.sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
+            }
         }
     });
 

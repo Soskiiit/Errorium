@@ -134,6 +134,115 @@ class TestFrontendSPA(unittest.TestCase):
         # Темная тема
         self.assertTrue("#0" in css or "rgb" in css or "hsl" in css)
 
+    def test_short_viewport_height_scaling(self):
+        """Проверка адаптивности фона маскота blue-fire на экранах с небольшой высотой (Galaxy Fold, landscape)."""
+        css_path = os.path.join(STATIC_DIR, "styles.css")
+        with open(css_path, "r", encoding="utf-8") as f:
+            css = f.read()
+
+        # Проверка наличия ограничения по высоте вьюпорта (max-height)
+        self.assertIn("max-height", css)
+        self.assertIn("@media (max-height:", css)
+
+        # Проверка, что на малых по высоте экранах огонек уменьшается
+        fold_match = re.search(r"@media\s*\(\s*max-height\s*:\s*(?:720px|700px|680px|650px|600px)\s*\)\s*\{([^}]+(?:\{[^}]*\}[^}]*)*)\}", css)
+        self.assertIsNotNone(fold_match, "Медиа-запрос для экранов с малой высотой должен присутствовать в styles.css")
+        fold_css = fold_match.group(1)
+        self.assertIn(".hero-glow-aura", fold_css)
+
+    def test_sidebar_bottom_pinned_to_bottom(self):
+        """Проверка фиксации нижней панели сайдбара (MCP, About us, Login) внизу при сворачивании недавних чатов."""
+        css_path = os.path.join(STATIC_DIR, "styles.css")
+        with open(css_path, "r", encoding="utf-8") as f:
+            css = f.read()
+
+        # Поиск блока .sidebar-bottom
+        sidebar_bottom_match = re.search(r"\.sidebar-bottom\s*\{([^}]+)\}", css)
+        self.assertIsNotNone(sidebar_bottom_match, "Селектор .sidebar-bottom должен присутствовать в styles.css")
+        bottom_css = sidebar_bottom_match.group(1)
+
+        # Проверка прижатия к низу через margin-top: auto
+        self.assertIn("margin-top: auto", bottom_css, ".sidebar-bottom должен иметь margin-top: auto для прижатия к низу")
+
+    def test_desktop_sidebar_and_header_rules(self):
+        """Проверка правил для широких экранов: постоянный сайдбар, скрытие крестика и скрытие центрального логотипа."""
+        css_path = os.path.join(STATIC_DIR, "styles.css")
+        with open(css_path, "r", encoding="utf-8") as f:
+            css = f.read()
+
+        # Извлекаем весь блок адаптивного сайдбара с учетом вложенных фигурных скобок
+        start_idx = css.find("@media (min-width: 930px)")
+        if start_idx == -1:
+            start_idx = css.find("@media (min-width: 1024px)")
+        self.assertNotEqual(start_idx, -1, "Блок адаптивного десктопного медиа-запроса должен присутствовать в styles.css")
+
+        open_braces = 0
+        found_first = False
+        end_idx = -1
+        for i in range(start_idx, len(css)):
+            if css[i] == '{':
+                open_braces += 1
+                found_first = True
+            elif css[i] == '}':
+                open_braces -= 1
+                if found_first and open_braces == 0:
+                    end_idx = i
+                    break
+
+        self.assertNotEqual(end_idx, -1, "Конец блока @media (min-width: 1024px) должен быть найден")
+        desktop_css = css[start_idx:end_idx]
+
+        # 1. Сайдбар не сворачивается: позиционирование и видимость
+        self.assertIn(".sidebar-drawer", desktop_css)
+        self.assertIn("visibility: visible", desktop_css)
+
+        # 2. Бэкдроп скрыт на широких экранах
+        self.assertIn(".drawer-backdrop", desktop_css)
+        self.assertIn("display: none", desktop_css)
+
+        # 3. Крестик скрывается т.к. меню не закрывается
+        self.assertTrue(".close-btn" in desktop_css or "#btn-close-sidebar" in desktop_css)
+
+        # 4. Логотип Errorium посередине шапки скрывается во избежание дублирования
+        self.assertTrue(".header-logo" in desktop_css or "#header-logo" in desktop_css)
+
+        # 5. Кнопка меню (гамбургер) скрывается на широких экранах
+        self.assertTrue(".header-menu-btn" in desktop_css or "#btn-menu" in desktop_css)
+
+    def test_collapsible_sidebar_desktop_feature(self):
+        """Проверка возможности сворачивания бокового меню на широких устройствах и кнопки с заданным SVG."""
+        html_path = os.path.join(STATIC_DIR, "index.html")
+        css_path = os.path.join(STATIC_DIR, "styles.css")
+        js_path = os.path.join(STATIC_DIR, "app.js")
+
+        with open(html_path, "r", encoding="utf-8") as f:
+            html = f.read()
+        with open(css_path, "r", encoding="utf-8") as f:
+            css = f.read()
+        with open(js_path, "r", encoding="utf-8") as f:
+            js = f.read()
+
+        # 1. Наличие кнопки с заданным SVG в разметке
+        self.assertIn("btn-toggle-sidebar", html)
+        self.assertIn("M6.5 17.5L6.5 6.5", html)
+        self.assertIn("19.362 3.32698", html)
+
+        # 2. Наличие стилей сворачивания сайдбара для широких экранов
+        self.assertIn("sidebar-toggle-btn", css)
+        self.assertIn("sidebar-collapsed", css)
+
+        # 3. Наличие логики переключения сворачивания в app.js и сохранения в localStorage
+        self.assertIn("toggleDesktopSidebar", js)
+        self.assertIn("errorium_sidebar_state", js)
+        self.assertIn("localStorage.getItem", js)
+        self.assertIn("localStorage.setItem", js)
+
+        # 4. Защита от FOUC/передергивания при перезагрузке (preload и ранний скрипт в head)
+        self.assertIn("preload", html)
+        self.assertIn("preload", css)
+        self.assertIn("html.sidebar-collapsed", css)
+        self.assertIn("document.documentElement.classList.add('sidebar-collapsed')", html)
+
     def test_dev_environment_files_exist(self):
         """Проверка наличия файлов окружения для локальной разработки."""
         dev_server_path = os.path.join(REPO_ROOT, "services", "frontend", "dev_server.py")
