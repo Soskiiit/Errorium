@@ -97,7 +97,7 @@ erDiagram
         uuid id PK "UUIDv7"
         text email UK "Уникальный email (CHECK <= 255)"
         text username "Отображаемое имя (CHECK <= 100)"
-        text avatar_url "URL аватара в MinIO"
+        text avatar_url "URL аватара в Garage S3"
         text password_hash "Хэш пароля (NULL для чистого SSO)"
         text role "user | admin (CHECK)"
         boolean is_active "Флаг активности"
@@ -176,7 +176,7 @@ erDiagram
    - `id`: UUID (UUIDv7, PK).
    - `email`: TEXT NOT NULL UNIQUE CHECK (length(email) <= 255).
    - `username`: TEXT NOT NULL CHECK (length(username) <= 100).
-   - `avatar_url`: TEXT NULL — ссылка на объект в S3/MinIO хранилище.
+   - `avatar_url`: TEXT NULL — ссылка на объект в S3/Garage хранилище.
    - `password_hash`: TEXT NULL CHECK (password_hash IS NULL OR length(password_hash) <= 255) — хэш пароля. Для SSO-пользователей `NULL`.
    - `role`: TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin')).
    - `is_active`: BOOLEAN NOT NULL DEFAULT TRUE.
@@ -223,12 +223,12 @@ erDiagram
    - `action`: TEXT NOT NULL CHECK (length(action) <= 100), `details`: JSONB NOT NULL DEFAULT '{}'::jsonb.
    - Индексы: `idx_audit_logs_user_id`, `idx_audit_logs_created_at DESC`.
 
-### 3.3. Объектное хранилище аватарок (MinIO / S3)
+### 3.3. Объектное хранилище аватарок (Garage / S3)
 
-Для хранения загружаемых аватарок пользователей используется совместимое с Amazon S3 объектное хранилище **MinIO**:
+Для хранения загружаемых аватарок пользователей используется совместимое с Amazon S3 объектное хранилище **Garage**:
 - **Бакет:** `errorium-avatars` (публичный доступ на чтение по CDN/HTTP URL).
 - **Путь к объекту:** `avatars/{user_id}/{hash}.webp` (изображения пережимаются в формат WebP на стороне Gateway).
-- **Ссылка в БД:** В поле `users.avatar_url` сохраняется постоянный HTTP-адрес объекта (например, `https://errorium.ru/storage/avatars/{user_id}/{hash}.webp` или `http://localhost:9000/...`).
+- **Ссылка в БД:** В поле `users.avatar_url` сохраняется постоянный HTTP-адрес объекта (например, `https://errorium.ru/storage/avatars/{user_id}/{hash}.webp` или `http://localhost:3900/...`).
 
 ### 3.4. Политика авторизации для MCP (Model Context Protocol)
 

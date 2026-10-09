@@ -20,8 +20,8 @@ class TestDockerPortsConfiguration(unittest.TestCase):
 
         expected_vars = [
             "POSTGRES_PORT=5432",
-            "MINIO_PORT=9000",
-            "MINIO_CONSOLE_PORT=9001",
+            "GARAGE_PORT=3900",
+            "GARAGE_ADMIN_PORT=3903",
             "GATEWAY_PORT=8000",
             "FRONTEND_PORT=3000",
         ]
@@ -37,18 +37,18 @@ class TestDockerPortsConfiguration(unittest.TestCase):
         with open(DEV_COMPOSE_PATH, "r", encoding="utf-8") as f:
             compose_text = f.read()
 
-        # MinIO API port (allows changing port 9000)
+        # Garage S3 API port (allows changing port 3900)
         self.assertRegex(
             compose_text,
-            r'["\']127\.0\.0\.1:\$\{MINIO_PORT:-9000\}:9000["\']',
-            "Порт MinIO API должен поддерживать переопределение через MINIO_PORT с дефолтом 9000",
+            r'["\']127\.0\.0\.1:\$\{GARAGE_PORT:-3900\}:3900["\']',
+            "Порт Garage S3 API должен поддерживать переопределение через GARAGE_PORT с дефолтом 3900",
         )
 
-        # MinIO Console port (allows changing port 9001)
+        # Garage Admin / Metrics port (allows changing port 3903)
         self.assertRegex(
             compose_text,
-            r'["\']127\.0\.0\.1:\$\{MINIO_CONSOLE_PORT:-9001\}:9001["\']',
-            "Порт MinIO Console должен поддерживать переопределение через MINIO_CONSOLE_PORT с дефолтом 9001",
+            r'["\']127\.0\.0\.1:\$\{GARAGE_ADMIN_PORT:-3903\}:3903["\']',
+            "Порт Garage Admin API должен поддерживать переопределение через GARAGE_ADMIN_PORT с дефолтом 3903",
         )
 
         # Postgres port (allows changing port 5432)
