@@ -19,18 +19,22 @@ func (c DBConfig) DSN() string {
 		c.User, c.Password, c.Host, c.Port, c.Name, c.SSLMode)
 }
 
-type MinIOConfig struct {
+type S3Config struct {
 	Endpoint   string
 	AccessKey  string
 	SecretKey  string
 	BucketName string
+	Region     string
 	UseSSL     bool
 }
+
+type MinIOConfig = S3Config
 
 type Config struct {
 	Port        string
 	DB          DBConfig
-	MinIO       MinIOConfig
+	S3          S3Config
+	MinIO       S3Config
 	AutoMigrate bool
 }
 
@@ -42,6 +46,15 @@ func getEnv(key, defaultVal string) string {
 }
 
 func Load() *Config {
+	s3Cfg := S3Config{
+		Endpoint:   getEnv("S3_ENDPOINT", getEnv("GARAGE_ENDPOINT", getEnv("MINIO_ENDPOINT", "localhost:3900"))),
+		AccessKey:  getEnv("S3_ACCESS_KEY", getEnv("GARAGE_ACCESS_KEY", getEnv("MINIO_ACCESS_KEY", "garageadmin"))),
+		SecretKey:  getEnv("S3_SECRET_KEY", getEnv("GARAGE_SECRET_KEY", getEnv("MINIO_SECRET_KEY", "garageadminpassword"))),
+		BucketName: getEnv("S3_BUCKET_NAME", getEnv("GARAGE_BUCKET_NAME", getEnv("MINIO_BUCKET_NAME", "errorium-avatars"))),
+		Region:     getEnv("S3_REGION", getEnv("GARAGE_REGION", "garage")),
+		UseSSL:     getEnv("S3_USE_SSL", getEnv("GARAGE_USE_SSL", getEnv("MINIO_USE_SSL", "false"))) == "true",
+	}
+
 	return &Config{
 		Port:        getEnv("GATEWAY_PORT", "8000"),
 		AutoMigrate: getEnv("AUTO_MIGRATE", "true") == "true",
@@ -53,12 +66,7 @@ func Load() *Config {
 			Password: getEnv("DB_PASSWORD", "errorium_password"),
 			SSLMode:  getEnv("DB_SSLMODE", "disable"),
 		},
-		MinIO: MinIOConfig{
-			Endpoint:   getEnv("MINIO_ENDPOINT", "localhost:9000"),
-			AccessKey:  getEnv("MINIO_ACCESS_KEY", "minioadmin"),
-			SecretKey:  getEnv("MINIO_SECRET_KEY", "minioadminpassword"),
-			BucketName: getEnv("MINIO_BUCKET_NAME", "errorium-avatars"),
-			UseSSL:     getEnv("MINIO_USE_SSL", "false") == "true",
-		},
+		S3:    s3Cfg,
+		MinIO: s3Cfg,
 	}
 }

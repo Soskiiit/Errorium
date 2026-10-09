@@ -21,13 +21,13 @@
 | `frontend` | `3000` | `FRONTEND_PORT` | HTTP | Веб-интерфейс пользователя и админ-панель |
 | `gateway` | `8000` | `GATEWAY_PORT` | HTTP / SSE | REST API, Swagger (`/docs`), SSO Callbacks, Remote MCP |
 | `postgres` | `5432` | `POSTGRES_PORT` | PostgreSQL TCP | СУБД Gateway (доступ с хоста для DBeaver / psql) |
-| `minio` (API) | `9000` | `MINIO_PORT` | S3 API (HTTP) | Хранилище объектов / аватарок (S3 клиент с хоста) |
-| `minio` (Console) | `9001` | `MINIO_CONSOLE_PORT` | HTTP | Веб-консоль управления MinIO |
+| `garage` (S3 API) | `3900` | `GARAGE_PORT` | S3 API (HTTP) | Хранилище объектов / аватарок (S3 клиент с хоста) |
+| `garage` (Admin) | `3903` | `GARAGE_ADMIN_PORT` | HTTP | Garage Admin & Metrics API |
 | `search_engine_core` | `50051` | `SEARCH_GRPC_PORT` | gRPC (HTTP/2) | Поисковое ядро и построение графа связей |
 
 > [!TIP]
 > **Конфликт портов на хост-машине:**  
-> Если порт (например, `9000` или `5432`) уже занят другим процессом на рабочей машине, переопределите его в файле `.env` (`MINIO_PORT=9010`, `POSTGRES_PORT=5433`). Внутри Docker-сети сервисы продолжат общаться по внутренним портам по умолчанию, конфликты на хосте будут устранены.
+> Если порт (например, `3900` или `5432`) уже занят другим процессом на рабочей машине, переопределите его в файле `.env` (`GARAGE_PORT=3910`, `POSTGRES_PORT=5433`). Внутри Docker-сети сервисы продолжат общаться по внутренним портам по умолчанию, конфликты на хосте будут устранены.
 
 ---
 
@@ -66,14 +66,15 @@ DB_USER=errorium_user
 DB_PASSWORD=errorium_password
 DB_SSLMODE=disable
 
-# === Объектное хранилище аватарок (MinIO / S3) ===
-MINIO_PORT=9000
-MINIO_CONSOLE_PORT=9001
-MINIO_ENDPOINT=minio:9000
-MINIO_ROOT_USER=minioadmin
-MINIO_ROOT_PASSWORD=minioadminpassword
-MINIO_BUCKET_NAME=errorium-avatars
-MINIO_USE_SSL=false
+# === Объектное хранилище аватарок (Garage / S3) ===
+GARAGE_PORT=3900
+GARAGE_ADMIN_PORT=3903
+GARAGE_ENDPOINT=garage:3900
+GARAGE_DEFAULT_ACCESS_KEY=garageadmin
+GARAGE_DEFAULT_SECRET_KEY=garageadminpassword
+GARAGE_DEFAULT_BUCKET=errorium-avatars
+GARAGE_REGION=garage
+GARAGE_USE_SSL=false
 
 # === Аутентификация, JWT и SSO ===
 JWT_SECRET_KEY=change-this-in-production-to-strong-secret-key-64chars-min

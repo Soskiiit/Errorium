@@ -19,19 +19,29 @@ services:
     networks:
       - errorium_dev_net
 
-  minio:
-    image: minio/minio:latest
-    container_name: errorium_minio_dev
+  garage:
+    image: dxflrs/garage:v2.4.1
+    container_name: errorium_garage_dev
     restart: unless-stopped
-    command: server /data --console-address ":9001"
+    command: ["/garage", "server", "--single-node", "--default-bucket"]
     ports:
-      - "127.0.0.1:${MINIO_PORT:-9000}:9000"
-      - "127.0.0.1:${MINIO_CONSOLE_PORT:-9001}:9001"
+      - "127.0.0.1:${GARAGE_PORT:-3900}:3900"
+      - "127.0.0.1:${GARAGE_ADMIN_PORT:-3903}:3903"
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadminpassword}
+      GARAGE_DEFAULT_ACCESS_KEY: ${GARAGE_DEFAULT_ACCESS_KEY:-garageadmin}
+      GARAGE_DEFAULT_SECRET_KEY: ${GARAGE_DEFAULT_SECRET_KEY:-garageadminpassword}
+      GARAGE_DEFAULT_BUCKET: ${GARAGE_DEFAULT_BUCKET:-errorium-avatars}
+      GARAGE_RPC_SECRET: ${GARAGE_RPC_SECRET:-0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef}
+      GARAGE_ADMIN_TOKEN: ${GARAGE_ADMIN_TOKEN:-0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef}
     volumes:
-      - errorium_dev_minio_data:/data
+      - ./deploy/garage/garage.toml:/etc/garage.toml:ro
+      - errorium_dev_garage_meta:/var/lib/garage/meta
+      - errorium_dev_garage_data:/var/lib/garage/data
+    healthcheck:
+      test: ["CMD", "/garage", "node", "id"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
       - errorium_dev_net
 
@@ -51,11 +61,16 @@ services:
       - DB_USER=${POSTGRES_USER:-errorium_user}
       - DB_PASSWORD=${POSTGRES_PASSWORD:-errorium_password}
       - DB_SSLMODE=disable
-      - MINIO_ENDPOINT=minio:9000
-      - MINIO_ACCESS_KEY=${MINIO_ROOT_USER:-minioadmin}
-      - MINIO_SECRET_KEY=${MINIO_ROOT_PASSWORD:-minioadminpassword}
-      - MINIO_BUCKET_NAME=${MINIO_BUCKET_NAME:-errorium-avatars}
-      - MINIO_USE_SSL=false
+      - S3_ENDPOINT=garage:3900
+      - S3_REGION=garage
+      - S3_ACCESS_KEY=${GARAGE_DEFAULT_ACCESS_KEY:-garageadmin}
+      - S3_SECRET_KEY=${GARAGE_DEFAULT_SECRET_KEY:-garageadminpassword}
+      - S3_BUCKET_NAME=${GARAGE_DEFAULT_BUCKET:-errorium-avatars}
+      - S3_USE_SSL=false
+      - GARAGE_ENDPOINT=garage:3900
+      - GARAGE_ACCESS_KEY=${GARAGE_DEFAULT_ACCESS_KEY:-garageadmin}
+      - GARAGE_SECRET_KEY=${GARAGE_DEFAULT_SECRET_KEY:-garageadminpassword}
+      - GARAGE_BUCKET_NAME=${GARAGE_DEFAULT_BUCKET:-errorium-avatars}
     depends_on:
       postgres:
         condition: service_healthy
@@ -78,7 +93,8 @@ services:
 
 volumes:
   errorium_dev_postgres_data:
-  errorium_dev_minio_data:
+  errorium_dev_garage_meta:
+  errorium_dev_garage_data:
 
 networks:
   errorium_dev_net:

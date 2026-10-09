@@ -1,5 +1,39 @@
 # CHANGE_HISTORY.md — История изменений проекта Errorium
 
+## [2026-10-10] — Миграция объектного хранилища S3 с MinIO на Garage
+
+### Затронутые компоненты и спецификации:
+- `deploy/garage/garage.toml`
+- `docker-compose.yml`
+- `docker-compose.dev.yml`
+- `.env.example`
+- `services/gateway/pkg/config/config.go`
+- `services/gateway/pkg/config/config_test.go`
+- `docs/Tech/02-running.md`
+- `docs/Tech/03-data.md`
+- `docs/Tech/04-api-and-access.md`
+- `tests/unit/test_docker_ports.py`
+- `STATUS.md`
+
+### Суть изменений:
+1. **Инфраструктура Garage S3 (`deploy/garage/garage.toml`, docker-compose):**
+   - В связи с прекращением поддержки и удалением образов MinIO осуществлен переход на легковесное распределенное S3-совместимое хранилище **Garage** (образ `dxflrs/garage:v2.4.1`).
+   - Добавлен базовый конфигурационный файл `deploy/garage/garage.toml` (sqlite движок метаданных, S3 API на порту 3900, Admin API на порту 3903, replication_factor = 1).
+   - В `docker-compose.yml` и `docker-compose.dev.yml` сервис `minio` заменен на `garage` с флагами `--single-node --default-bucket`, автоматически создающими ноду, ключ доступа и бакет `errorium-avatars` при первом запуске.
+   - Настроен healthcheck на основе нативной утилиты `/garage node id` (`test: ["CMD", "/garage", "node", "id"]`).
+   - Тома обновлены на `errorium_garage_meta` и `errorium_garage_data` (и соответствующие dev-версии).
+2. **Параметризация портов и `.env.example`:**
+   - Введены переменные `GARAGE_PORT` (по умолчанию 3900) и `GARAGE_ADMIN_PORT` (по умолчанию 3903).
+   - Обновлен `.env.example` с полным набором настроек Garage S3 (`GARAGE_DEFAULT_ACCESS_KEY`, `GARAGE_DEFAULT_SECRET_KEY`, `GARAGE_DEFAULT_BUCKET`, `GARAGE_REGION=garage`, `GARAGE_RPC_SECRET`, `GARAGE_ADMIN_TOKEN`).
+3. **Конфигурация Gateway (`services/gateway/pkg/config`):**
+   - Структура `MinIOConfig` генерализована в `S3Config` (с сохранением псевдонима `MinIOConfig = S3Config` и поля `cfg.MinIO` для обратной совместимости).
+   - Добавлена поддержка региона S3 (`Region: "garage"`), а также чтение переменных окружения `S3_*`, `GARAGE_*` и fallback на `MINIO_*`.
+   - Написаны модульные тесты конфигуратора в `services/gateway/pkg/config/config_test.go`.
+4. **Тесты и спецификации:**
+   - Обновлен тест `tests/unit/test_docker_ports.py` для валидации портов Garage S3.
+   - В документации `docs/Tech/02-running.md`, `docs/Tech/03-data.md` и `docs/Tech/04-api-and-access.md` все упоминания MinIO скорректированы на Garage S3.
+   - Все unit-тесты (Python и Go) пройдены успешно, конфигурации Docker Compose валидированы.
+
 ## [2026-10-09] — Параметризация портов сервисов для dev и prod окружений
 
 ### Затронутые компоненты и спецификации:
