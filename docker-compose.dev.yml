@@ -1,4 +1,40 @@
 services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: errorium_postgres_dev
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5432:5432"
+    environment:
+      POSTGRES_DB: errorium
+      POSTGRES_USER: errorium_user
+      POSTGRES_PASSWORD: errorium_password
+    volumes:
+      - errorium_dev_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U errorium_user -d errorium"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - errorium_dev_net
+
+  minio:
+    image: minio/minio:latest
+    container_name: errorium_minio_dev
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    ports:
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadminpassword
+    volumes:
+      - errorium_dev_minio_data:/data
+    networks:
+      - errorium_dev_net
+
   gateway:
     build:
       context: ./services/gateway
@@ -6,9 +42,23 @@ services:
     container_name: errorium_gateway_dev
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     environment:
-      - PORT=8000
+      - GATEWAY_PORT=8000
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=errorium
+      - DB_USER=errorium_user
+      - DB_PASSWORD=errorium_password
+      - DB_SSLMODE=disable
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadminpassword
+      - MINIO_BUCKET_NAME=errorium-avatars
+      - MINIO_USE_SSL=false
+    depends_on:
+      postgres:
+        condition: service_healthy
     networks:
       - errorium_dev_net
 
@@ -26,6 +76,11 @@ services:
     networks:
       - errorium_dev_net
 
+volumes:
+  errorium_dev_postgres_data:
+  errorium_dev_minio_data:
+
 networks:
   errorium_dev_net:
     driver: bridge
+

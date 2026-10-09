@@ -1,6 +1,43 @@
 # CHANGE_HISTORY.md — История изменений проекта Errorium
 
+## [2026-10-09] — Проектирование схемы БД Gateway (PostgreSQL 18+), MinIO и миграций
+
+### Затронутые компоненты и спецификации:
+- `docs/Tech/03-data.md`
+- `docs/Tech/04-api-and-access.md`
+- `services/gateway/migrations/000001_init_gateway_schema.up.sql`
+- `services/gateway/migrations/000001_init_gateway_schema.down.sql`
+- `services/gateway/domain/` (`user.go`, `sso.go`, `session.go`, `chat.go`, `tag.go`, `audit.go`)
+- `services/gateway/pkg/config/config.go`
+- `docker-compose.yml`, `docker-compose.dev.yml`
+- `.env.example`
+- `STATUS.md`
+
+### Суть изменений:
+1. **Спецификация схемы PostgreSQL:**
+   - Выбрана СУБД **PostgreSQL 18+**. Используется нативная встроенная функция ядра **`uuidv7()`** для первичных ключей (time-ordered идентификаторы без фрагментации B-Tree индексов).
+   - Все строковые поля переведены с `VARCHAR(n)` на идиоматичный для PostgreSQL тип **`TEXT` с явными `CHECK`-ограничениями** длины (`length <= N`) и формата, что исключает накладные расходы на конвертацию и обеспечивает единый формат хранения `varlena`.
+
+   - Сущности:
+     - `users`: пользователи системы (роли `user` и `admin`, email, password_hash, avatar_url, статусы).
+     - `user_sso_accounts`: OAuth/SSO профили (`google`, `yandex`, `github`), связь с пользователем, уникальность `(provider, provider_user_id)`.
+     - `user_sessions`: сессии пользователей, SHA-256 хэши refresh-токенов, client_ip (INET), user_agent, статус отзыва (`is_revoked`), таймстемпы.
+     - `chats`: темы диалогов пользователя (`Recent chats`), флаг закрепления `is_pinned`, быстрый композитный индекс `(user_id, updated_at DESC)` и триграммный поиск `pg_trgm`.
+     - `chat_messages`: сообщения диалога, контекст ошибки `error_context` (JSONB), источники Stack Overflow `rag_sources` (JSONB), статистика токенов `token_usage` (JSONB).
+     - `tags` и `chat_message_tags`: нормализованный каталог тегов и отношение Many-to-Many к сообщениям с каскадным удалением.
+     - `audit_logs`: системный журнал критических действий.
+   - **MCP:** Полностью исключена авторизация для MCP (удалены токены, эндпоинт `/sse` открыт без auth).
+2. **Объектное хранилище аватарок (MinIO / S3):**
+   - Добавлен сервис MinIO в `docker-compose.yml` и `docker-compose.dev.yml` для хранения аватарок пользователей (бакет `errorium-avatars`).
+3. **Миграции и инфраструктура:**
+   - Написаны файлы миграции `000001_init_gateway_schema.up.sql` и `000001_init_gateway_schema.down.sql`.
+   - **Элегантные встроенные миграции (embed.FS):** SQL-файлы встроены в бинарник через `migrations.FS` (`embed.FS`). Добавлен раннер `internal/migrator` на базе `golang-migrate/v4/source/iofs`, который при старте сервиса Gateway атомарно накатывает ожидающие миграции.
+   - **Очистка Docker:** Устранен антипаттерн монтирования одного SQL-файла в `/docker-entrypoint-initdb.d/`. Контейнер PostgreSQL в `docker-compose.yml` и `docker-compose.dev.yml` теперь полностью чист.
+   - Созданы Go-модели в `services/gateway/domain/` и обновлен `config.go` для подключения к Postgres и MinIO (`AUTO_MIGRATE`).
+   - Написан юнит-тест `services/gateway/migrations/migrations_test.go` для валидации встроенных миграций.
+
 ## [2026-10-08] — Подключение веб-шрифтов Inter и JetBrains Mono для кроссплатформенного отображения
+
 
 ### Затронутые компоненты и спецификации:
 - `services/frontend/static/index.html`

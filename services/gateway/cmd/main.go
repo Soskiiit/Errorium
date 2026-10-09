@@ -9,11 +9,19 @@ import (
 	"time"
 
 	"github.com/soskiiit/errorium/services/gateway/internal/app"
+	"github.com/soskiiit/errorium/services/gateway/internal/migrator"
 	"github.com/soskiiit/errorium/services/gateway/pkg/config"
 )
 
 func main() {
 	cfg := config.Load()
+
+	if cfg.AutoMigrate && cfg.DB.Host != "" {
+		if err := migrator.Up(cfg.DB.DSN()); err != nil {
+			log.Fatalf("Database migration failed: %v", err)
+		}
+	}
+
 	application := app.New(cfg)
 
 	go func() {

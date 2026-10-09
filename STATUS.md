@@ -14,9 +14,11 @@
 | :--- | :--- | :--- | :--- |
 | **Search Engine Indexer** | Роль 1 | Каркас готов | Реализация потокового парсера XML дампа и токенизатора |
 | **Search Engine Core** | Роль 2 | Специфицирован (gRPC) | Реализация чтения инвертированного индекса и BM25 с нуля |
-| **Gateway & MCP Service** | Роль 3 | Каркас Go готов, CI/CD настроен | Реализация gRPC-клиента к Core, SSO/Auth, MCP SSE |
+| **Gateway & MCP Service** | Роль 3 | Спроектирована БД PostgreSQL 18 (UUIDv7, SSO, сессии, чаты, теги), настроен MinIO, встроены автомиграции через embed.FS (golang-migrate) | Реализация слоя репозиториев (pgxpool) и интеграция с MinIO S3 SDK |
 | **Web Frontend** | Роль 4 | Реализован адаптивный SPA без фреймворков (сайдбар открыт по умолчанию, десктопное сворачивание, строка ввода Liquid Glass) | Интеграция с API Gateway (/api/v1/search) и отрисовка графа D3/Canvas |
 
 ## 3. Следующий шаг (Next Step)
+- Реализация подключения к PostgreSQL (`pgxpool`) и слоя репозиториев для `users`, `user_sso_accounts`, `user_sessions`, `chats`, `chat_messages`, `tags` в сервисе `gateway`.
+- Реализация S3-клиента для MinIO (загрузка и получение аватарок).
 - Подключение сетевых вызовов из Web Frontend к REST эндпоинтам Gateway (`/api/v1/search`).
-- Разработка бизнес-логики Gateway (gRPC-клиент и REST-роуты) и реализация поискового ядра Core.
+

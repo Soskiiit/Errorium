@@ -38,11 +38,11 @@ RAW_DATA_PATH=/app/data/raw
 INDEX_OUTPUT_PATH=/app/data/index
 
 # === Search Engine Core (Роль 2) ===
-GRPC_PORT=50051
+SEARCH_GRPC_PORT=50051
 INDEX_DIR=/app/data/index
 
 # === Gateway & MCP Service (Роль 3) ===
-PORT=8000
+GATEWAY_PORT=8000
 SEARCH_ENGINE_HOST=search_engine_core
 SEARCH_ENGINE_PORT=50051
 
