@@ -4,8 +4,9 @@
 - **Этап:** КТ 1 (Каркасы сервисов, базовые эндпоинты, CI/CD автодеплой).
 - **Инфраструктура автодеплоя:** Развернут пайплайн в `.github/workflows/deploy.yml` (прогон тестов -> сборка и пуш в GHCR -> SSH-деплой на dev-сервер `errorium.ru`).
 - **Сетевой контур:**
-  - `frontend` на Nginx 1.26-alpine (порты 80 с редиректом на 443 HTTPS, SSL-сертификаты в `/etc/ssl/errorium.*`, gzip, прокси `/api/` и `/health`).
-  - `gateway` на Go 1.27.1 (порт 8000, чистая слоистая архитектура, `GET /health` с тестами, graceful shutdown).
+  - `frontend` на Nginx 1.26-alpine (порты 80 с редиректом на 443 HTTPS в проде, порт 3000 в dev; порты хоста гибко настраиваются через `FRONTEND_HTTP_PORT`/`FRONTEND_HTTPS_PORT` и `FRONTEND_PORT`).
+  - `gateway` на Go 1.27.1 (порт 8000, чистая слоистая архитектура, `GET /health` с тестами, graceful shutdown; порт хоста настраивается через `GATEWAY_PORT` как в dev, так и в prod).
+  - `postgres` и `minio`: в dev-стеке порты хоста вынесены в переменные `.env` (`POSTGRES_PORT`, `MINIO_PORT`, `MINIO_CONSOLE_PORT`) для бесконфликтного запуска при занятых портах (например, если 9000 или 5432 заняты локально).
 - **Поисковое ядро:** `search_engine_core` и `search_engine_indexer` временно выведены из compose-файла до реализации коллегами.
 
 ## 2. Матрица готовности сервисов

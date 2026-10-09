@@ -16,11 +16,18 @@
 
 ## 2. Сетевые порты и сервисы
 
-| Сервис | Порт хоста | Внутренний протокол | Назначение |
-| :--- | :--- | :--- | :--- |
-| `frontend` | `3000` | HTTP | Веб-интерфейс пользователя и админ-панель |
-| `gateway` | `8000` | HTTP / SSE | REST API, Swagger (`/docs`), SSO Callbacks, Remote MCP |
-| `search_engine_core` | `50051` | gRPC (HTTP/2) | Поисковое ядро и построение графа связей |
+| Сервис | Порт хоста (по умолчанию) | Переменная окружения | Внутренний протокол | Назначение |
+| :--- | :--- | :--- | :--- | :--- |
+| `frontend` | `3000` | `FRONTEND_PORT` | HTTP | Веб-интерфейс пользователя и админ-панель |
+| `gateway` | `8000` | `GATEWAY_PORT` | HTTP / SSE | REST API, Swagger (`/docs`), SSO Callbacks, Remote MCP |
+| `postgres` | `5432` | `POSTGRES_PORT` | PostgreSQL TCP | СУБД Gateway (доступ с хоста для DBeaver / psql) |
+| `minio` (API) | `9000` | `MINIO_PORT` | S3 API (HTTP) | Хранилище объектов / аватарок (S3 клиент с хоста) |
+| `minio` (Console) | `9001` | `MINIO_CONSOLE_PORT` | HTTP | Веб-консоль управления MinIO |
+| `search_engine_core` | `50051` | `SEARCH_GRPC_PORT` | gRPC (HTTP/2) | Поисковое ядро и построение графа связей |
+
+> [!TIP]
+> **Конфликт портов на хост-машине:**  
+> Если порт (например, `9000` или `5432`) уже занят другим процессом на рабочей машине, переопределите его в файле `.env` (`MINIO_PORT=9010`, `POSTGRES_PORT=5433`). Внутри Docker-сети сервисы продолжат общаться по внутренним портам по умолчанию, конфликты на хосте будут устранены.
 
 ---
 
@@ -49,6 +56,24 @@ SEARCH_ENGINE_PORT=50051
 # === Web Frontend (Роль 4) ===
 FRONTEND_PORT=3000
 GATEWAY_API_URL=http://gateway:8000
+
+# === База данных Gateway (PostgreSQL 18+) ===
+POSTGRES_PORT=5432
+DB_HOST=postgres
+DB_PORT=5432
+DB_NAME=errorium
+DB_USER=errorium_user
+DB_PASSWORD=errorium_password
+DB_SSLMODE=disable
+
+# === Объектное хранилище аватарок (MinIO / S3) ===
+MINIO_PORT=9000
+MINIO_CONSOLE_PORT=9001
+MINIO_ENDPOINT=minio:9000
+MINIO_ROOT_USER=minioadmin
+MINIO_ROOT_PASSWORD=minioadminpassword
+MINIO_BUCKET_NAME=errorium-avatars
+MINIO_USE_SSL=false
 
 # === Аутентификация, JWT и SSO ===
 JWT_SECRET_KEY=change-this-in-production-to-strong-secret-key-64chars-min

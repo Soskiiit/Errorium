@@ -4,15 +4,15 @@ services:
     container_name: errorium_postgres_dev
     restart: unless-stopped
     ports:
-      - "127.0.0.1:5432:5432"
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     environment:
-      POSTGRES_DB: errorium
-      POSTGRES_USER: errorium_user
-      POSTGRES_PASSWORD: errorium_password
+      POSTGRES_DB: ${POSTGRES_DB:-errorium}
+      POSTGRES_USER: ${POSTGRES_USER:-errorium_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-errorium_password}
     volumes:
-      - errorium_dev_postgres_data:/var/lib/postgresql/data
+      - errorium_dev_postgres_data:/var/lib/postgresql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U errorium_user -d errorium"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-errorium_user} -d ${POSTGRES_DB:-errorium}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -25,11 +25,11 @@ services:
     restart: unless-stopped
     command: server /data --console-address ":9001"
     ports:
-      - "127.0.0.1:9000:9000"
-      - "127.0.0.1:9001:9001"
+      - "127.0.0.1:${MINIO_PORT:-9000}:9000"
+      - "127.0.0.1:${MINIO_CONSOLE_PORT:-9001}:9001"
     environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadminpassword
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadminpassword}
     volumes:
       - errorium_dev_minio_data:/data
     networks:
@@ -42,19 +42,19 @@ services:
     container_name: errorium_gateway_dev
     restart: unless-stopped
     ports:
-      - "127.0.0.1:8000:8000"
+      - "127.0.0.1:${GATEWAY_PORT:-8000}:8000"
     environment:
       - GATEWAY_PORT=8000
       - DB_HOST=postgres
       - DB_PORT=5432
-      - DB_NAME=errorium
-      - DB_USER=errorium_user
-      - DB_PASSWORD=errorium_password
+      - DB_NAME=${POSTGRES_DB:-errorium}
+      - DB_USER=${POSTGRES_USER:-errorium_user}
+      - DB_PASSWORD=${POSTGRES_PASSWORD:-errorium_password}
       - DB_SSLMODE=disable
       - MINIO_ENDPOINT=minio:9000
-      - MINIO_ACCESS_KEY=minioadmin
-      - MINIO_SECRET_KEY=minioadminpassword
-      - MINIO_BUCKET_NAME=errorium-avatars
+      - MINIO_ACCESS_KEY=${MINIO_ROOT_USER:-minioadmin}
+      - MINIO_SECRET_KEY=${MINIO_ROOT_PASSWORD:-minioadminpassword}
+      - MINIO_BUCKET_NAME=${MINIO_BUCKET_NAME:-errorium-avatars}
       - MINIO_USE_SSL=false
     depends_on:
       postgres:
@@ -67,7 +67,7 @@ services:
     container_name: errorium_frontend_dev
     restart: unless-stopped
     ports:
-      - "3000:80"
+      - "${FRONTEND_PORT:-3000}:80"
     volumes:
       - ./services/frontend/nginx.dev.conf:/etc/nginx/conf.d/default.conf:ro
       - ./services/frontend/static:/usr/share/nginx/html:ro
