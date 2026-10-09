@@ -305,7 +305,104 @@ class TestFrontendSPA(unittest.TestCase):
             server.shutdown()
             server.server_close()
 
+    def test_auth_modal_structure_matches_auth_screen_reference(self):
+        """Проверка точного соответствия разметки модального окна макету Auth-screen.png."""
+        html_path = os.path.join(STATIC_DIR, "index.html")
+        with open(html_path, "r", encoding="utf-8") as f:
+            html = f.read()
+
+        # 1. Модальное окно и карточка
+        self.assertIn('id="modal-auth"', html)
+        self.assertIn('auth-modal-card', html)
+
+        # 2. Маскот и заголовок Errorium в карточке
+        self.assertIn('auth-mascot', html)
+        self.assertIn('mascot.png', html)
+        self.assertIn('auth-brand-title', html)
+
+        # 3. Поля ввода Email и Password с плейсхолдерами и иконками
+        self.assertIn('id="auth-email"', html)
+        self.assertIn('placeholder="Email"', html)
+        self.assertIn('id="auth-password"', html)
+        self.assertIn('placeholder="Password"', html)
+
+        # 4. Чекбокс Remember me и ссылка Forgot password?
+        self.assertIn('Remember me', html)
+        self.assertIn('Forgot password?', html)
+        self.assertIn('auth-remember', html)
+
+        # 5. Зеленая кнопка Log in
+        self.assertIn('btn-login-submit', html)
+        self.assertIn('Log in', html)
+
+        # 6. Разделитель or
+        self.assertIn('auth-divider', html)
+
+        # 7. Авторизация через Яндекс: Continue with Yandex ID и точный SVG логотип
+        self.assertIn('btn-login-yandex', html)
+        self.assertIn('Continue with Yandex ID', html)
+        self.assertIn('yandex-badge', html)
+        self.assertIn('fill-opacity="0.65"', html)
+        self.assertIn('29.7851V32.029H20.9056', html)
+
+        # 8. Футер New here? Sign up
+        self.assertIn('New here?', html)
+        self.assertIn('Sign up', html)
+        self.assertIn('auth-signup-link', html)
+
+    def test_auth_modal_css_rules(self):
+        """Проверка CSS стилей модального окна на соответствие дизайну Auth-screen.png и Liquid Glass."""
+        css_path = os.path.join(STATIC_DIR, "styles.css")
+        with open(css_path, "r", encoding="utf-8") as f:
+            css = f.read()
+
+        # 1. Стили карточки: закругление углов, размытие и Liquid Glass блики
+        self.assertIn(".auth-modal-card", css)
+        self.assertIn(".auth-brand-title", css)
+        self.assertIn("backdrop-filter", css)
+
+        # 2. Поля ввода: Liquid Glass
+        self.assertIn(".auth-input-group", css)
+        self.assertIn(".auth-input", css)
+
+        # 3. Зеленая кнопка Log in со скруглением pill и свечением (на hover белеет и светится красным)
+        self.assertIn(".auth-login-btn", css)
+        self.assertIn(".auth-login-btn:hover", css)
+        self.assertIn("rgba(252, 63, 29", css)
+
+        # 4. Разделитель or
+        self.assertIn(".auth-divider", css)
+
+        # 5. Кнопка Yandex ID с красным кружком
+        self.assertIn(".auth-yandex-btn", css)
+        self.assertIn(".yandex-badge", css)
+
+    def test_auth_modal_js_handlers(self):
+        """Проверка наличия обработчиков аутентификации в app.js."""
+        js_path = os.path.join(STATIC_DIR, "app.js")
+        with open(js_path, "r", encoding="utf-8") as f:
+            js = f.read()
+
+        # Обработчики формы логина и Yandex ID
+        self.assertIn("btnLoginSubmit", js)
+        self.assertIn("btnLoginYandex", js)
+        self.assertIn("authForm", js)
+
+    def test_auth_modal_mobile_scaling(self):
+        """Проверка компактного масштабирования модального окна авторизации на смартфонах."""
+        css_path = os.path.join(STATIC_DIR, "styles.css")
+        with open(css_path, "r", encoding="utf-8") as f:
+            css = f.read()
+
+        # Наличие мобильного медиа-запроса для уменьшения окна на телефонах
+        self.assertTrue(
+            "@media (max-width: 480px)" in css or "@media (max-width: 600px)" in css,
+            "В styles.css должен быть медиа-запрос для компактного отображения на мобильных экранах"
+        )
+        self.assertIn(".auth-modal-card", css)
+
 if __name__ == "__main__":
     unittest.main()
+
 
 

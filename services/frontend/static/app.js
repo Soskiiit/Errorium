@@ -170,8 +170,15 @@
         mcpTokenDisplay: document.getElementById('mcp-token-display'),
         mcpJsonSnippet: document.getElementById('mcp-json-snippet'),
 
-        btnLoginGithub: document.getElementById('btn-login-github'),
-        btnLoginGoogle: document.getElementById('btn-login-google'),
+        // Auth Form elements (Auth-screen.png)
+        authForm: document.getElementById('auth-form'),
+        authEmail: document.getElementById('auth-email'),
+        authPassword: document.getElementById('auth-password'),
+        authRemember: document.getElementById('auth-remember'),
+        authForgotPassword: document.getElementById('auth-forgot-password'),
+        btnLoginSubmit: document.getElementById('btn-login-submit'),
+        btnLoginYandex: document.getElementById('btn-login-yandex'),
+        authSignupLink: document.getElementById('auth-signup-link'),
 
         toast: document.getElementById('toast')
     };
@@ -344,16 +351,42 @@
     elements.btnProfile?.addEventListener('click', () => showModal(elements.modalAuth));
     elements.btnLoginRow?.addEventListener('click', () => showModal(elements.modalAuth));
 
-    // Fast Auth Demo
-    elements.btnLoginGithub?.addEventListener('click', () => handleLogin('GitHub'));
-    elements.btnLoginGoogle?.addEventListener('click', () => handleLogin('Google'));
+    // Auth Handlers (Auth-screen.png)
+    elements.authForm?.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const email = elements.authEmail?.value?.trim() || 'dev@errorium.ru';
+        handleLogin('Account', email);
+    });
 
-    function handleLogin(provider) {
+    elements.btnLoginSubmit?.addEventListener('click', function (e) {
+        if (elements.authForm && !elements.authForm.checkValidity()) {
+            elements.authForm.reportValidity();
+            return;
+        }
+        const email = elements.authEmail?.value?.trim() || 'dev@errorium.ru';
+        handleLogin('Account', email);
+    });
+
+    elements.btnLoginYandex?.addEventListener('click', function () {
+        handleLogin('Yandex ID', 'yandex.dev@errorium.ru');
+    });
+
+    elements.authForgotPassword?.addEventListener('click', function (e) {
+        e.preventDefault();
+        showToast('Password reset link sent to your email.');
+    });
+
+    elements.authSignupLink?.addEventListener('click', function (e) {
+        e.preventDefault();
+        showToast('Sign up is open! Enter your email and password to log in.');
+    });
+
+    function handleLogin(provider, userEmail = 'dev@errorium.ru') {
         if (elements.userDisplayName) {
-            elements.userDisplayName.textContent = 'dev@errorium.ru';
+            elements.userDisplayName.textContent = userEmail;
         }
         closeAllModals();
-        showToast(`Signed in via ${provider} SSO! MCP tokens active.`);
+        showToast(`Signed in via ${provider}! MCP tokens active.`);
     }
 
     // Copy to clipboard helpers

@@ -1,5 +1,100 @@
 # CHANGE_HISTORY.md — История изменений проекта Errorium
 
+## [2026-10-09] — Исправление плавности transition и устранение рывков на кнопках авторизации
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `tests/unit/test_frontend_spa.py`
+- `STATUS.md`
+
+### Суть изменений:
+1. **Причина резкости и неработающего перехода:**
+   - В спецификации CSS градиенты (`linear-gradient`) не интерполируются напрямую через `transition: background`, из-за чего браузер мгновенно переключал слои.
+   - Число и типы теней в `box-shadow` в исходном и hover-состоянии не совпадали (смешивание outer и inset теней), из-за чего браузер не мог построить промежуточные кадры анимации и сбрасывал тень скачком.
+   - В `.auth-yandex-btn` стояло завышенное значение `box-shadow 1.3s ease`, создававшее рассинхрон с остальными свойствами.
+2. **Реализация плавного 60 FPS перехода ([styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css)):**
+   - Для эффекта беления добавлен псевдоэлемент `::before` с плавным переходом прозрачности `opacity: 0 -> 1` (`0.3s cubic-bezier(0.16, 1, 0.3, 1)`), что обеспечивает аппаратное сглаживание без скачков.
+   - Стек `box-shadow` синхронизирован по слоям 1-в-1 между базовым состоянием и hover (базовое состояние содержит нулевой красный ореол `0 0 0px 0px rgba(252, 63, 29, 0)`, плавно раскрывающийся до `25px`), что восстановило идеальную математическую интерполяцию.
+   - Цвет свечения зафиксирован на чистом красном Яндекс ID (`rgba(252, 63, 29, 0.35)`).
+3. **Тестирование ([test_frontend_spa.py](file:///home/mariam/WebstormProjects/Errorium/tests/unit/test_frontend_spa.py)):**
+   - Все 15 тестов пройдены успешно (`make test-unit`).
+
+### Затронутые компоненты и спецификации:
+- `docs/Product/04-interface-and-behavior.md`
+- `services/frontend/static/styles.css`
+- `tests/unit/test_frontend_spa.py`
+- `STATUS.md`
+
+### Суть изменений:
+1. **Спецификация (SDD):**
+   - В [04-interface-and-behavior.md](file:///home/mariam/WebstormProjects/Errorium/docs/Product/04-interface-and-behavior.md) зафиксировано поведение `:hover` кнопки `Log in`: эффект осветления стеклянного слоя и излучение красного неонового ореола.
+2. **Стилизация ([styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css)):**
+   - Для `.auth-login-btn` задана базовая граница `1px solid rgba(255, 255, 255, 0.15)` для плавного перехода без сдвига верстки.
+   - Для `.auth-login-btn:hover` настроены стили по аналогии с `.auth-yandex-btn:hover`:
+     - Светлая граница `border-color: rgba(255, 255, 255, 0.35)`.
+     - Верхний стеклянный блик `inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.45)` и светлое осветление градиента («белеет»).
+     - Яркий красный неоновый ореол `0 0 25px 2px rgba(252, 63, 29, 0.25)` («светится красным»).
+     - Нижний спотлайт `.auth-btn-spotlight` при наведении на кнопку также плавно переключается на теплый красный оттенок `rgba(252, 63, 29, 0.45)`.
+3. **Тестирование ([test_frontend_spa.py](file:///home/mariam/WebstormProjects/Errorium/tests/unit/test_frontend_spa.py)):**
+   - Добавлены проверки hover-стилей и красного свечения кнопки входа. Все 15 тестов пройдены (`make test-unit`).
+
+## [2026-10-09] — Оптимизация и уменьшение окна авторизации для мобильных телефонов
+
+### Затронутые компоненты и спецификации:
+- `docs/Product/04-interface-and-behavior.md`
+- `services/frontend/static/styles.css`
+- `tests/unit/test_frontend_spa.py`
+- `STATUS.md`
+
+### Суть изменений:
+1. **Спецификация (SDD):**
+   - В [04-interface-and-behavior.md](file:///home/mariam/WebstormProjects/Errorium/docs/Product/04-interface-and-behavior.md) зафиксированы компактные размеры и адаптивные пропорции окна авторизации для экранов $\le 480\text{px}$ и экранов с небольшой высотой.
+2. **Стилизация ([styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css)):**
+   - Добавлен медиа-запрос `@media (max-width: 480px)`:
+     - Максимальная ширина карточки снижена с `380px` до `326px`, скругление углов уменьшено до `26px`.
+     - Внутренние отступы сжаты с `38px 28px 32px 28px` до `24px 18px 20px 18px`.
+     - Маскот уменьшен до `58px`, заголовок `Errorium` уменьшен до `1.35rem`.
+     - Высота полей ввода, кнопки `Log in` и кнопки `Continue with Yandex ID` уменьшена с `50px`/`48px` до `44px`.
+     - Размеры бейджа Яндекс ID скорректированы до `26px`.
+     - Отступы разделителя `or` и подвала сжаты для устранения лишней высоты.
+   - Добавлено правило для мобильных устройств в ландшафтном режиме / с малой высотой вьюпорта (`@media (max-height: 680px) and (max-width: 480px)`), гарантирующее комфортный обзор без перекрытия экрана.
+3. **Тестирование ([test_frontend_spa.py](file:///home/mariam/WebstormProjects/Errorium/tests/unit/test_frontend_spa.py)):**
+   - Добавлен тест `test_auth_modal_mobile_scaling`. Все 15 тестов пройдены успешно (`make test-unit`).
+
+## [2026-10-09] — Реализация всплывающего окна авторизации точь-в-точь по макету Auth-screen.png (Liquid Glass & Яндекс ID)
+
+### Затронутые компоненты и спецификации:
+- `docs/Product/04-interface-and-behavior.md`
+- `services/frontend/static/index.html`
+- `services/frontend/static/styles.css`
+- `services/frontend/static/app.js`
+- `tests/unit/test_frontend_spa.py`
+- `STATUS.md`
+
+### Суть изменений:
+1. **Спецификация (SDD):**
+   - В [04-interface-and-behavior.md](file:///home/mariam/WebstormProjects/Errorium/docs/Product/04-interface-and-behavior.md) обновлен раздел «Экран 4: Модальное окно аутентификации», регламентирующий точную геометрию, визуальные параметры, эффект Liquid Glass и аутентичный логотип Яндекс ID.
+2. **Разметка и аутентичный логотип Яндекс ([index.html](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/index.html)):**
+   - Интегрирована карточка `.auth-modal-card` с фирменным маскотом Errorium (`/mascot.png`) и жирным заголовком `Errorium`.
+   - Добавлены поля ввода `Email` и `Password` с контурными иконками (пользователь и замок).
+   - Реализован ряд опций с кастомным зеленым чекбоксом `Remember me` с белой галочкой и ссылкой `Forgot password?`.
+   - Добавлена полноразмерная скругленная зеленая кнопка `Log in` (pill, 24px) со световым пятном-спотлайтом под ней.
+   - Разделитель `or` с тонкими градиентными линиями.
+   - Кнопка SSO-авторизации `Continue with Yandex ID` с аутентичным векторным логотипом Яндекса (`viewBox="0 0 38 38"`, `fill="#FC3F1D" fill-opacity="0.65"`, точные векторные пути литеры `Y`).
+   - Нижний блок `New here? Sign up` с активной ссылкой регистрации.
+3. **Стилизация Liquid Glass ([styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css)):**
+   - Для модальной карточки `.auth-modal-card`, полей ввода `.auth-input-group` и кнопки `.auth-yandex-btn` полностью воспроизведена оптическая схема **Liquid Glass** из строки ввода сообщений:
+     - Оптическая полупрозрачность многослойного стеклянного градиента (`rgba(255, 255, 255, 0.03)` $\rightarrow$ `rgba(15, 23, 42, 0.35)` $\rightarrow$ `rgba(10, 16, 32, 0.5)`).
+     - Глубокое размытие и цветовая сатурация подложки: `backdrop-filter: blur(28px) saturate(210%) brightness(108%)`.
+     - Тонкая преломляющая рамка: `1px solid rgba(255, 255, 255, 0.22)`.
+     - Фаски преломления и внутренние блики: `inset 0 1.5px 1.5px rgba(255, 255, 255, 0.35)`, `inset 0 12px 28px -6px rgba(255, 255, 255, 0.15)`, `inset 0 -2px 6px rgba(147, 197, 253, 0.15)`, `inset 0 -16px 36px rgba(5, 10, 25, 0.55)`.
+   - Зеленый чекбокс с белой галочкой, микроанимации фокуса и рассеянный спотлайт под кнопкой входа.
+4. **Интерактивность ([app.js](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/app.js)):**
+   - Подключена валидация формы, отправка по Enter и кнопке `Log in`, обработчик `Continue with Yandex ID`, вывод уведомлений toast и обновление профиля пользователя в боковом меню.
+5. **Тестирование ([test_frontend_spa.py](file:///home/mariam/WebstormProjects/Errorium/tests/unit/test_frontend_spa.py)):**
+   - Добавлены модульные тесты проверки наличия полей, точного SVG Яндекс ID (`fill-opacity="0.65"`), стилей Liquid Glass (`backdrop-filter`) и обработчиков.
+   - Все 14 тестов успешно проходят (`make test-unit`).
+
 ## [2026-10-08] — Подключение веб-шрифтов Inter и JetBrains Mono для кроссплатформенного отображения
 
 ### Затронутые компоненты и спецификации:
