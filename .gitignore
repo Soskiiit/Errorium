@@ -38,6 +38,7 @@ index_data/
 index_storage/
 *.7z
 *.xml
+!services/frontend/static/sitemap.xml
 *.dump
 *.bin
 *.idx

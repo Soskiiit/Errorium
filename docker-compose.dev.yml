@@ -1,0 +1,102 @@
+services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: errorium_postgres_dev
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-errorium}
+      POSTGRES_USER: ${POSTGRES_USER:-errorium_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-errorium_password}
+    volumes:
+      - errorium_dev_postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-errorium_user} -d ${POSTGRES_DB:-errorium}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - errorium_dev_net
+
+  garage:
+    image: dxflrs/garage:v2.4.1
+    container_name: errorium_garage_dev
+    restart: unless-stopped
+    command: ["/garage", "server", "--single-node", "--default-bucket"]
+    ports:
+      - "127.0.0.1:${GARAGE_PORT:-3900}:3900"
+      - "127.0.0.1:${GARAGE_ADMIN_PORT:-3903}:3903"
+    environment:
+      GARAGE_DEFAULT_ACCESS_KEY: ${GARAGE_DEFAULT_ACCESS_KEY:-garageadmin}
+      GARAGE_DEFAULT_SECRET_KEY: ${GARAGE_DEFAULT_SECRET_KEY:-garageadminpassword}
+      GARAGE_DEFAULT_BUCKET: ${GARAGE_DEFAULT_BUCKET:-errorium-avatars}
+      GARAGE_RPC_SECRET: ${GARAGE_RPC_SECRET:-0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef}
+      GARAGE_ADMIN_TOKEN: ${GARAGE_ADMIN_TOKEN:-0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef}
+    volumes:
+      - ./deploy/garage/garage.toml:/etc/garage.toml:ro
+      - errorium_dev_garage_meta:/var/lib/garage/meta
+      - errorium_dev_garage_data:/var/lib/garage/data
+    healthcheck:
+      test: ["CMD", "/garage", "node", "id"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - errorium_dev_net
+
+  gateway:
+    build:
+      context: ./services/gateway
+      dockerfile: Dockerfile
+    container_name: errorium_gateway_dev
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${GATEWAY_PORT:-8000}:8000"
+    environment:
+      - GATEWAY_PORT=8000
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=${POSTGRES_DB:-errorium}
+      - DB_USER=${POSTGRES_USER:-errorium_user}
+      - DB_PASSWORD=${POSTGRES_PASSWORD:-errorium_password}
+      - DB_SSLMODE=disable
+      - S3_ENDPOINT=garage:3900
+      - S3_REGION=garage
+      - S3_ACCESS_KEY=${GARAGE_DEFAULT_ACCESS_KEY:-garageadmin}
+      - S3_SECRET_KEY=${GARAGE_DEFAULT_SECRET_KEY:-garageadminpassword}
+      - S3_BUCKET_NAME=${GARAGE_DEFAULT_BUCKET:-errorium-avatars}
+      - S3_USE_SSL=false
+      - GARAGE_ENDPOINT=garage:3900
+      - GARAGE_ACCESS_KEY=${GARAGE_DEFAULT_ACCESS_KEY:-garageadmin}
+      - GARAGE_SECRET_KEY=${GARAGE_DEFAULT_SECRET_KEY:-garageadminpassword}
+      - GARAGE_BUCKET_NAME=${GARAGE_DEFAULT_BUCKET:-errorium-avatars}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - errorium_dev_net
+
+  frontend:
+    image: nginx:1.26-alpine
+    container_name: errorium_frontend_dev
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+    volumes:
+      - ./services/frontend/nginx.dev.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./services/frontend/static:/usr/share/nginx/html:ro
+    depends_on:
+      - gateway
+    networks:
+      - errorium_dev_net
+
+volumes:
+  errorium_dev_postgres_data:
+  errorium_dev_garage_meta:
+  errorium_dev_garage_data:
+
+networks:
+  errorium_dev_net:
+    driver: bridge
+
