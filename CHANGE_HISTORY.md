@@ -1,6 +1,71 @@
 # CHANGE_HISTORY.md — История изменений проекта Errorium
 
+## [2026-10-09] — Параметризация портов сервисов для dev и prod окружений
+
+### Затронутые компоненты и спецификации:
+- `docker-compose.dev.yml`
+- `docker-compose.yml`
+- `.env.example`
+- `docs/Tech/02-running.md`
+- `tests/unit/test_docker_ports.py`
+- `STATUS.md`
+
+### Суть изменений:
+1. **Параметризация портов в `docker-compose.dev.yml`:**
+   - Для всех сервисов дев-окружения добавлен проброс портов через переменные окружения с дефолтными значениями:
+     - `minio`: `127.0.0.1:${MINIO_PORT:-9000}:9000` и `127.0.0.1:${MINIO_CONSOLE_PORT:-9001}:9001` (позволяет сменить порт, если порт 9000 или 9001 занят на хост-машине).
+     - `postgres`: `127.0.0.1:${POSTGRES_PORT:-5432}:5432`.
+     - `gateway`: `127.0.0.1:${GATEWAY_PORT:-8000}:8000`.
+     - `frontend`: `${FRONTEND_PORT:-3000}:80`.
+   - Внутри Docker-сети сервисы продолжают взаимодействовать по фиксированным внутренним адресам (`minio:9000`, `postgres:5432`, `gateway:8000`), благодаря чему изменение портов хоста не ломает межсервисные связи.
+2. **Параметризация портов в `docker-compose.yml`:**
+   - Порты `gateway` (`127.0.0.1:${GATEWAY_PORT:-8000}:8000`) и `frontend` (`${FRONTEND_HTTP_PORT:-80}:80`, `${FRONTEND_HTTPS_PORT:-443}:443`) теперь также поддерживают переопределение через `.env`.
+3. **Обновление `.env.example` и документации:**
+   - В `.env.example` добавлены `POSTGRES_PORT=5432`, `MINIO_PORT=9000`, `MINIO_CONSOLE_PORT=9001` с поясняющими комментариями.
+   - В `docs/Tech/02-running.md` дополнена сводная таблица портов и добавлена рекомендация по разрешению конфликтов портов на хосте.
+4. **Тестирование:**
+   - Добавлен модульный тест `tests/unit/test_docker_ports.py`, проверяющий корректность fallback-значений и регулярных выражений портов в конфигурациях compose и `.env.example`.
+5. **Корректировка точки монтирования тома PostgreSQL:**
+   - Путь монтирования тома PostgreSQL 18 в `docker-compose.dev.yml` и `docker-compose.yml` изменен с устаревшего `/var/lib/postgresql/data` на `/var/lib/postgresql` в соответствии с официальным образом `postgres:18-alpine`.
+
+## [2026-10-09] — Проектирование схемы БД Gateway (PostgreSQL 18+), MinIO и миграций
+
+### Затронутые компоненты и спецификации:
+- `docs/Tech/03-data.md`
+- `docs/Tech/04-api-and-access.md`
+- `services/gateway/migrations/000001_init_gateway_schema.up.sql`
+- `services/gateway/migrations/000001_init_gateway_schema.down.sql`
+- `services/gateway/domain/` (`user.go`, `sso.go`, `session.go`, `chat.go`, `tag.go`, `audit.go`)
+- `services/gateway/pkg/config/config.go`
+- `docker-compose.yml`, `docker-compose.dev.yml`
+- `.env.example`
+- `STATUS.md`
+
+### Суть изменений:
+1. **Спецификация схемы PostgreSQL:**
+   - Выбрана СУБД **PostgreSQL 18+**. Используется нативная встроенная функция ядра **`uuidv7()`** для первичных ключей (time-ordered идентификаторы без фрагментации B-Tree индексов).
+   - Все строковые поля переведены с `VARCHAR(n)` на идиоматичный для PostgreSQL тип **`TEXT` с явными `CHECK`-ограничениями** длины (`length <= N`) и формата, что исключает накладные расходы на конвертацию и обеспечивает единый формат хранения `varlena`.
+
+   - Сущности:
+     - `users`: пользователи системы (роли `user` и `admin`, email, password_hash, avatar_url, статусы).
+     - `user_sso_accounts`: OAuth/SSO профили (`google`, `yandex`, `github`), связь с пользователем, уникальность `(provider, provider_user_id)`.
+     - `user_sessions`: сессии пользователей, SHA-256 хэши refresh-токенов, client_ip (INET), user_agent, статус отзыва (`is_revoked`), таймстемпы.
+     - `chats`: темы диалогов пользователя (`Recent chats`), флаг закрепления `is_pinned`, быстрый композитный индекс `(user_id, updated_at DESC)` и триграммный поиск `pg_trgm`.
+     - `chat_messages`: сообщения диалога, контекст ошибки `error_context` (JSONB), источники Stack Overflow `rag_sources` (JSONB), статистика токенов `token_usage` (JSONB).
+     - `tags` и `chat_message_tags`: нормализованный каталог тегов и отношение Many-to-Many к сообщениям с каскадным удалением.
+     - `audit_logs`: системный журнал критических действий.
+   - **MCP:** Полностью исключена авторизация для MCP (удалены токены, эндпоинт `/sse` открыт без auth).
+2. **Объектное хранилище аватарок (MinIO / S3):**
+   - Добавлен сервис MinIO в `docker-compose.yml` и `docker-compose.dev.yml` для хранения аватарок пользователей (бакет `errorium-avatars`).
+3. **Миграции и инфраструктура:**
+   - Написаны файлы миграции `000001_init_gateway_schema.up.sql` и `000001_init_gateway_schema.down.sql`.
+   - **Элегантные встроенные миграции (embed.FS):** SQL-файлы встроены в бинарник через `migrations.FS` (`embed.FS`). Добавлен раннер `internal/migrator` на базе `golang-migrate/v4/source/iofs`, который при старте сервиса Gateway атомарно накатывает ожидающие миграции.
+   - **Очистка Docker:** Устранен антипаттерн монтирования одного SQL-файла в `/docker-entrypoint-initdb.d/`. Контейнер PostgreSQL в `docker-compose.yml` и `docker-compose.dev.yml` теперь полностью чист.
+   - Созданы Go-модели в `services/gateway/domain/` и обновлен `config.go` для подключения к Postgres и MinIO (`AUTO_MIGRATE`).
+   - Написан юнит-тест `services/gateway/migrations/migrations_test.go` для валидации встроенных миграций.
+
 ## [2026-10-08] — Подключение веб-шрифтов Inter и JetBrains Mono для кроссплатформенного отображения
+
 
 ### Затронутые компоненты и спецификации:
 - `services/frontend/static/index.html`

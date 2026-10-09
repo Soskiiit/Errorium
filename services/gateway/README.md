@@ -49,7 +49,7 @@
 ## 3. Конфигурация и переменные окружения
 
 ```bash
-PORT=8000                          # Порт HTTP REST API и MCP
+GATEWAY_PORT=8000                  # Порт HTTP REST API и MCP
 SEARCH_ENGINE_HOST=search_engine_core
 SEARCH_ENGINE_PORT=50051
 
