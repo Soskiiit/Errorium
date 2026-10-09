@@ -1,10 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
-/* ==========================================================================
-   Errorium Design System (Pure Vanilla CSS, Mobile-First & Fully Adaptive)
-   Matching Chat-screen.png and Chat-screen-menu-not-authorized.png
-   ========================================================================== */
-
 :root {
     --bg-primary: #070a13;
     --bg-secondary: #0c1122;
@@ -18,11 +13,30 @@
     --text-secondary: #ffffff;
     --text-muted: #6b7a90;
     --text-disclaimer: #4e5d78;
+    --text-blue-light: #60a5fa;
+    --text-slate: #e2e8f0;
+    --text-slate-light: #cbd5e1;
+    --text-slate-muted: #94a3b8;
+    --text-slate-blue: #8c9fb9;
+    --text-light-grey: #d1d7e0;
 
     --color-accent-blue: #2557e8;
     --color-accent-blue-hover: #1d46c7;
+    --color-blue-bright: #3b82f6;
+    --color-sky-blue: #38bdf8;
     --color-red-404: #ff4a4a;
+    --color-yandex-red: #fc3f1d;
+    --color-yandex-glow: rgba(252, 63, 29, 0.35);
+    --color-yandex-spotlight: rgba(252, 63, 29, 0.45);
+    --color-green-login: #2ebd64;
+    --color-green-login-hover: #28a758;
     --color-green-accepted: #10b981;
+
+    --glass-border: rgba(255, 255, 255, 0.22);
+    --glass-border-hover: rgba(255, 255, 255, 0.35);
+    --glass-border-subtle: rgba(255, 255, 255, 0.15);
+    --glass-glow-blue: rgba(147, 197, 253, 0.15);
+    --glass-border-focus: rgba(147, 197, 253, 0.7);
 
     --font-ui: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
@@ -87,7 +101,6 @@ body {
     padding: 0;
 }
 
-/* Suppress transitions on initial page load to eliminate FOUC and twitching */
 .preload,
 .preload *,
 .preload *::before,
@@ -99,10 +112,6 @@ body {
     transition: none !important;
 }
 
-/* ==========================================================================
-   App Container & Responsive Shell
-   ========================================================================== */
-
 .app-container {
     display: flex;
     width: 100%;
@@ -112,10 +121,6 @@ body {
     overflow-x: hidden;
     overflow-y: hidden;
 }
-
-/* ==========================================================================
-   Sidebar Drawer (Chat-screen-menu-not-authorized.png)
-   ========================================================================== */
 
 .drawer-backdrop {
     position: fixed;
@@ -184,7 +189,7 @@ body {
 }
 
 .close-btn {
-    color: #cbd5e1;
+    color: var(--text-slate-light);
 }
 
 .close-btn:hover {
@@ -193,7 +198,7 @@ body {
 
 .sidebar-toggle-btn,
 .header-sidebar-toggle-btn {
-    color: #cbd5e1;
+    color: var(--text-slate-light);
     width: 36px;
     height: 36px;
     display: none !important;
@@ -215,7 +220,6 @@ body {
     stroke: currentColor !important;
 }
 
-/* Sidebar Search Box */
 .sidebar-search-box {
     padding: 8px 18px 12px;
 }
@@ -253,14 +257,13 @@ body {
     color: var(--text-muted);
 }
 
-/* Recent Chats Section */
 .sidebar-section-header {
     display: flex;
     align-items: center;
     padding: 10px 20px 6px;
     font-size: 1.05rem;
     font-weight: 500;
-    color: #e2e8f0;
+    color: var(--text-slate);
     cursor: pointer;
     gap: 6px;
 }
@@ -296,7 +299,7 @@ body {
     justify-content: space-between;
     padding: 10px 12px;
     border-radius: 8px;
-    color: #d1d7e0;
+    color: var(--text-light-grey);
     font-size: 0.92rem;
     cursor: pointer;
     transition: background-color 0.15s ease, color 0.15s ease;
@@ -337,7 +340,6 @@ body {
     color: #ffffff;
 }
 
-/* Sidebar Bottom Controls */
 .sidebar-bottom {
     margin-top: auto;
     flex-shrink: 0;
@@ -365,7 +367,7 @@ body {
     gap: 9px;
     background: transparent;
     border: none;
-    color: #d1d7e0;
+    color: var(--text-light-grey);
     font-size: 0.95rem;
     font-weight: 500;
     cursor: pointer;
@@ -408,7 +410,6 @@ body {
     margin: 8px 0 12px;
 }
 
-/* Sidebar User Footer Row */
 .sidebar-user-row {
     display: flex;
     align-items: center;
@@ -446,17 +447,13 @@ body {
 }
 
 .settings-btn {
-    color: #cbd5e1;
+    color: var(--text-slate-light);
     padding: 8px;
 }
 
 .settings-btn:hover {
     color: #ffffff;
 }
-
-/* ==========================================================================
-   Main Viewport
-   ========================================================================== */
 
 .main-viewport {
     flex: 1;
@@ -470,7 +467,6 @@ body {
     overflow-y: hidden;
 }
 
-/* Header (Chat-screen.png) */
 .app-header {
     height: var(--header-height);
     display: flex;
@@ -535,10 +531,6 @@ body {
     opacity: 0.85;
 }
 
-/* ==========================================================================
-   View Content: Hero Screen & Chat Screen
-   ========================================================================== */
-
 .view-content {
     flex: 1;
     overflow-y: auto;
@@ -550,7 +542,6 @@ body {
     max-width: 100%;
 }
 
-/* HERO SCREEN (Chat-screen.png) */
 .hero-screen {
     flex: 1;
     display: flex;
@@ -566,7 +557,6 @@ body {
     box-sizing: border-box;
 }
 
-/* Blue Fire Background Aura (blue-fire.png) */
 .hero-glow-aura {
     position: absolute;
     top: 50%;
@@ -627,7 +617,6 @@ body {
     -webkit-user-drag: none;
 }
 
-/* Exact Monospace Typography with responsive clamp */
 .hero-text-block {
     display: flex;
     flex-direction: column;
@@ -667,14 +656,9 @@ body {
     letter-spacing: -0.2em;
 }
 
-/* Floor Spotlight Ellipse Beam (already integrated in blue-fire.png) */
 .hero-spotlight-beam {
     display: none;
 }
-
-/* ==========================================================================
-   Chat View (Messages & Solutions)
-   ========================================================================== */
 
 .chat-screen {
     flex: 1;
@@ -761,16 +745,15 @@ body {
 .card-title {
     font-weight: 600;
     font-size: 0.95rem;
-    color: #cbd5e1;
+    color: var(--text-slate-light);
 }
 
 .card-solution-text {
     font-size: 0.96rem;
     line-height: 1.55;
-    color: #e2e8f0;
+    color: var(--text-slate);
 }
 
-/* Code Snippet Box */
 .code-block-wrapper {
     background-color: #080c16;
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -792,7 +775,7 @@ body {
 .code-copy-btn {
     background: transparent;
     border: none;
-    color: #94a3b8;
+    color: var(--text-slate-muted);
     font-size: 0.78rem;
     cursor: pointer;
     padding: 2px 6px;
@@ -809,10 +792,9 @@ body {
     font-family: var(--font-mono);
     font-size: 0.88rem;
     line-height: 1.45;
-    color: #38bdf8;
+    color: var(--color-sky-blue);
 }
 
-/* Sources Accordion */
 .sources-card {
     border-top: 1px solid rgba(255, 255, 255, 0.08);
     padding-top: 12px;
@@ -844,7 +826,7 @@ body {
     align-items: center;
     justify-content: space-between;
     text-decoration: none;
-    color: #e2e8f0;
+    color: var(--text-slate);
     transition: border-color 0.15s;
 }
 
@@ -872,10 +854,6 @@ body {
     font-size: 0.88rem;
 }
 
-/* ==========================================================================
-   Bottom Prompt Area (Chat-screen.png)
-   ========================================================================== */
-
 .app-prompt-footer {
     padding: 8px 16px;
     padding-bottom: max(16px, env(safe-area-inset-bottom, 16px));
@@ -890,7 +868,6 @@ body {
     box-sizing: border-box;
 }
 
-/* Attachment Popover (Liquid Glass) */
 .attach-popover {
     position: absolute;
     bottom: 84px;
@@ -926,7 +903,7 @@ body {
     padding: 8px 12px;
     border-radius: 8px;
     font-size: 0.88rem;
-    color: #d1d7e0;
+    color: var(--text-light-grey);
     cursor: pointer;
     transition: background-color 0.15s, color 0.15s;
 }
@@ -942,11 +919,10 @@ body {
     padding: 2px 5px;
     border-radius: 4px;
     background-color: rgba(59, 130, 246, 0.2);
-    color: #60a5fa;
+    color: var(--text-blue-light);
     font-family: var(--font-mono);
 }
 
-/* Liquid Glass Capsule Input Container (Apple VisionOS / High-end Designer Glass) */
 .prompt-bar-container {
     position: relative;
     display: flex;
@@ -961,7 +937,7 @@ body {
     );
     backdrop-filter: blur(28px) saturate(210%) brightness(108%);
     -webkit-backdrop-filter: blur(28px) saturate(210%) brightness(108%);
-    border: 1px solid rgba(255, 255, 255, 0.22);
+    border: 1px solid var(--glass-border);
     border-radius: 9999px;
     padding: 7px 10px 7px 14px;
     gap: 10px;
@@ -970,7 +946,7 @@ body {
         0 8px 24px -4px rgba(2, 6, 23, 0.6),
         inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.3),
         inset 0 8px 20px -6px rgba(255, 255, 255, 0.15),
-        inset 0 -2px 6px 0 rgba(147, 197, 253, 0.15),
+        inset 0 -2px 6px 0 var(--glass-glow-blue),
         inset 0 -12px 28px 0 rgba(5, 10, 25, 0.5);
     transition:
         border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
@@ -987,7 +963,7 @@ body {
         0 8px 24px -4px rgba(2, 6, 23, 0.6),
         inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.3),
         inset 0 8px 20px -6px rgba(255, 255, 255, 0.15),
-        inset 0 -2px 6px 0 rgba(147, 197, 253, 0.15),
+        inset 0 -2px 6px 0 var(--glass-glow-blue),
         inset 0 -12px 28px 0 rgba(5, 10, 25, 0.5),
         0 0 25px 2px rgb(56 110 248 / 0.1);
     transition:
@@ -995,7 +971,7 @@ body {
 }
 
 .prompt-bar-container:focus-within {
-    border-color: rgba(147, 197, 253, 0.7);
+    border-color: var(--glass-border-focus);
     box-shadow:
         0 30px 65px -8px rgba(0, 0, 0, 0.85),
         0 0 45px 2px rgb(56 110 248 / 0.2),
@@ -1005,11 +981,10 @@ body {
         inset 0 -16px 36px 0 rgba(5, 10, 25, 0.6);
 }
 
-/* Standalone Plus Action Button (No circle plate) */
 .prompt-plus-btn {
     width: 32px;
     height: 32px;
-    color: #94a3b8;
+    color: var(--text-slate-muted);
     background: transparent;
     border: none;
     box-shadow: none;
@@ -1067,14 +1042,13 @@ body {
     text-shadow: none;
 }
 
-/* Liquid Sapphire Droplet Send Button */
 .prompt-send-btn {
     width: 38px;
     height: 38px;
     border-radius: 50%;
     background: radial-gradient(
         100% 100% at 32% 22%,
-        #60a5fa 0%,
+        var(--text-blue-light) 0%,
         #3b82f6 35%,
         #2563eb 70%,
         #1d4ed8 100%
@@ -1100,7 +1074,7 @@ body {
 .prompt-send-btn:hover {
     background: radial-gradient(
         100% 100% at 32% 22%,
-        #60a5fa 35%,
+        var(--text-blue-light) 35%,
         #3b82f6 70%,
         #2563eb 100%
     );
@@ -1119,7 +1093,6 @@ body {
         0 3px 10px 0 rgba(37, 99, 235, 0.45);
 }
 
-/* Disclaimer Text */
 .prompt-disclaimer {
     font-size: 0.74rem;
     color: var(--text-disclaimer);
@@ -1127,10 +1100,6 @@ body {
     text-align: center;
     user-select: none;
 }
-
-/* ==========================================================================
-   Modals
-   ========================================================================== */
 
 .modal-overlay {
     position: fixed;
@@ -1186,7 +1155,7 @@ body {
     height: 52px;
     border-radius: 50%;
     background-color: rgba(37, 87, 232, 0.15);
-    color: #60a5fa;
+    color: var(--text-blue-light);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -1210,10 +1179,6 @@ body {
     line-height: 1.45;
 }
 
-/* ==========================================================================
-   Auth Modal (Auth-screen.png reference)
-   ========================================================================== */
-
 .auth-modal-card {
     user-select: none;
     max-width: 380px;
@@ -1228,12 +1193,12 @@ body {
     );
     backdrop-filter: blur(28px) saturate(210%) brightness(108%);
     -webkit-backdrop-filter: blur(28px) saturate(210%) brightness(108%);
-    border: 1px solid rgba(255, 255, 255, 0.22);
+    border: 1px solid var(--glass-border);
     box-shadow:
         0 0 50px rgba(45, 80, 180, 0.25),
-        inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.35),
+        inset 0 1.5px 1.5px 0 var(--glass-border-hover),
         inset 0 12px 28px -6px rgba(255, 255, 255, 0.15),
-        inset 0 -2px 6px 0 rgba(147, 197, 253, 0.15),
+        inset 0 -2px 6px 0 var(--glass-glow-blue),
         inset 0 -16px 36px 0 rgba(5, 10, 25, 0.55);
     position: relative;
     box-sizing: border-box;
@@ -1297,7 +1262,6 @@ body {
     width: 100%;
 }
 
-/* Liquid Glass Input Group (Replicated from .prompt-bar-container) */
 .auth-input-group {
     position: relative;
     display: flex;
@@ -1310,7 +1274,7 @@ body {
     );
     backdrop-filter: blur(28px) saturate(210%) brightness(108%);
     -webkit-backdrop-filter: blur(28px) saturate(210%) brightness(108%);
-    border: 1px solid rgba(255, 255, 255, 0.22);
+    border: 1px solid var(--glass-border);
     border-radius: 14px;
     height: 50px;
     padding: 0 12px;
@@ -1319,7 +1283,7 @@ body {
         0 12px 24px -8px rgba(0, 0, 0, 0.6),
         inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.3),
         inset 0 6px 14px -4px rgba(255, 255, 255, 0.12),
-        inset 0 -2px 6px 0 rgba(147, 197, 253, 0.15),
+        inset 0 -2px 6px 0 var(--glass-glow-blue),
         inset 0 -10px 22px 0 rgba(5, 10, 25, 0.45);
     transition:
         border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
@@ -1332,19 +1296,19 @@ body {
     border-color: rgba(255, 255, 255, 0.32);
     box-shadow:
         0 14px 28px -8px rgba(0, 0, 0, 0.65),
-        inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.35),
+        inset 0 1.5px 1.5px 0 var(--glass-border-hover),
         inset 0 6px 14px -4px rgba(255, 255, 255, 0.15),
-        inset 0 -2px 6px 0 rgba(147, 197, 253, 0.15),
+        inset 0 -2px 6px 0 var(--glass-glow-blue),
         inset 0 -10px 22px 0 rgba(5, 10, 25, 0.45),
         0 0 20px 2px rgba(56, 110, 248, 0.15);
 }
 
 .auth-input-group:focus-within {
-    border-color: rgba(147, 197, 253, 0.7);
+    border-color: var(--glass-border-focus);
     box-shadow:
         0 16px 32px -6px rgba(0, 0, 0, 0.75),
         0 0 35px 2px rgba(56, 110, 248, 0.25),
-        0 0 0 1.5px rgba(147, 197, 253, 0.15),
+        0 0 0 1.5px var(--glass-glow-blue),
         inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.4),
         inset 0 8px 18px -4px rgba(255, 255, 255, 0.12),
         inset 0 -2px 6px 0 rgba(78, 149, 255, 0.25),
@@ -1352,7 +1316,7 @@ body {
 }
 
 .auth-input-icon {
-    color: #94a3b8;
+    color: var(--text-slate-muted);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1372,7 +1336,7 @@ body {
 }
 
 .auth-input::placeholder {
-    color: #8c9fb9;
+    color: var(--text-slate-blue);
     opacity: 1;
 }
 
@@ -1409,7 +1373,7 @@ body {
     background: rgba(15, 23, 42, 0.5);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.22);
+    border: 1px solid var(--glass-border);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -1422,8 +1386,8 @@ body {
 }
 
 .auth-checkbox-native:checked + .auth-checkbox-custom {
-    background-color: #2ebd64;
-    border-color: #2ebd64;
+    background-color: var(--color-green-login);
+    border-color: var(--color-green-login);
     box-shadow: 0 0 10px rgba(46, 189, 100, 0.4);
 }
 
@@ -1432,7 +1396,7 @@ body {
 }
 
 .auth-remember-text {
-    color: #cbd5e1;
+    color: var(--text-slate-light);
     font-size: 0.88rem;
     font-weight: 400;
 }
@@ -1446,7 +1410,7 @@ body {
 }
 
 .auth-forgot-link:hover {
-    color: #60a5fa;
+    color: var(--text-blue-light);
     text-decoration: underline;
 }
 
@@ -1463,7 +1427,7 @@ body {
     height: 48px;
     border-radius: 24px;
     border: 1px solid rgba(255, 255, 255, 0.15);
-    background: #2ebd64;
+    background: var(--color-green-login);
     color: #ffffff;
     font-family: var(--font-ui);
     font-size: 1rem;
@@ -1536,7 +1500,7 @@ body {
 }
 
 .auth-login-btn:hover ~ .auth-btn-spotlight {
-    background: radial-gradient(ellipse at 50% 50%, rgba(252, 63, 29, 0.45) 0%, transparent 75%);
+    background: radial-gradient(ellipse at 50% 50%, var(--color-yandex-spotlight) 0%, transparent 75%);
     filter: blur(14px);
 }
 
@@ -1555,18 +1519,17 @@ body {
 
 .auth-divider-text {
     padding: 0 14px;
-    color: #8c9fb9;
+    color: var(--text-slate-blue);
     font-size: 0.88rem;
     font-weight: 400;
     user-select: none;
 }
 
-/* Liquid Glass Yandex Button */
 .auth-yandex-btn {
     width: 100%;
     height: 48px;
     border-radius: 24px;
-    border: 1px solid rgba(255, 255, 255, 0.22);
+    border: 1px solid var(--glass-border);
     background: linear-gradient(
         135deg,
         rgba(255, 255, 255, 0.03) 10%,
@@ -1588,7 +1551,7 @@ body {
         0 12px 24px -8px rgba(0, 0, 0, 0.6),
         0 0 0px 0px rgba(252, 63, 29, 0),
         inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.3),
-        inset 0 -2px 6px 0 rgba(147, 197, 253, 0.15);
+        inset 0 -2px 6px 0 var(--glass-glow-blue);
     transition:
         border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
         box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1),
@@ -1657,7 +1620,7 @@ body {
 }
 
 .auth-footer-text {
-    color: #8c9fb9;
+    color: var(--text-slate-blue);
     margin-right: 4px;
 }
 
@@ -1670,11 +1633,10 @@ body {
 }
 
 .auth-signup-link:hover {
-    color: #60a5fa;
+    color: var(--text-blue-light);
     text-decoration: underline;
 }
 
-/* MCP Token & JSON Box */
 .token-field-box {
     margin-bottom: 16px;
 }
@@ -1697,7 +1659,7 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 8px;
     padding: 8px 12px;
-    color: #38bdf8;
+    color: var(--color-sky-blue);
     font-family: var(--font-mono);
     font-size: 0.88rem;
     outline: none;
@@ -1738,7 +1700,7 @@ body {
 .copy-code-text-btn {
     background: transparent;
     border: none;
-    color: #60a5fa;
+    color: var(--text-blue-light);
     cursor: pointer;
     font-size: 0.8rem;
     font-weight: 500;
@@ -1753,11 +1715,10 @@ body {
     font-family: var(--font-mono);
     font-size: 0.84rem;
     line-height: 1.45;
-    color: #e2e8f0;
+    color: var(--text-slate);
     overflow-x: auto;
 }
 
-/* About Us Modal Specs Grid */
 .specs-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -1776,7 +1737,7 @@ body {
 .spec-num {
     font-size: 1.15rem;
     font-weight: 700;
-    color: #60a5fa;
+    color: var(--text-blue-light);
     font-family: var(--font-mono);
 }
 
@@ -1793,7 +1754,6 @@ body {
     margin-top: 14px;
 }
 
-/* Settings Modal */
 .settings-body {
     display: flex;
     flex-direction: column;
@@ -1828,7 +1788,6 @@ body {
     font-family: var(--font-mono);
 }
 
-/* Toggle Switch */
 .toggle-switch {
     position: relative;
     display: inline-block;
@@ -1872,7 +1831,6 @@ input:checked + .toggle-slider:before {
     transform: translateX(20px);
 }
 
-/* Toast Message */
 .toast-message {
     position: fixed;
     bottom: 24px;
@@ -1889,11 +1847,6 @@ input:checked + .toggle-slider:before {
     animation: fadeIn 0.2s ease;
 }
 
-/* ==========================================================================
-   Responsive Adaptations (Small Height, Tablet & Desktop)
-   ========================================================================== */
-
-/* Mobile Phones (Compact Auth Modal & Controls) */
 @media (max-width: 480px) {
     .modal-overlay {
         padding: 12px;
@@ -2012,7 +1965,6 @@ input:checked + .toggle-slider:before {
     }
 }
 
-/* Also for short height mobile screens (landscape / small viewports) */
 @media (max-height: 680px) and (max-width: 480px) {
     .auth-modal-card {
         padding: 18px 16px 16px 16px;
@@ -2054,7 +2006,6 @@ input:checked + .toggle-slider:before {
     }
 }
 
-/* Short height screens (e.g. Samsung Galaxy Fold external cover screen, landscape, compact viewports) */
 @media (max-height: 720px) {
     .hero-glow-aura {
         max-width: 120vw;
@@ -2102,7 +2053,7 @@ input:checked + .toggle-slider:before {
         max-height: 65vh;
     }
 
-    /* Sidebar is open by default on screens ≥768px */
+    
     .sidebar-drawer {
         position: relative;
         top: auto;
@@ -2179,7 +2130,7 @@ input:checked + .toggle-slider:before {
 }
 
 @media (min-width: 930px) {
-    /* Persistent Sidebar (default open on wide screens, collapsible by toggle button) */
+    
     .sidebar-drawer {
         position: relative;
         top: auto;
@@ -2201,43 +2152,43 @@ input:checked + .toggle-slider:before {
         margin-bottom: 6px;
     }
     
-    /* Backdrop is never shown on wide screens */
+    
     .drawer-backdrop {
         display: none !important;
     }
 
-    /* Cross/close button in sidebar disappears as menu uses dedicated collapse button */
+    
     .close-btn {
         display: none !important;
     }
 
-    /* Dedicated sidebar collapse button shown in sidebar header */
+    
     .sidebar-toggle-btn {
         display: flex !important;
     }
 
-    /* Hamburger menu button in header disappears as sidebar is open by default */
+    
     .header-menu-btn {
         display: none !important;
     }
 
-    /* Open/expand button in header is hidden by default when sidebar is open */
+    
     .header-sidebar-toggle-btn {
         display: none !important;
     }
 
-    /* Errorium text in the center of header disappears to prevent duplicate project names */
+    
     .header-logo {
         display: none !important;
     }
 
-    /* Header aligns remaining elements (profile/auth button) to the right */
+    
     .app-header {
         justify-content: flex-end;
         box-shadow: var(--bg-primary) 0 0 40px;
     }
 
-    /* Collapsible sidebar on wide screens */
+    
     html.sidebar-collapsed .sidebar-drawer,
     .sidebar-drawer.collapsed,
     .app-container.sidebar-collapsed .sidebar-drawer {
@@ -2261,12 +2212,12 @@ input:checked + .toggle-slider:before {
         justify-content: space-between !important;
     }
 
-    /* Main viewport takes remaining width cleanly */
+    
     .main-viewport {
         min-width: 0;
     }
 
-    /* On wide screens, prompt bar expands gracefully */
+    
     .prompt-bar-container {
         max-width: 800px;
     }

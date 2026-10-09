@@ -1,5 +1,42 @@
 # CHANGE_HISTORY.md — История изменений проекта Errorium
 
+## [2026-10-09] — Вынос повторяющихся цветов в CSS-переменные и очистка комментариев
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `services/frontend/static/index.html`
+- `STATUS.md`
+
+### Суть изменений:
+1. **Анализ и вынос повторяющихся цветов в CSS-переменные (`:root` в [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css)):**
+   - Вынесены типографические и вспомогательные цвета:
+     - `--text-blue-light: #60a5fa`
+     - `--text-slate: #e2e8f0`
+     - `--text-slate-light: #cbd5e1`
+     - `--text-slate-muted: #94a3b8`
+     - `--text-slate-blue: #8c9fb9`
+     - `--text-light-grey: #d1d7e0`
+     - `--color-sky-blue: #38bdf8`
+   - Вынесены акцентные цвета и градиенты аутентификации (Яндекс ID и кнопки входа):
+     - `--color-yandex-red: #fc3f1d`
+     - `--color-yandex-glow: rgba(252, 63, 29, 0.35)`
+     - `--color-yandex-spotlight: rgba(252, 63, 29, 0.45)`
+     - `--color-green-login: #2ebd64`
+     - `--color-green-login-hover: #28a758`
+   - Вынесены частотные оттенки Liquid Glass и свечений:
+     - `--glass-border: rgba(255, 255, 255, 0.22)`
+     - `--glass-border-hover: rgba(255, 255, 255, 0.35)`
+     - `--glass-border-subtle: rgba(255, 255, 255, 0.15)`
+     - `--glass-glow-blue: rgba(147, 197, 253, 0.15)`
+     - `--glass-border-focus: rgba(147, 197, 253, 0.7)`
+   - Все прямые вхождения этих цветов в селекторах заменены на соответствующие `var(...)`.
+2. **Полная очистка комментариев:**
+   - Из [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) удалены все комментарии `/* ... */` и сопутствующие пустые строки, код стал чистым и компактным.
+3. **Восстановление SVG Яндекс ID в [index.html](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/index.html):**
+   - Убедились в точном соответствии разметки SVG параметрам `fill="#FC3F1D"` и `fill-opacity="0.65"`.
+4. **Тестирование ([test_frontend_spa.py](file:///home/mariam/WebstormProjects/Errorium/tests/unit/test_frontend_spa.py)):**
+   - Все 15 модульных тестов пройдены успешно (`make test-unit`).
+
 ## [2026-10-09] — Исправление плавности transition и устранение рывков на кнопках авторизации
 
 ### Затронутые компоненты и спецификации:
