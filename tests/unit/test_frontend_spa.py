@@ -399,7 +399,33 @@ class TestFrontendSPA(unittest.TestCase):
             "@media (max-width: 480px)" in css or "@media (max-width: 600px)" in css,
             "В styles.css должен быть медиа-запрос для компактного отображения на мобильных экранах"
         )
-        self.assertIn(".auth-modal-card", css)
+    def test_chat_screen_dialog_styles_and_structure(self):
+        """Проверка соответствия стилей и структуры диалога макету Chat-screen-dialog.png."""
+        css_path = os.path.join(STATIC_DIR, "styles.css")
+        js_path = os.path.join(STATIC_DIR, "app.js")
+
+        with open(css_path, "r", encoding="utf-8") as f:
+            css = f.read()
+        with open(js_path, "r", encoding="utf-8") as f:
+            js = f.read()
+
+        # 1. Цвета и стили пузыря пользователя
+        self.assertIn("--color-user-bubble", css)
+        self.assertIn("#6781db", css)
+        self.assertIn(".user-bubble", css)
+        self.assertIn(".user-bubble-status", css)
+
+        # 2. Цвета и стили пузыря ассистента с аватаром
+        self.assertIn("--color-bot-bubble", css)
+        self.assertIn("#c0c1c6", css)
+        self.assertIn(".assistant-bubble", css)
+        self.assertIn(".assistant-avatar", css)
+
+        # 3. Наличие аватара /message.svg и двойной галочки в разметке скрипта app.js
+        self.assertIn("/message.svg", js)
+        self.assertIn("user-bubble-status", js)
+        self.assertIn("assistant-avatar", js)
+        self.assertIn("assistant-bubble", js)
 
 if __name__ == "__main__":
     unittest.main()

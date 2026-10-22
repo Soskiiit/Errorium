@@ -95,7 +95,7 @@
 
             <nav class="recent-chats-nav" id="recent-chats-container">
                 <ul id="recent-chats-list" class="recent-chats-list">
-                    <li class="recent-chat-item" data-chat-id="chat-1" data-query="SyntaxError: invalid syntax">
+                    <li class="recent-chat-item" data-chat-id="chat-1" data-query="How to fix SyntaxError: invalid syntax">
                         <span class="chat-item-title">SyntaxError: invalid syntax</span>
                         <button class="chat-item-more" aria-label="More options">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -272,6 +272,9 @@
 
                 <!-- ACTIVE CHAT VIEW (SERP & RAG Conversation) -->
                 <section id="chat-view" class="chat-screen" style="display: none;">
+                    <div class="chat-glow-aura" aria-hidden="true">
+                        <img src="/blue-fire.png" alt="" class="blue-fire-bg" draggable="false">
+                    </div>
                     <div id="messages-container" class="messages-container">
                         <!-- Dynamic conversation entries inserted via app.js -->
                     </div>

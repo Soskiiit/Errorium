@@ -12,8 +12,8 @@
     const KNOWLEDGE_BASE = {
         'chat-1': {
             title: 'SyntaxError: invalid syntax',
-            query: 'SyntaxError: invalid syntax',
-            solution: 'This error occurs when Python parser encounters code that violates language grammar rules. The most common causes are missing colons after control flow statements (`if`, `for`, `def`), unclosed parentheses or quotes, or using reserved keywords as identifiers.',
+            query: 'How to fix SyntaxError: invalid syntax',
+            solution: 'Of course I will be glad to help you with the SyntaxError fixing! Please give me more context, so I will be able to help you!',
             code: '# ❌ Incorrect:\ndef calculate_total(items)\n    total = 0\n    return total\n\n# ✅ Fixed (add colon and check matching braces):\ndef calculate_total(items):\n    total = 0\n    return total',
             sources: [
                 {
@@ -557,24 +557,26 @@
 
     function renderConversation(userText, assistantData) {
         elements.messagesContainer.innerHTML = `
-            <!-- User Message -->
+            <!-- User Message (Chat-screen-dialog.png) -->
             <div class="message-row user">
-                <div class="user-bubble">${escapeHtml(userText)}</div>
+                <div class="user-bubble">
+                    <span class="user-bubble-text">${escapeHtml(userText)}</span>
+                    <span class="user-bubble-status" aria-hidden="true" title="Delivered">
+                        <svg width="16" height="13" viewBox="0 0 20 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M15.1596 4.5481L6.82136 12.8863L3.03125 9.09623" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke="#4660BDFF"/>
+                            <path d="M11.1172 12.7357L18.9937 4.8592" stroke-width="2" stroke-linecap="round" stroke="#4660BDFF"/>
+                        </svg>
+                    </span>
+                </div>
             </div>
 
-            <!-- Assistant Solution Card -->
+            <!-- Assistant Message (Chat-screen-dialog.png) -->
             <div class="message-row assistant">
-                <div class="assistant-card">
-                    <div class="card-top-bar">
-                        <div class="badge-mascot">
-                            <img src="/mascot.png" alt="Mascot" width="22">
-                        </div>
-                        <span class="card-title">Errorium RAG Synthesis (BM25 Core)</span>
-                    </div>
-
-                    <div class="card-solution-text">
-                        ${assistantData.solution}
-                    </div>
+                <div class="assistant-avatar" aria-hidden="true">
+                    <img src="/message.svg" alt="Errorium Assistant" class="assistant-avatar-img" width="38" height="38">
+                </div>
+                <div class="assistant-bubble">
+                    <div class="assistant-text">${assistantData.solution}</div>
 
                     ${assistantData.code ? `
                     <div class="code-block-wrapper">
@@ -586,6 +588,7 @@
                     </div>
                     ` : ''}
 
+                    ${assistantData.sources && assistantData.sources.length ? `
                     <div class="sources-card">
                         <div class="sources-header" onclick="toggleSources(this)">
                             <span>Ranked Stack Overflow Sources (${assistantData.sources.length})</span>
@@ -603,6 +606,7 @@
                             `).join('')}
                         </div>
                     </div>
+                    ` : ''}
                 </div>
             </div>
         `;

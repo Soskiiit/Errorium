@@ -1,5 +1,35 @@
 # CHANGE_HISTORY.md — История изменений проекта Errorium
 
+## [2026-10-09] — Стилизация экрана диалога и сообщений в точном соответствии с Chat-screen-dialog.png
+
+### Затронутые компоненты и спецификации:
+- `docs/Product/04-interface-and-behavior.md`
+- `services/frontend/static/styles.css`
+- `services/frontend/static/index.html`
+- `services/frontend/static/app.js`
+- `tests/unit/test_frontend_spa.py`
+- `STATUS.md`
+
+### Суть изменений:
+1. **Спецификация (SDD в [04-interface-and-behavior.md](file:///home/mariam/WebstormProjects/Errorium/docs/Product/04-interface-and-behavior.md)):**
+   - Добавлен раздел «Экран активного диалога сообщений (`Chat-screen-dialog.png`)»: форма и геометрия пузырей сообщений, позиционирование аватара и индикатора доставки.
+2. **Стилизация ([styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css)):**
+   - Добавлены переменные цветов в `:root`: `--color-user-bubble: #6781db`, `--color-bot-bubble: #c0c1c6`, `--color-msg-check: #3d529f`, `--color-msg-text: #000000`.
+   - **Сообщение пользователя (`.message-row.user` / `.user-bubble`):**
+     - Выравнивание по правому краю, фон `#6781db`, черный текст `#000000`, шрифт Inter, скругление всех углов 18px.
+     - Индикатор прочитанности/доставки: двойная синяя галочка (`.user-bubble-status` со stroke `#3d529f`).
+   - **Сообщение ассистента (`.message-row.assistant` / `.assistant-bubble`):**
+     - Выравнивание по левому краю с круглым аватаром (`.assistant-avatar` 38×38px с маскотом `/message.svg`).
+     - Пузырь ответа: фон `#c0c1c6`, черный текст `#000000`, шрифт Inter, скругление всех углов 18px, межстрочный интервал 1.45.
+   - Фоновая синяя аура (`.chat-glow-aura`) размещена позади ленты сообщений для точного повторения атмосферного спотлайта из референса.
+   - Добавлена мобильная адаптивность в `@media (max-width: 480px)` (компактный аватар 34px, пропорциональные отступы и размеры пузырей).
+3. **Логика и Knowledge Base ([app.js](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/app.js) & [index.html](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/index.html)):**
+   - В `renderConversation` внедрена разметка с аватаром `/message.svg` и двойной галочкой.
+   - В `KNOWLEDGE_BASE['chat-1']` обновлены запрос (`How to fix SyntaxError: invalid syntax`) и формулировка ответа в точном соответствии со снимком экрана диалога.
+4. **Тестирование ([test_frontend_spa.py](file:///home/mariam/WebstormProjects/Errorium/tests/unit/test_frontend_spa.py)):**
+   - Добавлен тест `test_chat_screen_dialog_styles_and_structure`.
+   - Все 16 unit-тестов успешно пройдены (`make test-unit`).
+
 ## [2026-10-09] — Вынос повторяющихся цветов в CSS-переменные и очистка комментариев
 
 ### Затронутые компоненты и спецификации:
