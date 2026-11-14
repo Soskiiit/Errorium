@@ -1752,13 +1752,13 @@ input:checked + .toggle-slider:before {
 }
 
 .header-avatar-auth {
-    width: 30px;
-    height: 30px;
+    width: 33px;
+    height: 33px;
     border-radius: 50%;
     background-color: var(--color-avatar-purple);
     color: #ffffff;
     font-weight: 700;
-    font-size: 14px;
+    font-size: 15px;
     display: flex;
     align-items: center;
     justify-content: center;
