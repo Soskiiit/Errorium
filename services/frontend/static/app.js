@@ -415,9 +415,18 @@
                 elements.profileAvatarLetter.textContent = (user.avatarLetter || user.username[0] || 'T').toUpperCase();
             }
             if (elements.profileUsername) elements.profileUsername.textContent = user.username;
-            if (elements.profileInfoUsername) elements.profileInfoUsername.textContent = user.username;
-            if (elements.profileInfoEmail) elements.profileInfoEmail.textContent = user.email || 'Test_user@mail.ru';
-            if (elements.profileInfoRole) elements.profileInfoRole.textContent = user.role || 'Backend developer';
+            if (elements.profileInfoUsername) {
+                elements.profileInfoUsername.value = user.username;
+                elements.profileInfoUsername.textContent = user.username;
+            }
+            if (elements.profileInfoEmail) {
+                elements.profileInfoEmail.value = user.email || 'Test_user@mail.ru';
+                elements.profileInfoEmail.textContent = user.email || 'Test_user@mail.ru';
+            }
+            if (elements.profileInfoRole) {
+                elements.profileInfoRole.value = user.role || 'Backend developer';
+                elements.profileInfoRole.textContent = user.role || 'Backend developer';
+            }
             if (elements.profileInfoGender) elements.profileInfoGender.textContent = user.gender || 'Male';
             if (elements.profileInfoLang) elements.profileInfoLang.textContent = user.language || 'English';
         } else {
@@ -635,6 +644,56 @@
         user.avatarLetter = newName[0].toUpperCase();
         setAuthUser(user);
         showToast(`Username updated to ${newName}`);
+    });
+
+    // Profile input change listeners (Username, Email, Role)
+    elements.profileInfoUsername?.addEventListener('change', (e) => {
+        const val = e.target.value.trim();
+        if (!val) return;
+        const user = getAuthUser() || {
+            username: 'Test_user',
+            email: 'Test_user@mail.ru',
+            role: 'Backend developer',
+            gender: 'Male',
+            language: 'English',
+            avatarLetter: 'T'
+        };
+        user.username = val;
+        user.avatarLetter = val[0].toUpperCase();
+        setAuthUser(user);
+        showToast('Username updated');
+    });
+
+    elements.profileInfoEmail?.addEventListener('change', (e) => {
+        const val = e.target.value.trim();
+        if (!val) return;
+        const user = getAuthUser() || {
+            username: 'Test_user',
+            email: 'Test_user@mail.ru',
+            role: 'Backend developer',
+            gender: 'Male',
+            language: 'English',
+            avatarLetter: 'T'
+        };
+        user.email = val;
+        setAuthUser(user);
+        showToast('Email updated');
+    });
+
+    elements.profileInfoRole?.addEventListener('change', (e) => {
+        const val = e.target.value.trim();
+        if (!val) return;
+        const user = getAuthUser() || {
+            username: 'Test_user',
+            email: 'Test_user@mail.ru',
+            role: 'Backend developer',
+            gender: 'Male',
+            language: 'English',
+            avatarLetter: 'T'
+        };
+        user.role = val;
+        setAuthUser(user);
+        showToast('Role updated');
     });
 
     // Reference Modal Handlers
