@@ -144,6 +144,32 @@
         btnAbout: document.getElementById('btn-about'),
         btnSettings: document.getElementById('btn-settings'),
 
+        // Authorized Sidebar & Header
+        sidebarUserGuest: document.getElementById('sidebar-user-guest'),
+        sidebarUserAuth: document.getElementById('sidebar-user-auth'),
+        btnAuthUserRow: document.getElementById('btn-auth-user-row'),
+        sidebarAuthAvatar: document.getElementById('sidebar-auth-avatar'),
+        sidebarAuthName: document.getElementById('sidebar-auth-name'),
+        sidebarAuthRole: document.getElementById('sidebar-auth-role'),
+        btnSettingsAuth: document.getElementById('btn-settings-auth'),
+        headerAvatarGuest: document.getElementById('header-avatar-guest'),
+        headerAvatarAuth: document.getElementById('header-avatar-auth'),
+
+        // Profile Screen Elements
+        profileView: document.getElementById('profile-view'),
+        btnProfileBack: document.getElementById('btn-profile-back'),
+        profileAvatarLarge: document.getElementById('profile-avatar-large'),
+        profileAvatarLetter: document.getElementById('profile-avatar-letter'),
+        profileAvatarEditBadge: document.getElementById('profile-avatar-edit-badge'),
+        profileUsername: document.getElementById('profile-username'),
+        profileInfoUsername: document.getElementById('profile-info-username'),
+        profileInfoEmail: document.getElementById('profile-info-email'),
+        profileInfoRole: document.getElementById('profile-info-role'),
+        profileInfoGender: document.getElementById('profile-info-gender'),
+        profileInfoGenderRow: document.getElementById('profile-info-gender-row'),
+        profileRowSecurity: document.getElementById('profile-row-security'),
+        profileInfoLang: document.getElementById('profile-info-lang'),
+
         searchRecentChats: document.getElementById('search-recent-chats'),
         recentChatsList: document.getElementById('recent-chats-list'),
         recentChatsToggle: document.getElementById('recent-chats-toggle'),
@@ -157,6 +183,7 @@
         btnSend: document.getElementById('btn-send'),
         btnAttach: document.getElementById('btn-attach'),
         attachPopover: document.getElementById('attach-popover'),
+        tagsPopover: document.getElementById('tags-popover'),
 
         // Modals
         modalAuth: document.getElementById('modal-auth'),
@@ -164,6 +191,32 @@
         modalAbout: document.getElementById('modal-about'),
         modalSettings: document.getElementById('modal-settings'),
         userDisplayName: document.getElementById('user-display-name'),
+
+        // Reference Modals (services/frontend/references/)
+        modalAuthRef: document.getElementById('modal-auth-reference'),
+        refAuthForm: document.getElementById('ref-auth-form'),
+        refAuthEmail: document.getElementById('ref-auth-email'),
+        refAuthPassword: document.getElementById('ref-auth-password'),
+        refAuthRemember: document.getElementById('ref-auth-remember'),
+        refAuthForgot: document.getElementById('ref-auth-forgot'),
+        refBtnLogin: document.getElementById('ref-btn-login'),
+        refBtnYandex: document.getElementById('ref-btn-yandex'),
+        refLinkSignup: document.getElementById('ref-link-signup'),
+
+        modalChangePasswordEmail: document.getElementById('modal-change-password-email'),
+        refResetEmailForm: document.getElementById('ref-reset-email-form'),
+        refResetEmail: document.getElementById('ref-reset-email'),
+        refBtnSendReset: document.getElementById('ref-btn-send-reset'),
+
+        modalChangePassword: document.getElementById('modal-change-password'),
+        refChangePasswordForm: document.getElementById('ref-change-password-form'),
+        refNewPassword: document.getElementById('ref-new-password'),
+        refConfirmPassword: document.getElementById('ref-confirm-password'),
+        refPasswordError: document.getElementById('ref-password-error'),
+        refBtnApprovePassword: document.getElementById('ref-btn-approve-password'),
+
+        modalResetPasswordAlert: document.getElementById('modal-reset-password-alert'),
+        refBtnAlertSendReset: document.getElementById('ref-btn-alert-send-reset'),
 
         btnCopyToken: document.getElementById('btn-copy-token'),
         btnCopyMcpJson: document.getElementById('btn-copy-mcp-json'),
@@ -304,8 +357,64 @@
     });
 
     // =========================================================================
-    // Modals Controls
+    // Modals Controls & Authentication State
     // =========================================================================
+    const AUTH_USER_KEY = 'errorium_auth_user';
+
+    function getAuthUser() {
+        try {
+            const data = localStorage.getItem(AUTH_USER_KEY);
+            return data ? JSON.parse(data) : null;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function setAuthUser(user) {
+        try {
+            if (user) {
+                localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
+            } else {
+                localStorage.removeItem(AUTH_USER_KEY);
+            }
+        } catch (e) {}
+        updateAuthUI();
+    }
+
+    function updateAuthUI() {
+        const user = getAuthUser();
+        if (user) {
+            if (elements.sidebarUserGuest) elements.sidebarUserGuest.style.display = 'none';
+            if (elements.sidebarUserAuth) elements.sidebarUserAuth.style.display = 'flex';
+            if (elements.headerAvatarGuest) elements.headerAvatarGuest.style.display = 'none';
+            if (elements.headerAvatarAuth) {
+                elements.headerAvatarAuth.style.display = 'flex';
+                elements.headerAvatarAuth.textContent = (user.avatarLetter || user.username[0] || 'T').toUpperCase();
+            }
+
+            if (elements.sidebarAuthAvatar) {
+                elements.sidebarAuthAvatar.textContent = (user.avatarLetter || user.username[0] || 'T').toUpperCase();
+            }
+            if (elements.sidebarAuthName) elements.sidebarAuthName.textContent = user.username;
+            if (elements.sidebarAuthRole) elements.sidebarAuthRole.textContent = user.role || 'Backend developer';
+
+            if (elements.profileAvatarLetter) {
+                elements.profileAvatarLetter.textContent = (user.avatarLetter || user.username[0] || 'T').toUpperCase();
+            }
+            if (elements.profileUsername) elements.profileUsername.textContent = user.username;
+            if (elements.profileInfoUsername) elements.profileInfoUsername.textContent = user.username;
+            if (elements.profileInfoEmail) elements.profileInfoEmail.textContent = user.email || 'Test_user@mail.ru';
+            if (elements.profileInfoRole) elements.profileInfoRole.textContent = user.role || 'Backend developer';
+            if (elements.profileInfoGender) elements.profileInfoGender.textContent = user.gender || 'Male';
+            if (elements.profileInfoLang) elements.profileInfoLang.textContent = user.language || 'English';
+        } else {
+            if (elements.sidebarUserGuest) elements.sidebarUserGuest.style.display = 'flex';
+            if (elements.sidebarUserAuth) elements.sidebarUserAuth.style.display = 'none';
+            if (elements.headerAvatarGuest) elements.headerAvatarGuest.style.display = 'inline-block';
+            if (elements.headerAvatarAuth) elements.headerAvatarAuth.style.display = 'none';
+        }
+    }
+
     function showModal(modalEl) {
         closeSidebar();
         closeAllModals();
@@ -320,6 +429,9 @@
         });
         if (elements.attachPopover) {
             elements.attachPopover.style.display = 'none';
+        }
+        if (elements.tagsPopover) {
+            elements.tagsPopover.style.display = 'none';
         }
     }
 
@@ -337,21 +449,163 @@
         });
     });
 
-    // Modal Triggers
+    // Modal & View Triggers
     elements.btnMcp?.addEventListener('click', () => showModal(elements.modalMcp));
     elements.btnAbout?.addEventListener('click', () => showModal(elements.modalAbout));
     elements.btnSettings?.addEventListener('click', () => showModal(elements.modalSettings));
-    elements.btnProfile?.addEventListener('click', () => showModal(elements.modalAuth));
-    elements.btnLoginRow?.addEventListener('click', () => showModal(elements.modalAuth));
+    elements.btnSettingsAuth?.addEventListener('click', () => showModal(elements.modalSettings));
+
+    elements.btnProfile?.addEventListener('click', () => {
+        if (getAuthUser()) {
+            switchToProfileView();
+        } else {
+            showModal(elements.modalAuthRef || elements.modalAuth);
+        }
+    });
+
+    elements.btnLoginRow?.addEventListener('click', () => {
+        showModal(elements.modalAuthRef || elements.modalAuth);
+    });
+
+    elements.btnAuthUserRow?.addEventListener('click', () => {
+        switchToProfileView();
+    });
+
+    // Profile View Actions
+    elements.btnProfileBack?.addEventListener('click', () => {
+        switchToHeroView();
+    });
+
+    elements.profileRowSecurity?.addEventListener('click', () => {
+        showModal(elements.modalResetPasswordAlert);
+    });
+
+    elements.profileInfoGenderRow?.addEventListener('click', () => {
+        const user = getAuthUser() || {
+            username: 'Test_user',
+            email: 'Test_user@mail.ru',
+            role: 'Backend developer',
+            gender: 'Male',
+            language: 'English',
+            avatarLetter: 'T'
+        };
+        user.gender = user.gender === 'Male' ? 'Female' : 'Male';
+        setAuthUser(user);
+        showToast(`Gender set to ${user.gender}`);
+    });
+
+    elements.profileAvatarEditBadge?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const user = getAuthUser() || {
+            username: 'Test_user',
+            email: 'Test_user@mail.ru',
+            role: 'Backend developer',
+            gender: 'Male',
+            language: 'English',
+            avatarLetter: 'T'
+        };
+        const currentName = user.username;
+        const newName = currentName === 'Test_user' ? 'Senior_developer' : 'Test_user';
+        user.username = newName;
+        user.avatarLetter = newName[0].toUpperCase();
+        setAuthUser(user);
+        showToast(`Username updated to ${newName}`);
+    });
+
+    // Reference Modal Handlers
+    // 1. Auth Reference Modal (Auth-screen.png)
+    elements.refAuthForm?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const email = elements.refAuthEmail?.value || 'Test_user@mail.ru';
+        const user = {
+            username: 'Test_user',
+            email: email,
+            role: 'Backend developer',
+            gender: 'Male',
+            language: 'English',
+            avatarLetter: 'T'
+        };
+        setAuthUser(user);
+        closeAllModals();
+        showToast('Successfully logged in!');
+    });
+
+    elements.refBtnYandex?.addEventListener('click', () => {
+        const user = {
+            username: 'Test_user',
+            email: 'Test_user@mail.ru',
+            role: 'Backend developer',
+            gender: 'Male',
+            language: 'English',
+            avatarLetter: 'T'
+        };
+        setAuthUser(user);
+        closeAllModals();
+        showToast('Logged in via Yandex ID');
+    });
+
+    elements.refAuthForgot?.addEventListener('click', () => {
+        showModal(elements.modalChangePasswordEmail);
+    });
+
+    elements.refLinkSignup?.addEventListener('click', () => {
+        showToast('Registration is open. Enter credentials above.');
+    });
+
+    // 2. Reset Password Alert Modal (Reset-password-alert.png)
+    elements.refBtnAlertSendReset?.addEventListener('click', () => {
+        showModal(elements.modalChangePasswordEmail);
+    });
+
+    // 3. Change Password Email Modal (Change-password-email-screen.png)
+    elements.refResetEmailForm?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        showToast('Reset email sent! Check your spam folder.');
+        setTimeout(() => {
+            showModal(elements.modalChangePassword);
+        }, 1200);
+    });
+
+    // 4. Change Password Modal (Change-password-screen.png)
+    elements.refChangePasswordForm?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const pwd1 = elements.refNewPassword?.value || '';
+        const pwd2 = elements.refConfirmPassword?.value || '';
+        if (!pwd1) {
+            if (elements.refPasswordError) {
+                elements.refPasswordError.textContent = 'Password cannot be empty';
+                elements.refPasswordError.style.display = 'block';
+            }
+            return;
+        }
+        if (pwd1 !== pwd2) {
+            if (elements.refPasswordError) {
+                elements.refPasswordError.textContent = 'Passwords do not match';
+                elements.refPasswordError.style.display = 'block';
+            }
+            return;
+        }
+        if (elements.refPasswordError) {
+            elements.refPasswordError.style.display = 'none';
+        }
+        closeAllModals();
+        showToast('Password updated successfully!');
+    });
 
     // Fast Auth Demo
     elements.btnLoginGithub?.addEventListener('click', () => handleLogin('GitHub'));
     elements.btnLoginGoogle?.addEventListener('click', () => handleLogin('Google'));
 
     function handleLogin(provider) {
-        if (elements.userDisplayName) {
-            elements.userDisplayName.textContent = 'dev@errorium.ru';
-        }
+        const user = {
+            username: 'Test_user',
+            email: 'dev@errorium.ru',
+            role: 'Backend developer',
+            gender: 'Male',
+            language: 'English',
+            avatarLetter: 'T'
+        };
+        setAuthUser(user);
         closeAllModals();
         showToast(`Signed in via ${provider} SSO! MCP tokens active.`);
     }
@@ -403,16 +657,36 @@
 
     elements.btnSend?.addEventListener('click', submitCurrentQuery);
 
-    // Attach button popover toggle
+    // Attach button popover toggle (Tags Popover - Chat-screen-with-tags.png)
     elements.btnAttach?.addEventListener('click', function (e) {
         e.stopPropagation();
+        if (elements.tagsPopover) {
+            const isShown = elements.tagsPopover.style.display === 'block' || elements.tagsPopover.style.display === 'flex';
+            elements.tagsPopover.style.display = isShown ? 'none' : 'block';
+        }
         if (elements.attachPopover) {
-            const isShown = elements.attachPopover.style.display === 'flex';
-            elements.attachPopover.style.display = isShown ? 'none' : 'flex';
+            elements.attachPopover.style.display = 'none';
         }
     });
 
-    // Popover quick items
+    // Tag pills click listeners
+    document.querySelectorAll('.tag-pill').forEach(pill => {
+        pill.addEventListener('click', function (e) {
+            e.stopPropagation();
+            const tag = this.getAttribute('data-tag');
+            if (elements.promptInput) {
+                const current = elements.promptInput.value;
+                elements.promptInput.value = current ? `${current} [${tag}] ` : `[${tag}] `;
+            }
+            if (elements.tagsPopover) {
+                elements.tagsPopover.style.display = 'none';
+            }
+            adjustTextareaHeight();
+            elements.promptInput?.focus();
+        });
+    });
+
+    // Popover quick items (Preserved for compatibility)
     document.querySelectorAll('.popover-item').forEach(item => {
         item.addEventListener('click', function () {
             const action = this.getAttribute('data-action');
@@ -429,7 +703,10 @@
     });
 
     document.addEventListener('click', function (e) {
-        if (elements.attachPopover && !elements.attachPopover.contains(e.target) && e.target !== elements.btnAttach) {
+        if (elements.tagsPopover && !elements.tagsPopover.contains(e.target) && e.target !== elements.btnAttach && !elements.btnAttach.contains(e.target)) {
+            elements.tagsPopover.style.display = 'none';
+        }
+        if (elements.attachPopover && !elements.attachPopover.contains(e.target) && e.target !== elements.btnAttach && !elements.btnAttach.contains(e.target)) {
             elements.attachPopover.style.display = 'none';
         }
     });
@@ -449,10 +726,19 @@
 
     function switchToChatView() {
         if (elements.heroView) elements.heroView.style.display = 'none';
+        if (elements.profileView) elements.profileView.style.display = 'none';
         if (elements.chatView) elements.chatView.style.display = 'flex';
     }
 
+    function switchToProfileView() {
+        if (elements.heroView) elements.heroView.style.display = 'none';
+        if (elements.chatView) elements.chatView.style.display = 'none';
+        if (elements.profileView) elements.profileView.style.display = 'flex';
+        closeSidebar();
+    }
+
     function switchToHeroView() {
+        if (elements.profileView) elements.profileView.style.display = 'none';
         if (elements.chatView) elements.chatView.style.display = 'none';
         if (elements.heroView) elements.heroView.style.display = 'flex';
         if (elements.messagesContainer) elements.messagesContainer.innerHTML = '';
@@ -523,13 +809,35 @@
     }
 
     function renderConversation(userText, assistantData) {
+        const friendlyGreeting = userText.toLowerCase().includes('syntaxerror')
+            ? 'Of course I will be glad to help you with the SyntaxError fixing! Please give me more context, so I will be able to help you!'
+            : `Of course I will be glad to help you with the ${escapeHtml(userText)} fixing! Please give me more context, so I will be able to help you!`;
+
         elements.messagesContainer.innerHTML = `
-            <!-- User Message -->
-            <div class="message-row user">
-                <div class="user-bubble">${escapeHtml(userText)}</div>
+            <!-- User Message Dialogue Bubble (Chat-screen-dialog.png) -->
+            <div class="message-row user" style="justify-content: flex-end;">
+                <div class="dialog-user-bubble">
+                    <span>${escapeHtml(userText)}</span>
+                    <span class="dialog-check-icon" title="Delivered">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                            <polyline points="24 10 17 17 14 14"></polyline>
+                        </svg>
+                    </span>
+                </div>
             </div>
 
-            <!-- Assistant Solution Card -->
+            <!-- Assistant Greeting Dialogue Bubble (Chat-screen-dialog.png) -->
+            <div class="dialog-assistant-wrapper">
+                <div class="dialog-assistant-avatar">
+                    <img src="/message.svg" alt="Errorium Mascot">
+                </div>
+                <div class="dialog-assistant-bubble">
+                    ${friendlyGreeting}
+                </div>
+            </div>
+
+            <!-- Assistant Solution Card (Preserved BM25 RAG) -->
             <div class="message-row assistant">
                 <div class="assistant-card">
                     <div class="card-top-bar">
@@ -564,6 +872,16 @@
                                     <div class="source-left">
                                         <span class="source-score">▲ ${src.score}</span>
                                         <span class="source-title">${src.title}</span>
+                                    </div>
+                                    <span style="font-size: 0.78rem; color: #64748b;">${src.tags.map(t => '#' + t).join(' ')}</span>
+                                </a>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
                                     </div>
                                     <span style="font-size: 0.78rem; color: #64748b;">${src.tags.map(t => '#' + t).join(' ')}</span>
                                 </a>
@@ -635,5 +953,8 @@
             }
         }
     });
+
+    // Initialize authentication UI state from stored session
+    updateAuthUI();
 
 })();

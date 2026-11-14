@@ -305,6 +305,145 @@ class TestFrontendSPA(unittest.TestCase):
             server.shutdown()
             server.server_close()
 
+    def test_reference_modals_structure(self):
+        """Проверка разметки и элементов модальных окон из референсов:
+        Auth-screen.png, Change-password-email-screen.png, Change-password-screen.png, Reset-password-alert.png."""
+        html_path = os.path.join(STATIC_DIR, "index.html")
+        with open(html_path, "r", encoding="utf-8") as f:
+            html = f.read()
+
+        # 1. Auth Reference Modal (Auth-screen.png)
+        self.assertIn("modal-auth-reference", html)
+        self.assertIn("ref-auth-email", html)
+        self.assertIn("ref-auth-password", html)
+        self.assertIn("Remember me", html)
+        self.assertIn("Forgot password?", html)
+        self.assertIn("btn-green-pill", html)
+        self.assertIn("ref-btn-login", html)
+        self.assertIn("Continue with Yandex ID", html)
+        self.assertIn("yandex-red-badge", html)
+        self.assertIn("New here?", html)
+        self.assertIn("Sign up", html)
+
+        # 2. Change Password Email Modal (Change-password-email-screen.png)
+        self.assertIn("modal-change-password-email", html)
+        self.assertIn("Enter your account email", html)
+        self.assertIn("ref-reset-email", html)
+        self.assertIn("ref-btn-send-reset", html)
+        self.assertIn("We've sent you an email.", html)
+        self.assertIn("Don't forget to check your spam folder", html)
+
+        # 3. Change Password Modal (Change-password-screen.png)
+        self.assertIn("modal-change-password", html)
+        self.assertIn("Change password", html)
+        self.assertIn("Enter a new password", html)
+        self.assertIn("Enter it again", html)
+        self.assertIn("ref-new-password", html)
+        self.assertIn("ref-confirm-password", html)
+        self.assertIn("ref-btn-approve-password", html)
+        self.assertIn("Approve", html)
+
+        # 4. Reset Password Alert Modal (Reset-password-alert.png)
+        self.assertIn("modal-reset-password-alert", html)
+        self.assertIn("alert-warning-icon", html)
+        self.assertIn("Keep in mind that changing your password will sign you out of all other devices", html)
+        self.assertIn("btn-amber-pill", html)
+        self.assertIn("ref-btn-alert-send-reset", html)
+
+    def test_profile_screen_structure(self):
+        """Проверка разметки экрана профиля пользователя (Profile-screen.png)."""
+        html_path = os.path.join(STATIC_DIR, "index.html")
+        with open(html_path, "r", encoding="utf-8") as f:
+            html = f.read()
+
+        self.assertIn("profile-view", html)
+        self.assertIn("btn-profile-back", html)
+        self.assertIn("profile-avatar-large", html)
+        self.assertIn("profile-avatar-edit-badge", html)
+        self.assertIn("profile-username", html)
+        self.assertIn("Test_user", html)
+
+        # Секции экрана профиля
+        self.assertIn("Personal information", html)
+        self.assertIn("Test_user@mail.ru", html)
+        self.assertIn("Backend developer", html)
+        self.assertIn("profile-info-gender-row", html)
+        self.assertIn("Male", html)
+
+        self.assertIn("Security", html)
+        self.assertIn("profile-row-security", html)
+
+        self.assertIn("Language", html)
+        self.assertIn("English", html)
+        self.assertIn("文A", html)
+
+    def test_tags_popover_structure(self):
+        """Проверка поповера тегов технологий (Chat-screen-with-tags.png)."""
+        html_path = os.path.join(STATIC_DIR, "index.html")
+        with open(html_path, "r", encoding="utf-8") as f:
+            html = f.read()
+
+        self.assertIn("tags-popover", html)
+        self.assertIn("tags-grid", html)
+
+        # 8 референсных тегов
+        tags = ["Go", "Python", "Java", "C#", "C++", "JS", "SQL", "Rust"]
+        for tag in tags:
+            self.assertIn(f'>{tag}<', html, f"Тег {tag} должен присутствовать в tags-popover")
+
+        tag_classes = ["tag-go", "tag-python", "tag-java", "tag-csharp", "tag-cpp", "tag-js", "tag-sql", "tag-rust"]
+        for cls in tag_classes:
+            self.assertIn(cls, html, f"CSS класс {cls} должен присутствовать в разметке тегов")
+
+    def test_authorized_sidebar_and_header_state(self):
+        """Проверка переключения между гостевым и авторизованным состоянием сайдбара и шапки (Chat-screen-menu-authorized.png)."""
+        html_path = os.path.join(STATIC_DIR, "index.html")
+        js_path = os.path.join(STATIC_DIR, "app.js")
+
+        with open(html_path, "r", encoding="utf-8") as f:
+            html = f.read()
+        with open(js_path, "r", encoding="utf-8") as f:
+            js = f.read()
+
+        # Разметка авторизованного футера
+        self.assertIn("sidebar-user-guest", html)
+        self.assertIn("sidebar-user-auth", html)
+        self.assertIn("sidebar-auth-avatar", html)
+        self.assertIn("sidebar-auth-name", html)
+        self.assertIn("sidebar-auth-role", html)
+        self.assertIn("header-avatar-guest", html)
+        self.assertIn("header-avatar-auth", html)
+
+        # Логика в app.js
+        self.assertIn("errorium_auth_user", js)
+        self.assertIn("updateAuthUI", js)
+        self.assertIn("switchToProfileView", js)
+
+    def test_conversational_dialog_bubbles(self):
+        """Проверка стилей и рендеринга пузырей диалога (Chat-screen-dialog.png)."""
+        css_path = os.path.join(STATIC_DIR, "styles.css")
+        js_path = os.path.join(STATIC_DIR, "app.js")
+
+        with open(css_path, "r", encoding="utf-8") as f:
+            css = f.read()
+        with open(js_path, "r", encoding="utf-8") as f:
+            js = f.read()
+
+        # Стили пузырей и цвета
+        self.assertIn("dialog-user-bubble", css)
+        self.assertIn("dialog-assistant-bubble", css)
+        self.assertIn("dialog-assistant-avatar", css)
+        self.assertIn("dialog-check-icon", css)
+        self.assertIn("#6781db", css)
+        self.assertIn("#c0c1c6", css)
+
+        # Рендеринг в app.js
+        self.assertIn("dialog-user-bubble", js)
+        self.assertIn("dialog-assistant-wrapper", js)
+        self.assertIn("dialog-assistant-bubble", js)
+        self.assertIn("message.svg", js)
+        self.assertIn("SyntaxError fixing", js)
+
 if __name__ == "__main__":
     unittest.main()
 

@@ -16,7 +16,7 @@
 | **Search Engine Indexer** | Роль 1 | Каркас готов | Реализация потокового парсера XML дампа и токенизатора |
 | **Search Engine Core** | Роль 2 | Специфицирован (gRPC) | Реализация чтения инвертированного индекса и BM25 с нуля |
 | **Gateway & MCP Service** | Роль 3 | Спроектирована БД PostgreSQL 18 (UUIDv7, SSO, сессии, чаты, теги), настроен Garage S3, встроены автомиграции через embed.FS (golang-migrate) | Реализация слоя репозиториев (pgxpool) и интеграция с Garage S3 SDK |
-| **Web Frontend** | Роль 4 | Реализован адаптивный SPA без фреймворков (сайдбар открыт по умолчанию, десктопное сворачивание, строка ввода Liquid Glass) | Интеграция с API Gateway (/api/v1/search) и отрисовка графа D3/Canvas |
+| **Web Frontend** | Роль 4 | Реализован адаптивный SPA без фреймворков; реализованы все 10 экранов и компонентов интерфейса в полном соответствии с референсами (Auth, Reset Password, Profile, Tags popover, Authorized drawer, Chat dialog bubbles); 19 unit-тестов пройдены успешно | Интеграция с API Gateway (/api/v1/search) и отрисовка графа D3/Canvas |
 
 ## 3. Следующий шаг (Next Step)
 - Реализация подключения к PostgreSQL (`pgxpool`) и слоя репозиториев для `users`, `user_sso_accounts`, `user_sessions`, `chats`, `chat_messages`, `tags` в сервисе `gateway`.

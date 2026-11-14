@@ -199,7 +199,7 @@
                 <div class="sidebar-divider"></div>
 
                 <!-- User Footer Row (Chat-screen-menu-not-authorized.png) -->
-                <div class="sidebar-user-row">
+                <div class="sidebar-user-row" id="sidebar-user-guest">
                     <div class="user-info-group" id="btn-login-row" role="button" tabindex="0" aria-label="Log in">
                         <svg width="30" height="30" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M6.52716 30.064C7.54103 27.6753 9.9082 26 12.6667 26H22.6667C25.4251 26 27.7923 27.6753 28.8062 30.064M24.3333 13.5C24.3333 17.1819 21.3486 20.1667 17.6667 20.1667C13.9848 20.1667 11 17.1819 11 13.5C11 9.8181 13.9848 6.83333 17.6667 6.83333C21.3486 6.83333 24.3333 9.8181 24.3333 13.5ZM34.3333 17.6667C34.3333 26.8714 26.8714 34.3333 17.6667 34.3333C8.46192 34.3333 1 26.8714 1 17.6667C1 8.46192 8.46192 1 17.6667 1C26.8714 1 34.3333 8.46192 34.3333 17.6667Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke="#B8CEF1"/>
@@ -210,6 +210,23 @@
                         </div>
                     </div>
                     <button id="btn-settings" class="icon-btn settings-btn" aria-label="Settings">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- User Footer Row Authorized (Chat-screen-menu-authorized.png) -->
+                <div class="sidebar-user-row" id="sidebar-user-auth" style="display: none;">
+                    <div class="user-info-group" id="btn-auth-user-row" role="button" tabindex="0" aria-label="User Profile">
+                        <div class="user-avatar-badge" id="sidebar-auth-avatar">T</div>
+                        <div class="user-text-meta">
+                            <div class="user-title" id="sidebar-auth-name">Test_user</div>
+                            <div class="user-subtitle" id="sidebar-auth-role">Backend developer</div>
+                        </div>
+                    </div>
+                    <button id="btn-settings-auth" class="icon-btn settings-btn" aria-label="Settings">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <circle cx="12" cy="12" r="3"></circle>
                             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
@@ -238,9 +255,12 @@
                 <h1 class="header-logo" id="header-logo" title="Errorium">Errorium</h1>
 
                 <button id="btn-profile" class="icon-btn header-profile-btn" aria-label="Open profile / auth">
-                    <svg width="30" height="30" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M6.52716 30.064C7.54103 27.6753 9.9082 26 12.6667 26H22.6667C25.4251 26 27.7923 27.6753 28.8062 30.064M24.3333 13.5C24.3333 17.1819 21.3486 20.1667 17.6667 20.1667C13.9848 20.1667 11 17.1819 11 13.5C11 9.8181 13.9848 6.83333 17.6667 6.83333C21.3486 6.83333 24.3333 9.8181 24.3333 13.5ZM34.3333 17.6667C34.3333 26.8714 26.8714 34.3333 17.6667 34.3333C8.46192 34.3333 1 26.8714 1 17.6667C1 8.46192 8.46192 1 17.6667 1C26.8714 1 34.3333 8.46192 34.3333 17.6667Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke="#B8CEF1"/>
-                    </svg>
+                    <span id="header-avatar-guest" class="header-avatar-guest">
+                        <svg width="30" height="30" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.52716 30.064C7.54103 27.6753 9.9082 26 12.6667 26H22.6667C25.4251 26 27.7923 27.6753 28.8062 30.064M24.3333 13.5C24.3333 17.1819 21.3486 20.1667 17.6667 20.1667C13.9848 20.1667 11 17.1819 11 13.5C11 9.8181 13.9848 6.83333 17.6667 6.83333C21.3486 6.83333 24.3333 9.8181 24.3333 13.5ZM34.3333 17.6667C34.3333 26.8714 26.8714 34.3333 17.6667 34.3333C8.46192 34.3333 1 26.8714 1 17.6667C1 8.46192 8.46192 1 17.6667 1C26.8714 1 34.3333 8.46192 34.3333 17.6667Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke="#B8CEF1"/>
+                        </svg>
+                    </span>
+                    <span id="header-avatar-auth" class="header-avatar-auth" style="display: none;">T</span>
                 </button>
             </header>
 
@@ -276,10 +296,142 @@
                         <!-- Dynamic conversation entries inserted via app.js -->
                     </div>
                 </section>
+
+                <!-- PROFILE SCREEN VIEW (Profile-screen.png) -->
+                <section id="profile-view" class="profile-screen" style="display: none;">
+                    <div class="profile-header">
+                        <button id="btn-profile-back" class="icon-btn profile-back-btn" aria-label="Back to home">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="19" y1="12" x2="5" y2="12"></line>
+                                <polyline points="12 19 5 12 12 5"></polyline>
+                            </svg>
+                        </button>
+                        <h2 class="profile-brand-title">Errorium</h2>
+                        <div class="profile-header-spacer" style="width: 24px;"></div>
+                    </div>
+
+                    <div class="profile-body-container">
+                        <!-- Profile Avatar Section -->
+                        <div class="profile-avatar-wrapper">
+                            <div class="profile-avatar-large" id="profile-avatar-large">
+                                <span id="profile-avatar-letter">T</span>
+                                <button type="button" class="profile-edit-badge" id="profile-avatar-edit-badge" aria-label="Edit avatar">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="profile-username-heading" id="profile-username">Test_user</div>
+                        </div>
+
+                        <!-- Section: Personal information -->
+                        <div class="profile-section">
+                            <h3 class="profile-section-title">Personal information</h3>
+                            <div class="profile-card-list">
+                                <!-- Username row -->
+                                <div class="profile-item-row">
+                                    <svg class="profile-row-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                        <circle cx="12" cy="7" r="4"></circle>
+                                    </svg>
+                                    <span class="profile-item-value" id="profile-info-username">Test_user</span>
+                                </div>
+
+                                <!-- Email row -->
+                                <div class="profile-item-row">
+                                    <svg class="profile-row-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                                        <polyline points="22,6 12,13 2,6"></polyline>
+                                    </svg>
+                                    <span class="profile-item-value" id="profile-info-email">Test_user@mail.ru</span>
+                                </div>
+
+                                <!-- Role row -->
+                                <div class="profile-item-row">
+                                    <svg class="profile-row-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+                                        <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+                                    </svg>
+                                    <span class="profile-item-value" id="profile-info-role">Backend developer</span>
+                                </div>
+
+                                <!-- Gender row with dropdown chevron -->
+                                <div class="profile-item-row profile-item-clickable" id="profile-info-gender-row" role="button" tabindex="0">
+                                    <div class="profile-row-left">
+                                        <span class="profile-gender-symbol">⚥</span>
+                                        <span class="profile-item-value" id="profile-info-gender">Male</span>
+                                    </div>
+                                    <svg class="profile-chevron-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="6 9 12 15 18 9"></polyline>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section: Security -->
+                        <div class="profile-section">
+                            <h3 class="profile-section-title">Security</h3>
+                            <div class="profile-card-list">
+                                <div class="profile-item-row profile-item-clickable" id="profile-row-security" role="button" tabindex="0">
+                                    <div class="profile-row-left">
+                                        <svg class="profile-row-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <circle cx="7.5" cy="15.5" r="5.5"></circle>
+                                            <path d="m21 2-9.6 9.6"></path>
+                                            <path d="m15.5 7.5 3 3L22 7l-3-3"></path>
+                                        </svg>
+                                        <span class="profile-item-value">Change password</span>
+                                    </div>
+                                    <svg class="profile-chevron-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="9 18 15 12 9 6"></polyline>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section: Language -->
+                        <div class="profile-section">
+                            <h3 class="profile-section-title">Language</h3>
+                            <div class="profile-card-list">
+                                <div class="profile-item-row">
+                                    <div class="profile-row-left">
+                                        <svg class="profile-row-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <line x1="2" y1="12" x2="22" y2="12"></line>
+                                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                                        </svg>
+                                        <span class="profile-item-value" id="profile-info-lang">English</span>
+                                    </div>
+                                    <span class="profile-lang-badge">文A</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
             </div>
 
             <!-- Bottom Prompt Input Area (Chat-screen.png) -->
             <footer class="app-prompt-footer">
+                <!-- Technology Tags Popover (Chat-screen-with-tags.png) -->
+                <div id="tags-popover" class="tags-popover" style="display: none;">
+                    <div class="tags-popover-notch" aria-hidden="true"></div>
+                    <div class="tags-grid">
+                        <!-- Row 1: Go, Python, Java, C# -->
+                        <div class="tags-row">
+                            <button type="button" class="tag-pill tag-go" data-tag="Go">Go</button>
+                            <button type="button" class="tag-pill tag-python" data-tag="Python">Python</button>
+                            <button type="button" class="tag-pill tag-java" data-tag="Java">Java</button>
+                            <button type="button" class="tag-pill tag-csharp" data-tag="C#">C#</button>
+                        </div>
+                        <!-- Row 2: C++, JS, SQL, Rust -->
+                        <div class="tags-row">
+                            <button type="button" class="tag-pill tag-cpp" data-tag="C++">C++</button>
+                            <button type="button" class="tag-pill tag-js" data-tag="JS">JS</button>
+                            <button type="button" class="tag-pill tag-sql" data-tag="SQL">SQL</button>
+                            <button type="button" class="tag-pill tag-rust" data-tag="Rust">Rust</button>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Attachment / Quick Presets Popover -->
                 <div id="attach-popover" class="attach-popover" style="display: none;">
                     <div class="popover-item" data-action="paste-trace">
@@ -460,6 +612,143 @@
                         </label>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Reference Modals matching services/frontend/references/ -->
+        <!-- Auth Screen Modal (Auth-screen.png) -->
+        <div id="modal-auth-reference" class="modal-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="ref-auth-title">
+            <div class="modal-card modal-auth-card">
+                <button class="modal-close-btn" data-close-modal aria-label="Close dialog">✕</button>
+                <div class="modal-header-brand">
+                    <img src="/mascot.png" alt="Errorium Mascot" class="auth-mascot-img" width="68" height="45">
+                    <h2 id="ref-auth-title" class="auth-brand-heading">Errorium</h2>
+                </div>
+                <form id="ref-auth-form" class="auth-form-body">
+                    <div class="input-icon-group">
+                        <svg class="input-field-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                        <input type="email" id="ref-auth-email" placeholder="Email" required autocomplete="email">
+                    </div>
+
+                    <div class="input-icon-group">
+                        <svg class="input-field-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                        <input type="password" id="ref-auth-password" placeholder="Password" required autocomplete="current-password">
+                    </div>
+
+                    <div class="auth-options-row">
+                        <label class="custom-checkbox-wrap">
+                            <input type="checkbox" id="ref-auth-remember" checked>
+                            <span class="custom-checkbox-box">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </span>
+                            <span class="checkbox-label-text">Remember me</span>
+                        </label>
+                        <button type="button" id="ref-auth-forgot" class="link-sky">Forgot password?</button>
+                    </div>
+
+                    <button type="submit" id="ref-btn-login" class="btn-green-pill">Log in</button>
+
+                    <div class="auth-divider">
+                        <span>or</span>
+                    </div>
+
+                    <button type="button" id="ref-btn-yandex" class="btn-yandex-id">
+                        <span class="yandex-red-badge">Я</span>
+                        <span>Continue with Yandex ID</span>
+                    </button>
+
+                    <div class="auth-footer-text">
+                        <span>New here? </span>
+                        <button type="button" id="ref-link-signup" class="link-sky">Sign up</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Change Password Email Modal (Change-password-email-screen.png) -->
+        <div id="modal-change-password-email" class="modal-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="ref-email-title">
+            <div class="modal-card modal-auth-card">
+                <button class="modal-close-btn" data-close-modal aria-label="Close dialog">✕</button>
+                <div class="modal-header-brand">
+                    <img src="/mascot.png" alt="Errorium Mascot" class="auth-mascot-img" width="68" height="45">
+                    <h2 id="ref-email-title" class="auth-brand-heading">Errorium</h2>
+                </div>
+                <form id="ref-reset-email-form" class="auth-form-body">
+                    <label for="ref-reset-email" class="form-instruction-label">Enter your account email</label>
+                    <div class="input-icon-group">
+                        <svg class="input-field-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                        <input type="email" id="ref-reset-email" placeholder="Email" required autocomplete="email">
+                    </div>
+
+                    <button type="submit" id="ref-btn-send-reset" class="btn-green-pill">Send reset link</button>
+
+                    <div class="modal-notice-text">
+                        <p>We've sent you an email.</p>
+                        <p>Don't forget to check your spam folder</p>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Change Password Modal (Change-password-screen.png) -->
+        <div id="modal-change-password" class="modal-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="ref-change-pwd-title">
+            <div class="modal-card modal-auth-card">
+                <button class="modal-close-btn" data-close-modal aria-label="Close dialog">✕</button>
+                <h2 id="ref-change-pwd-title" class="auth-heading-centered">Change password</h2>
+                <form id="ref-change-password-form" class="auth-form-body">
+                    <div class="form-field-block">
+                        <label for="ref-new-password" class="field-label-left">Enter a new password</label>
+                        <div class="input-icon-group">
+                            <svg class="input-field-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                            </svg>
+                            <input type="password" id="ref-new-password" placeholder="••••••••" required autocomplete="new-password">
+                        </div>
+                    </div>
+
+                    <div class="form-field-block">
+                        <label for="ref-confirm-password" class="field-label-left">Enter it again</label>
+                        <div class="input-icon-group">
+                            <svg class="input-field-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                            </svg>
+                            <input type="password" id="ref-confirm-password" placeholder="••••••••" required autocomplete="new-password">
+                        </div>
+                    </div>
+
+                    <div id="ref-password-error" class="form-error-msg" style="display: none;"></div>
+
+                    <button type="submit" id="ref-btn-approve-password" class="btn-green-pill">Approve</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Reset Password Alert Modal (Reset-password-alert.png) -->
+        <div id="modal-reset-password-alert" class="modal-overlay modal-blur-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="ref-alert-text">
+            <div class="modal-card modal-alert-card">
+                <button class="modal-close-btn" data-close-modal aria-label="Close dialog">✕</button>
+                <div class="alert-icon-wrap">
+                    <svg class="alert-warning-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                </div>
+                <p id="ref-alert-text" class="alert-modal-text">Keep in mind that changing your password will sign you out of all other devices</p>
+                <button type="button" id="ref-btn-alert-send-reset" class="btn-amber-pill">Send reset link</button>
             </div>
         </div>
 
