@@ -352,6 +352,19 @@ class TestFrontendSPA(unittest.TestCase):
         self.assertIn("btn-amber-pill", html)
         self.assertIn("ref-btn-alert-send-reset", html)
 
+        # 5. Registration Modal (Registration dialog matching Auth modal style)
+        self.assertIn("modal-register-reference", html)
+        self.assertIn("ref-register-username", html)
+        self.assertIn("ref-register-email", html)
+        self.assertIn("ref-register-password", html)
+        self.assertIn("ref-register-confirm", html)
+        self.assertIn("ref-register-terms", html)
+        self.assertIn("ref-btn-register", html)
+        self.assertIn("Create account", html)
+        self.assertIn("Sign up with Yandex ID", html)
+        self.assertIn("Already have an account?", html)
+        self.assertIn("ref-link-signin", html)
+
     def test_profile_screen_structure(self):
         """Проверка разметки экрана профиля пользователя (Profile-screen.png)."""
         html_path = os.path.join(STATIC_DIR, "index.html")

@@ -203,6 +203,17 @@
         refBtnYandex: document.getElementById('ref-btn-yandex'),
         refLinkSignup: document.getElementById('ref-link-signup'),
 
+        modalRegisterRef: document.getElementById('modal-register-reference'),
+        refRegisterForm: document.getElementById('ref-register-form'),
+        refRegisterUsername: document.getElementById('ref-register-username'),
+        refRegisterEmail: document.getElementById('ref-register-email'),
+        refRegisterPassword: document.getElementById('ref-register-password'),
+        refRegisterConfirm: document.getElementById('ref-register-confirm'),
+        refRegisterTerms: document.getElementById('ref-register-terms'),
+        refBtnRegister: document.getElementById('ref-btn-register'),
+        refBtnRegisterYandex: document.getElementById('ref-btn-register-yandex'),
+        refLinkSignin: document.getElementById('ref-link-signin'),
+
         modalChangePasswordEmail: document.getElementById('modal-change-password-email'),
         refResetEmailForm: document.getElementById('ref-reset-email-form'),
         refResetEmail: document.getElementById('ref-reset-email'),
@@ -549,7 +560,50 @@
     });
 
     elements.refLinkSignup?.addEventListener('click', () => {
-        showToast('Registration is open. Enter credentials above.');
+        showModal(elements.modalRegisterRef);
+    });
+
+    elements.refLinkSignin?.addEventListener('click', () => {
+        showModal(elements.modalAuthRef);
+    });
+
+    elements.refRegisterForm?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const username = elements.refRegisterUsername?.value.trim() || 'New_user';
+        const email = elements.refRegisterEmail?.value.trim() || 'user@example.com';
+        const password = elements.refRegisterPassword?.value || '';
+        const confirm = elements.refRegisterConfirm?.value || '';
+
+        if (password !== confirm) {
+            showToast('Passwords do not match');
+            return;
+        }
+
+        const user = {
+            username: username,
+            email: email,
+            role: 'Backend developer',
+            gender: 'Male',
+            language: 'English',
+            avatarLetter: (username[0] || 'U').toUpperCase()
+        };
+        setAuthUser(user);
+        closeAllModals();
+        showToast('Account created successfully!');
+    });
+
+    elements.refBtnRegisterYandex?.addEventListener('click', () => {
+        const user = {
+            username: 'Yandex_user',
+            email: 'yandex_user@yandex.ru',
+            role: 'Backend developer',
+            gender: 'Male',
+            language: 'English',
+            avatarLetter: 'Y'
+        };
+        setAuthUser(user);
+        closeAllModals();
+        showToast('Signed up via Yandex ID');
     });
 
     // 2. Reset Password Alert Modal (Reset-password-alert.png)
