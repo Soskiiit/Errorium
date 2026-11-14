@@ -1827,7 +1827,7 @@ input:checked + .toggle-slider:before {
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 8px 24px rgba(155, 81, 224, 0.45);
+    box-shadow: 0 0 28px rgba(155, 81, 224, 0.65);
 }
 
 .profile-edit-badge {
