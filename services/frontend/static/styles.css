@@ -2035,6 +2035,27 @@ input:checked + .toggle-slider:before {
     -webkit-backdrop-filter: blur(28px) saturate(200%);
     animation: slideUpCapsule 0.22s cubic-bezier(0.16, 1, 0.3, 1);
     box-sizing: border-box;
+    overflow: hidden; /* Ensures inner bottom gradient fade hugs the rounded corners perfectly */
+}
+
+/* Subtle bottom fade overlay that smoothly dissolves content towards the dark bottom */
+.tags-popover::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 32px;
+    background: linear-gradient(
+        to bottom,
+        transparent 0%,
+        rgba(10, 16, 32, 0.6) 45%,
+        rgba(10, 16, 32, 0.96) 100%
+    );
+    pointer-events: none;
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+    z-index: 10;
 }
 
 @keyframes slideUpCapsule {
