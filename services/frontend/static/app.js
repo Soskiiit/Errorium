@@ -561,7 +561,6 @@
     elements.btnMcp?.addEventListener('click', () => showModal(elements.modalMcp));
     elements.btnAbout?.addEventListener('click', () => showModal(elements.modalAbout));
     elements.btnSettings?.addEventListener('click', () => showModal(elements.modalSettings));
-    elements.btnSettingsAuth?.addEventListener('click', () => showModal(elements.modalSettings));
 
     elements.btnProfile?.addEventListener('click', () => {
         if (getAuthUser()) {
@@ -575,7 +574,8 @@
         showModal(elements.modalAuthRef || elements.modalAuth);
     });
 
-    elements.btnAuthUserRow?.addEventListener('click', () => {
+    // Clicking anywhere on the authorized user footer row (name, role, gear icon or empty space) opens the profile view
+    elements.sidebarUserAuth?.addEventListener('click', () => {
         switchToProfileView();
     });
 

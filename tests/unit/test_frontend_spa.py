@@ -433,6 +433,7 @@ class TestFrontendSPA(unittest.TestCase):
         self.assertIn("errorium_auth_user", js)
         self.assertIn("updateAuthUI", js)
         self.assertIn("switchToProfileView", js)
+        self.assertIn("sidebarUserAuth?.addEventListener('click'", js)
 
     def test_chat_message_appearance_and_layout(self):
         """Проверка восстановления внешнего вида и структуры сообщений чата (R1, R2):
