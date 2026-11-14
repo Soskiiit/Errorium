@@ -2310,7 +2310,7 @@ input:checked + .toggle-slider:before {
     font-weight: 700;
     border: none;
     cursor: pointer;
-    box-shadow: 0 0 14px var(--color-amber-alert);
+    box-shadow: 0 0 14px rgba(217, 155, 67, 0.45);
     transition: background-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
 }
 
