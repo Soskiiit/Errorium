@@ -8,7 +8,7 @@
 :root {
     --bg-primary: #090d17;
     --bg-secondary: #0c1122;
-    --bg-drawer: #090e1a;
+    --bg-drawer: #090e1aab;
     --bg-card: #101628;
     --bg-input: #121829;
     --border-subtle: rgba(255, 255, 255, 0.1);
@@ -427,7 +427,7 @@ body {
     background-color: rgba(255, 255, 255, 0.05);
 }
 
-.sidebar-user-row.clickable-user-row .settings-btn {
+.sidebar-user-row .settings-btn {
     pointer-events: none;
 }
 

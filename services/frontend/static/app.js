@@ -570,7 +570,8 @@
         }
     });
 
-    elements.btnLoginRow?.addEventListener('click', () => {
+    // Clicking anywhere on guest footer row opens auth/login modal
+    elements.sidebarUserGuest?.addEventListener('click', () => {
         showModal(elements.modalAuthRef || elements.modalAuth);
     });
 
