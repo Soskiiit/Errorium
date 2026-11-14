@@ -2310,8 +2310,8 @@ input:checked + .toggle-slider:before {
     font-weight: 700;
     border: none;
     cursor: pointer;
-    box-shadow: 0 4px 14px rgba(217, 155, 67, 0.35);
-    transition: background-color 0.2s ease, transform 0.15s ease;
+    box-shadow: 0 0 14px var(--color-amber-alert);
+    transition: background-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
 }
 
 .btn-amber-pill:hover {
