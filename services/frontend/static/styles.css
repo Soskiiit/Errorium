@@ -2208,6 +2208,171 @@ input:checked + .toggle-slider:before {
     box-shadow: 0 0 16px rgba(180, 83, 9, 0.5);
 }
 
+.tag-ts {
+    background: rgba(49, 120, 198, 0.25);
+    border-color: rgba(96, 165, 250, 0.4);
+    color: #93c5fd;
+}
+.tag-ts:hover {
+    background: rgba(49, 120, 198, 0.65);
+    border-color: rgba(96, 165, 250, 0.8);
+    box-shadow: 0 0 16px rgba(49, 120, 198, 0.5);
+}
+
+.tag-docker {
+    background: rgba(14, 112, 182, 0.25);
+    border-color: rgba(56, 189, 248, 0.4);
+    color: #7dd3fc;
+}
+.tag-docker:hover {
+    background: rgba(14, 112, 182, 0.65);
+    border-color: rgba(56, 189, 248, 0.8);
+    box-shadow: 0 0 16px rgba(14, 112, 182, 0.5);
+}
+
+.tag-linux {
+    background: rgba(234, 179, 8, 0.22);
+    border-color: rgba(250, 204, 21, 0.45);
+    color: #fef08a;
+}
+.tag-linux:hover {
+    background: rgba(234, 179, 8, 0.6);
+    border-color: rgba(250, 204, 21, 0.85);
+    box-shadow: 0 0 16px rgba(250, 204, 21, 0.5);
+}
+
+.tag-k8s {
+    background: rgba(50, 108, 229, 0.25);
+    border-color: rgba(96, 165, 250, 0.4);
+    color: #93c5fd;
+}
+.tag-k8s:hover {
+    background: rgba(50, 108, 229, 0.65);
+    border-color: rgba(96, 165, 250, 0.8);
+    box-shadow: 0 0 16px rgba(50, 108, 229, 0.5);
+}
+
+.tag-postgres {
+    background: rgba(51, 103, 145, 0.25);
+    border-color: rgba(94, 175, 230, 0.4);
+    color: #bae6fd;
+}
+.tag-postgres:hover {
+    background: rgba(51, 103, 145, 0.65);
+    border-color: rgba(94, 175, 230, 0.8);
+    box-shadow: 0 0 16px rgba(51, 103, 145, 0.5);
+}
+
+.tag-redis {
+    background: rgba(220, 38, 38, 0.25);
+    border-color: rgba(248, 113, 113, 0.4);
+    color: #fca5a5;
+}
+.tag-redis:hover {
+    background: rgba(220, 38, 38, 0.65);
+    border-color: rgba(248, 113, 113, 0.8);
+    box-shadow: 0 0 16px rgba(220, 38, 38, 0.5);
+}
+
+.tag-graphql {
+    background: rgba(225, 0, 152, 0.25);
+    border-color: rgba(244, 114, 182, 0.4);
+    color: #fbcfe8;
+}
+.tag-graphql:hover {
+    background: rgba(225, 0, 152, 0.65);
+    border-color: rgba(244, 114, 182, 0.8);
+    box-shadow: 0 0 16px rgba(225, 0, 152, 0.5);
+}
+
+.tag-react {
+    background: rgba(8, 126, 164, 0.25);
+    border-color: rgba(34, 211, 238, 0.4);
+    color: #a5f3fc;
+}
+.tag-react:hover {
+    background: rgba(8, 126, 164, 0.65);
+    border-color: rgba(34, 211, 238, 0.8);
+    box-shadow: 0 0 16px rgba(34, 211, 238, 0.5);
+}
+
+.tag-vue {
+    background: rgba(66, 184, 131, 0.25);
+    border-color: rgba(74, 222, 128, 0.4);
+    color: #86efac;
+}
+.tag-vue:hover {
+    background: rgba(66, 184, 131, 0.65);
+    border-color: rgba(74, 222, 128, 0.8);
+    box-shadow: 0 0 16px rgba(74, 222, 128, 0.5);
+}
+
+.tag-swift {
+    background: rgba(240, 81, 56, 0.25);
+    border-color: rgba(251, 146, 60, 0.4);
+    color: #fed7aa;
+}
+.tag-swift:hover {
+    background: rgba(240, 81, 56, 0.65);
+    border-color: rgba(251, 146, 60, 0.8);
+    box-shadow: 0 0 16px rgba(240, 81, 56, 0.5);
+}
+
+.tag-kotlin {
+    background: rgba(127, 82, 255, 0.25);
+    border-color: rgba(167, 139, 250, 0.4);
+    color: #ddd6fe;
+}
+.tag-kotlin:hover {
+    background: rgba(127, 82, 255, 0.65);
+    border-color: rgba(167, 139, 250, 0.8);
+    box-shadow: 0 0 16px rgba(127, 82, 255, 0.5);
+}
+
+.tag-php {
+    background: rgba(79, 91, 147, 0.25);
+    border-color: rgba(147, 197, 253, 0.4);
+    color: #bfdbfe;
+}
+.tag-php:hover {
+    background: rgba(79, 91, 147, 0.65);
+    border-color: rgba(147, 197, 253, 0.8);
+    box-shadow: 0 0 16px rgba(79, 91, 147, 0.5);
+}
+
+.tag-git {
+    background: rgba(240, 80, 50, 0.25);
+    border-color: rgba(248, 113, 113, 0.4);
+    color: #fca5a5;
+}
+.tag-git:hover {
+    background: rgba(240, 80, 50, 0.65);
+    border-color: rgba(248, 113, 113, 0.8);
+    box-shadow: 0 0 16px rgba(240, 80, 50, 0.5);
+}
+
+.tag-nginx {
+    background: rgba(0, 150, 57, 0.25);
+    border-color: rgba(74, 222, 128, 0.4);
+    color: #86efac;
+}
+.tag-nginx:hover {
+    background: rgba(0, 150, 57, 0.65);
+    border-color: rgba(74, 222, 128, 0.8);
+    box-shadow: 0 0 16px rgba(0, 150, 57, 0.5);
+}
+
+.tag-grpc {
+    background: rgba(36, 76, 120, 0.25);
+    border-color: rgba(96, 165, 250, 0.4);
+    color: #93c5fd;
+}
+.tag-grpc:hover {
+    background: rgba(36, 76, 120, 0.65);
+    border-color: rgba(96, 165, 250, 0.8);
+    box-shadow: 0 0 16px rgba(36, 76, 120, 0.5);
+}
+
 /* Reference Modals Common Styles */
 .modal-auth-card {
     max-width: 380px;
