@@ -1789,6 +1789,17 @@ input:checked + .toggle-slider:before {
     padding: 8px 0 20px;
 }
 
+.profile-back-btn {
+    color: #ffffff;
+    cursor: pointer;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.profile-back-btn:hover {
+    opacity: 0.8;
+    transform: translateX(-2px);
+}
+
 .profile-brand-title {
     font-size: 1.15rem;
     font-weight: 700;
