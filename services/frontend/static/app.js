@@ -881,7 +881,7 @@
         if (elements.heroView) elements.heroView.style.display = 'none';
         if (elements.profileView) elements.profileView.style.display = 'none';
         if (elements.chatView) elements.chatView.style.display = 'flex';
-        if (elements.promptFooter) elements.promptFooter.style.display = 'block';
+        if (elements.promptFooter) elements.promptFooter.classList.remove('hidden');
         closeAllModals(false);
         if (updateRoute && !isNavigatingFromPopState && !window.location.pathname.startsWith('/chat')) {
             window.history.pushState({ view: 'chat' }, '', '/chat');
@@ -892,7 +892,7 @@
         if (elements.heroView) elements.heroView.style.display = 'none';
         if (elements.chatView) elements.chatView.style.display = 'none';
         if (elements.profileView) elements.profileView.style.display = 'flex';
-        if (elements.promptFooter) elements.promptFooter.style.display = 'none';
+        if (elements.promptFooter) elements.promptFooter.classList.add('hidden');
         closeSidebar();
         closeAllModals(false);
         if (updateRoute && !isNavigatingFromPopState && window.location.pathname !== '/profile') {
@@ -904,7 +904,7 @@
         if (elements.profileView) elements.profileView.style.display = 'none';
         if (elements.chatView) elements.chatView.style.display = 'none';
         if (elements.heroView) elements.heroView.style.display = 'flex';
-        if (elements.promptFooter) elements.promptFooter.style.display = 'block';
+        if (elements.promptFooter) elements.promptFooter.classList.remove('hidden');
         if (elements.messagesContainer) elements.messagesContainer.innerHTML = '';
         if (elements.promptInput) elements.promptInput.value = '';
         adjustTextareaHeight();

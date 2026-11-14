@@ -911,13 +911,18 @@ body {
     padding-bottom: max(16px, env(safe-area-inset-bottom, 16px));
     position: relative;
     z-index: 20;
-    display: flex;
+    display: flex !important;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     flex-shrink: 0;
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
+}
+
+.app-prompt-footer.hidden {
+    display: none !important;
 }
 
 /* Attachment Popover (Liquid Glass) */
@@ -983,6 +988,8 @@ body {
     align-items: center;
     width: 100%;
     max-width: 720px;
+    margin-left: auto;
+    margin-right: auto;
     background: linear-gradient(
         135deg,
         rgba(255, 255, 255, 0.03) 10%,

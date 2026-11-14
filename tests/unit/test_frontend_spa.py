@@ -434,7 +434,7 @@ class TestFrontendSPA(unittest.TestCase):
         self.assertIn("updateAuthUI", js)
         self.assertIn("switchToProfileView", js)
         self.assertIn("sidebarUserAuth?.addEventListener('click'", js)
-        self.assertIn("elements.promptFooter.style.display = 'none'", js)
+        self.assertIn("elements.promptFooter.classList.add('hidden')", js)
 
     def test_chat_message_appearance_and_layout(self):
         """Проверка восстановления внешнего вида и структуры сообщений чата (R1, R2):
