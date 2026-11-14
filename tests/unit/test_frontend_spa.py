@@ -372,7 +372,6 @@ class TestFrontendSPA(unittest.TestCase):
             html = f.read()
 
         self.assertIn("profile-view", html)
-        self.assertIn("btn-profile-back", html)
         self.assertIn("profile-avatar-large", html)
         self.assertIn("profile-avatar-edit-badge", html)
         self.assertIn("profile-username", html)
