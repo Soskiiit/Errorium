@@ -390,7 +390,7 @@ class TestFrontendSPA(unittest.TestCase):
 
         self.assertIn("Language", html)
         self.assertIn("English", html)
-        self.assertIn("文A", html)
+        self.assertIn("profile-info-lang", html)
 
     def test_tags_popover_structure(self):
         """Проверка поповера тегов технологий (Chat-screen-with-tags.png)."""
