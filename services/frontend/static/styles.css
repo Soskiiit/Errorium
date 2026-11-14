@@ -545,10 +545,18 @@ body {
     width: 36px;
     height: 36px;
     color: #ffffff;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
 }
 
 .header-profile-btn:hover {
     opacity: 0.85;
+}
+
+/* Hide header profile button when mobile sidebar drawer is open */
+.sidebar-drawer.open ~ .main-viewport .header-profile-btn {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
 }
 
 /* ==========================================================================
