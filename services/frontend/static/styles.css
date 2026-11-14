@@ -2025,7 +2025,7 @@ input:checked + .toggle-slider:before {
     );
     border: 1px solid rgba(255, 255, 255, 0.18);
     border-radius: 20px;
-    padding: 4px 6px;
+    padding: 6px 6px;
     box-shadow:
         0 20px 45px rgba(0, 0, 0, 0.75),
         0 0 25px rgba(56, 110, 248, 0.15),
@@ -2062,7 +2062,7 @@ input:checked + .toggle-slider:before {
     overflow-x: hidden;
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
-    padding: 7px 8px 6px 7px; /* Increased room on all edges so hover glow has ample space */
+    padding: 7px 7px 6px 7px; /* Equalized horizontal and vertical room (7px) */
     box-sizing: border-box;
     /* Custom sleek frosted vertical scrollbar */
     scrollbar-width: thin;
