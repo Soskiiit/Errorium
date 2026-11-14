@@ -1,5 +1,7 @@
 import os
 import re
+import shutil
+import subprocess
 import unittest
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
@@ -443,6 +445,26 @@ class TestFrontendSPA(unittest.TestCase):
         self.assertIn("dialog-assistant-bubble", js)
         self.assertIn("message.svg", js)
         self.assertIn("SyntaxError fixing", js)
+
+    def test_app_js_syntax(self):
+        """Проверка синтаксической валидности services/frontend/static/app.js через node --check."""
+        js_path = os.path.join(STATIC_DIR, "app.js")
+        self.assertTrue(os.path.isfile(js_path), f"Файл {js_path} должен существовать")
+
+        node_bin = shutil.which("node")
+        if node_bin:
+            res = subprocess.run(
+                [node_bin, "--check", js_path],
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(
+                res.returncode,
+                0,
+                f"Синтаксическая ошибка в {js_path}:\nSTDOUT:\n{res.stdout}\nSTDERR:\n{res.stderr}",
+            )
+        else:
+            self.skipTest("Node.js не установлен в текущем окружении для запуска node --check")
 
 if __name__ == "__main__":
     unittest.main()

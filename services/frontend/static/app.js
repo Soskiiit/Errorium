@@ -882,16 +882,6 @@
             </div>
         `;
     }
-                                    </div>
-                                    <span style="font-size: 0.78rem; color: #64748b;">${src.tags.map(t => '#' + t).join(' ')}</span>
-                                </a>
-                            `).join('')}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
 
     // Attach click listeners to default recent chat items
     document.querySelectorAll('.recent-chat-item').forEach(item => {

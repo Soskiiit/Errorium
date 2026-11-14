@@ -1,5 +1,21 @@
 # CHANGE_HISTORY.md — История изменений проекта Errorium
 
+## [2026-11-14] — Устранение синтаксической ошибки в app.js и добавление теста AST (Milestone 1, Iteration 2)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/app.js`
+- `tests/unit/test_frontend_spa.py`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Устранение дублирующего фрагмента в `services/frontend/static/app.js`:**
+   - Удалены строки с осиротевшим дублирующим фрагментом шаблонного литерала после функции `renderConversation`.
+   - Синтаксис проверен через `node --check services/frontend/static/app.js` (код возврата 0, чистый синтаксис).
+2. **Добавление регрессионного теста синтаксиса:**
+   - В `tests/unit/test_frontend_spa.py` добавлен метод `test_app_js_syntax`, выполняющий проверку валидности JavaScript-кода через `node --check`.
+3. **Результаты тестирования:**
+   - Все 20 unit-тестов успешно пройдены: `python3 -m unittest discover -s tests/unit -p "test_*.py"` (20 tests passed in 0.62s).
+
 ## [2026-11-14] — Реализация недостающих экранов и компонентов интерфейса по макетам (Milestone 1)
 
 ### Затронутые компоненты и спецификации:
