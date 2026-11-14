@@ -390,7 +390,20 @@
             elements.profileInfoLang.textContent = isRu ? 'Русский' : 'English';
         }
 
-        // 5. Update user role in sidebar if default
+        // 5. Update Center Hero Slogan
+        const heroPrimary = document.querySelector('.hero-primary-text');
+        const heroSecondary = document.querySelector('.hero-secondary-text');
+        if (heroPrimary && heroSecondary) {
+            if (isRu) {
+                heroPrimary.innerHTML = 'Элемент<span class="space"> </span><span class="error-code-red">404</span><span class="space"> </span>вызывает<span class="space"> </span>реакцию<span class="space"> </span>разработчиков';
+                heroSecondary.innerHTML = 'Стек<span class="space"> </span>переполнен<span class="space"> </span>программист<span class="space"> </span>преисполнен';
+            } else {
+                heroPrimary.innerHTML = 'Element<span class="space"> </span><span class="error-code-red">404.</span><span class="space"> </span>Reacts<span class="space"> </span>with<span class="space"> </span>developers';
+                heroSecondary.innerHTML = 'Stack<span class="space"> </span>overflow.<span class="space"> </span>Issue<span class="space"> </span>overknown.';
+            }
+        }
+
+        // 6. Update user role in sidebar if default
         if (elements.sidebarAuthRole && (elements.sidebarAuthRole.textContent === 'Backend developer' || elements.sidebarAuthRole.textContent === 'Бэкенд-разработчик')) {
             elements.sidebarAuthRole.textContent = isRu ? 'Бэкенд-разработчик' : 'Backend developer';
         }
