@@ -2045,12 +2045,12 @@ input:checked + .toggle-slider:before {
     bottom: 0;
     left: 0;
     right: 0;
-    height: 32px;
+    height: 18px;
     background: linear-gradient(
         to bottom,
         transparent 0%,
-        rgba(10, 16, 32, 0.6) 45%,
-        rgba(10, 16, 32, 0.96) 100%
+        rgba(10, 16, 32, 0.5) 40%,
+        rgba(10, 16, 32, 0.95) 100%
     );
     pointer-events: none;
     border-bottom-left-radius: 20px;
