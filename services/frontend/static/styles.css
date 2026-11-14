@@ -2004,42 +2004,51 @@ input:checked + .toggle-slider:before {
     color: #8c9fb9;
 }
 
-/* Technology Tags Popover (Chat-screen-with-tags.png) */
+/* Technology Tags Popover (Glass Minimal Bar matching Errorium design) */
 .tags-popover {
     position: absolute;
     bottom: calc(100% + 14px);
     left: 20px;
     z-index: 50;
-    background: rgba(14, 22, 44, 0.95);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 18px;
-    padding: 12px 14px;
-    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.75), inset 0 1px 1px rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    animation: fadeInTags 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.08) 0%,
+        rgba(15, 23, 42, 0.88) 50%,
+        rgba(10, 16, 32, 0.96) 100%
+    );
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 20px;
+    padding: 10px 14px;
+    box-shadow:
+        0 20px 45px rgba(0, 0, 0, 0.75),
+        0 0 25px rgba(56, 110, 248, 0.15),
+        inset 0 1px 1.5px rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(28px) saturate(200%);
+    -webkit-backdrop-filter: blur(28px) saturate(200%);
+    animation: fadeInTagsBar 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    max-width: calc(100% - 40px);
 }
 
-@keyframes fadeInTags {
+@keyframes fadeInTagsBar {
     from {
         opacity: 0;
-        transform: translateY(6px);
+        transform: translateY(8px) scale(0.97);
     }
     to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateY(0) scale(1);
     }
 }
 
 .tags-popover-notch {
     position: absolute;
     bottom: -6px;
-    left: 18px;
-    width: 12px;
-    height: 12px;
-    background: rgba(14, 22, 44, 0.95);
-    border-right: 1px solid rgba(255, 255, 255, 0.2);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    left: 22px;
+    width: 11px;
+    height: 11px;
+    background: rgba(12, 19, 36, 0.96);
+    border-right: 1px solid rgba(255, 255, 255, 0.18);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.18);
     transform: rotate(45deg);
 }
 
@@ -2053,41 +2062,61 @@ input:checked + .toggle-slider:before {
     display: flex;
     align-items: center;
     gap: 8px;
+    flex-wrap: wrap;
 }
 
 .tag-pill {
-    border: none;
+    border: 1px solid rgba(255, 255, 255, 0.14);
     outline: none;
     border-radius: 9999px;
     padding: 6px 14px;
-    font-size: 0.85rem;
+    font-size: 0.84rem;
     font-weight: 600;
-    color: #ffffff;
+    color: #f1f5f9;
     cursor: pointer;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-    transition: transform 0.15s ease, filter 0.15s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    transition: transform 0.16s ease, filter 0.16s ease, box-shadow 0.16s ease;
     user-select: none;
     -webkit-user-select: none;
+    white-space: nowrap;
+    letter-spacing: -0.01em;
 }
 
 .tag-pill:hover {
-    transform: translateY(-1px);
-    filter: brightness(1.15);
+    transform: translateY(-2px) scale(1.04);
+    filter: brightness(1.25);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
 }
 
 .tag-pill:active {
-    transform: translateY(1px);
+    transform: translateY(0) scale(0.97);
 }
 
-/* Reference Tag Colors */
-.tag-go { background-color: #1d72b8; }
-.tag-python { background-color: #c99700; }
-.tag-java { background-color: #b32424; }
-.tag-csharp { background-color: #7c3aed; }
-.tag-cpp { background-color: #16a34a; }
-.tag-js { background-color: #a855f7; }
-.tag-sql { background-color: #2563eb; }
-.tag-rust { background-color: #b45309; }
+/* Reference Tag Colors with sleek modern gradients */
+.tag-go {
+    background: linear-gradient(135deg, rgba(29, 114, 184, 0.95), rgba(16, 75, 122, 0.95));
+}
+.tag-python {
+    background: linear-gradient(135deg, rgba(201, 151, 0, 0.95), rgba(145, 108, 0, 0.95));
+}
+.tag-java {
+    background: linear-gradient(135deg, rgba(179, 36, 36, 0.95), rgba(125, 24, 24, 0.95));
+}
+.tag-csharp {
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.95), rgba(91, 33, 182, 0.95));
+}
+.tag-cpp {
+    background: linear-gradient(135deg, rgba(22, 163, 74, 0.95), rgba(16, 116, 53, 0.95));
+}
+.tag-js {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.95), rgba(126, 34, 206, 0.95));
+}
+.tag-sql {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.95), rgba(29, 78, 216, 0.95));
+}
+.tag-rust {
+    background: linear-gradient(135deg, rgba(180, 83, 9, 0.95), rgba(133, 60, 6, 0.95));
+}
 
 /* Reference Modals Common Styles */
 .modal-auth-card {
