@@ -1602,6 +1602,10 @@ input:checked + .toggle-slider:before {
         display: none !important;
     }
 
+    .header-profile-btn {
+        display: none !important;
+    }
+
     .app-header {
         justify-content: flex-end;
         box-shadow: #070a13 0 0 40px;
@@ -1623,6 +1627,11 @@ input:checked + .toggle-slider:before {
     html.sidebar-collapsed .header-logo,
     .app-container.sidebar-collapsed .header-logo {
         display: block !important;
+    }
+
+    html.sidebar-collapsed .header-profile-btn,
+    .app-container.sidebar-collapsed .header-profile-btn {
+        display: flex !important;
     }
 
     html.sidebar-collapsed .app-header,
@@ -1688,6 +1697,10 @@ input:checked + .toggle-slider:before {
         display: none !important;
     }
 
+    .header-profile-btn {
+        display: none !important;
+    }
+
     /* Header aligns remaining elements (profile/auth button) to the right */
     .app-header {
         justify-content: flex-end;
@@ -1711,6 +1724,11 @@ input:checked + .toggle-slider:before {
     html.sidebar-collapsed .header-logo,
     .app-container.sidebar-collapsed .header-logo {
         display: block !important;
+    }
+
+    html.sidebar-collapsed .header-profile-btn,
+    .app-container.sidebar-collapsed .header-profile-btn {
+        display: flex !important;
     }
 
     html.sidebar-collapsed .app-header,
