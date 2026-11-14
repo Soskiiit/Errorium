@@ -660,6 +660,8 @@ body {
     font-family: var(--font-mono);
     max-width: 96vw;
     box-sizing: border-box;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 .hero-primary-text {
@@ -2110,6 +2112,8 @@ input:checked + .toggle-slider:before {
     color: #ffffff;
     margin: 0;
     letter-spacing: -0.02em;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 .auth-heading-centered {
