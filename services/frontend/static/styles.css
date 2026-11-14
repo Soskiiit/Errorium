@@ -539,6 +539,8 @@ body {
     letter-spacing: -0.02em;
     color: #ffffff;
     cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 .header-profile-btn {
