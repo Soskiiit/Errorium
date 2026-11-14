@@ -1,5 +1,27 @@
 # CHANGE_HISTORY.md — История изменений проекта Errorium
 
+## [2026-11-14] — Восстановление исходного дизайна сообщений чата в Web Frontend (Milestone 1, Iteration 3)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/app.js`
+- `services/frontend/static/styles.css`
+- `tests/unit/test_frontend_spa.py`
+- `STATUS.md`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Восстановление внешнего вида и верстки сообщений (R1):**
+   - Пользовательские сообщения возвращены к `.user-bubble` (темный фон `#1a233b`, граница `1px solid rgba(255, 255, 255, 0.12)`, скругление `18px 18px 4px 18px`, моноширинный шрифт `var(--font-mono)`, белый цвет `#ffffff`) без иконки галочки доставки.
+   - Ответы ассистента теперь напрямую отображают карточку `.assistant-card` (Errorium RAG Synthesis BM25 Core) без вспомогательного пузыря приветствия и без обертки с аватаром `.dialog-assistant-wrapper`.
+   - Контейнер `.messages-container` сохраняет строки `.message-row.user` и `.message-row.assistant`.
+   - Из `styles.css` удалены неиспользуемые стили `.dialog-*` и переменные `--color-user-bubble`, `--color-bot-bubble`.
+2. **Обновление набора тестов (R2):**
+   - Тест `test_chat_message_appearance_and_layout` проверяет корректность стилей `.user-bubble`, прямого рендеринга `.assistant-card` и отсутствие устаревших классов диалоговых пузырей и иконок.
+   - Обеспечена обратная совместимость вызова теста.
+3. **Результаты тестирования:**
+   - Модульные тесты: `python3 -m unittest tests/unit/test_frontend_spa.py` (18 тестов успешно, 0 ошибок).
+   - Полный запуск: `make test-unit` (21 unit-тест успешно).
+
 ## [2026-11-14] — Устранение синтаксической ошибки в app.js и добавление теста AST (Milestone 1, Iteration 2)
 
 ### Затронутые компоненты и спецификации:
