@@ -837,6 +837,7 @@
         if (elements.tagsPopover) {
             elements.tagsPopover.style.display = 'none';
         }
+        elements.btnAttach?.classList.remove('active');
         if (restoreRoute && !isNavigatingFromPopState) {
             const path = window.location.pathname;
             if (['/login', '/auth', '/register', '/signup', '/settings', '/about', '/mcp'].includes(path)) {
@@ -1193,12 +1194,14 @@
 
     elements.btnSend?.addEventListener('click', submitCurrentQuery);
 
-    // Attach button popover toggle (Tags Popover - Chat-screen-with-tags.png)
+    // Attach button popover toggle (Tags Popover - Modern Floating Dock)
     elements.btnAttach?.addEventListener('click', function (e) {
         e.stopPropagation();
         if (elements.tagsPopover) {
             const isShown = elements.tagsPopover.style.display === 'block' || elements.tagsPopover.style.display === 'flex';
-            elements.tagsPopover.style.display = isShown ? 'none' : 'block';
+            const willShow = !isShown;
+            elements.tagsPopover.style.display = willShow ? 'flex' : 'none';
+            elements.btnAttach.classList.toggle('active', willShow);
         }
         if (elements.attachPopover) {
             elements.attachPopover.style.display = 'none';
@@ -1216,6 +1219,7 @@
             }
             if (elements.tagsPopover) {
                 elements.tagsPopover.style.display = 'none';
+                elements.btnAttach?.classList.remove('active');
             }
             adjustTextareaHeight();
             elements.promptInput?.focus();
@@ -1241,6 +1245,7 @@
     document.addEventListener('click', function (e) {
         if (elements.tagsPopover && !elements.tagsPopover.contains(e.target) && e.target !== elements.btnAttach && !elements.btnAttach.contains(e.target)) {
             elements.tagsPopover.style.display = 'none';
+            elements.btnAttach?.classList.remove('active');
         }
         if (elements.attachPopover && !elements.attachPopover.contains(e.target) && e.target !== elements.btnAttach && !elements.btnAttach.contains(e.target)) {
             elements.attachPopover.style.display = 'none';
