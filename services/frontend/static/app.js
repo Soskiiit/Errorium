@@ -1226,15 +1226,6 @@
         });
     });
 
-    // Enable horizontal mouse wheel scrolling on tags grid
-    const tagsGrid = document.querySelector('.tags-grid');
-    tagsGrid?.addEventListener('wheel', function (e) {
-        if (e.deltaY !== 0) {
-            e.preventDefault();
-            tagsGrid.scrollLeft += e.deltaY;
-        }
-    }, { passive: false });
-
     // Popover quick items (Preserved for compatibility)
     document.querySelectorAll('.popover-item').forEach(item => {
         item.addEventListener('click', function () {

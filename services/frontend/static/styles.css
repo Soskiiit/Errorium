@@ -2009,24 +2009,29 @@ input:checked + .toggle-slider:before {
     color: #8c9fb9;
 }
 
-/* Technology Tags Popover (Horizontal Left-aligned Scrollable Dock) */
+/* Technology Tags Popover (Compact Card matching 4 items width, 2.3 visible rows + vertical scroll) */
 .tags-popover {
     position: absolute;
-    bottom: calc(100% + 10px);
+    bottom: calc(100% + 12px);
     left: 0;
     z-index: 50;
-    width: 100%;
-    max-width: 100%;
-    background: rgba(13, 20, 36, 0.9);
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    border-radius: 9999px;
-    padding: 6px 12px;
+    width: 320px;
+    max-width: calc(100vw - 32px);
+    background: linear-gradient(
+        145deg,
+        rgba(255, 255, 255, 0.08) 0%,
+        rgba(15, 23, 42, 0.9) 45%,
+        rgba(10, 16, 32, 0.98) 100%
+    );
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 20px;
+    padding: 10px 12px;
     box-shadow:
-        0 20px 40px rgba(0, 0, 0, 0.65),
-        0 0 20px rgba(56, 110, 248, 0.12),
-        inset 0 1px 1.5px rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(24px) saturate(190%);
-    -webkit-backdrop-filter: blur(24px) saturate(190%);
+        0 20px 45px rgba(0, 0, 0, 0.75),
+        0 0 25px rgba(56, 110, 248, 0.15),
+        inset 0 1px 1.5px rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(28px) saturate(200%);
+    -webkit-backdrop-filter: blur(28px) saturate(200%);
     animation: slideUpCapsule 0.22s cubic-bezier(0.16, 1, 0.3, 1);
     box-sizing: border-box;
 }
@@ -2048,23 +2053,23 @@ input:checked + .toggle-slider:before {
 
 .tags-grid {
     display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 7px;
-    overflow-x: auto;
-    overflow-y: hidden;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 8px;
+    max-height: 84px; /* ~2.3 rows visible: shows the top of the 3rd row so scroll is immediately obvious */
+    overflow-y: auto;
+    overflow-x: hidden;
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
-    padding: 2px 4px;
-    width: 100%;
+    padding: 2px 4px 4px 2px;
     box-sizing: border-box;
-    /* Custom sleek frosted scrollbar */
+    /* Custom sleek frosted vertical scrollbar */
     scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+    scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
 }
 
 .tags-grid::-webkit-scrollbar {
-    height: 4px;
+    width: 4px;
 }
 
 .tags-grid::-webkit-scrollbar-track {
@@ -2072,16 +2077,16 @@ input:checked + .toggle-slider:before {
 }
 
 .tags-grid::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.25);
     border-radius: 9999px;
 }
 
 .tags-grid::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.35);
+    background: rgba(255, 255, 255, 0.45);
 }
 
 .tags-row {
-    display: contents; /* Flattens all nested tags into a single scrollable row */
+    display: contents; /* Seamless flow into a wrap grid */
 }
 
 .tag-pill {
