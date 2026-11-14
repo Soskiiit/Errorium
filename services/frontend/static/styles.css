@@ -1039,6 +1039,24 @@ body {
     overflow: visible;
 }
 
+/* Subtle top fade overlay that smoothly dissolves upward from top border */
+.prompt-bar-container::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    right: 0;
+    height: 18px;
+    background: linear-gradient(
+        to top,
+        rgba(10, 16, 32, 0.75) 0%,
+        rgba(10, 16, 32, 0.35) 45%,
+        transparent 100%
+    );
+    pointer-events: none;
+    z-index: 10;
+}
+
 .prompt-bar-container.multiline {
     border-radius: 26px;
 }
