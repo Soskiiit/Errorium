@@ -125,6 +125,279 @@
     };
 
     // =========================================================================
+    // Multi-Language Localization System (EN <-> RU)
+    // Translates all interface text dynamically except 'Errorium'
+    // =========================================================================
+    const I18N_STRINGS = {
+        en: {
+            "Недавние чаты": "Recent chats",
+            "Новый чат": "New chat",
+            "О нас": "About us",
+            "Войти": "Log in",
+            "Встречайте новые функции!": "Meet new features!",
+            "Бэкенд-разработчик": "Backend developer",
+            "Личные данные": "Personal information",
+            "Имя пользователя": "Username",
+            "Почта": "Email",
+            "Роль": "Role",
+            "Мужской": "Male",
+            "Женский": "Female",
+            "Безопасность": "Security",
+            "Сменить пароль": "Change password",
+            "Язык": "Language",
+            "Английский": "English",
+            "Русский": "Русский",
+            "Элемент": "Element",
+            "Реагирует": "Reacts",
+            "на": "with",
+            "разработчиков": "developers",
+            "Стек": "Stack",
+            "переполнен.": "overflow.",
+            "Ошибка": "Issue",
+            "известна.": "overknown.",
+            "Что пошло не так?": "What went wrong?",
+            "ИИ может совершать ошибки. Проверяйте важную информацию.": "AI can make mistakes. Check important information.",
+            "Вставить полный стек-трейс": "Paste full stack trace",
+            "Ошибка Python": "Python error",
+            "Исключение Java / JVM": "Java / JVM exception",
+            "Паника Go / runtime": "Go panic / runtime",
+            "Ошибка C++ / Segfault": "C++ / Segfault",
+            "Вход в Errorium": "Log in to Errorium",
+            "Синхронизируйте историю ошибок, знания команды и создавайте токены MCP для Cursor и Claude Code.": "Sync your recent error history, team knowledge, and generate MCP API tokens for Cursor & Claude Code.",
+            "Продолжить через GitHub": "Continue with GitHub",
+            "Продолжить через Google SSO": "Continue with Google SSO",
+            "Пароль": "Password",
+            "Запомнить меня": "Remember me",
+            "Забыли пароль?": "Forgot password?",
+            "или": "or",
+            "Войти с Яндекс ID": "Continue with Yandex ID",
+            "Впервые здесь?": "New here?",
+            "Регистрация": "Sign up",
+            "Подтвердите пароль": "Confirm password",
+            "Я принимаю Условия и Конфиденциальность": "I accept Terms & Privacy",
+            "Создать аккаунт": "Create account",
+            "Регистрация с Яндекс ID": "Sign up with Yandex ID",
+            "Уже есть аккаунт?": "Already have an account?",
+            "Введите почту от вашего аккаунта": "Enter your account email",
+            "Отправить ссылку для сброса": "Send reset link",
+            "Мы отправили вам письмо.": "We've sent you an email.",
+            "Не забудьте проверить папку «Спам»": "Don't forget to check your spam folder",
+            "Новый пароль": "Enter a new password",
+            "Повторите пароль": "Enter it again",
+            "Подтвердить": "Approve",
+            "Помните, что смена пароля завершит сеансы на всех остальных устройствах": "Keep in mind that changing your password will sign you out of all other devices",
+            "Подключите поисковое ядро Errorium напрямую к Cursor, Claude Code и Windsurf.": "Connect Errorium search engine directly to Cursor, Claude Code, and Windsurf.",
+            "Ваш Remote MCP Bearer токен": "Your Remote MCP Bearer Token",
+            "Копировать": "Copy",
+            "Копировать JSON": "Copy JSON",
+            "Об Errorium": "About Errorium",
+            "Элемент 404. Реагирует на разработчиков. Стек переполнен. Ошибка известна.": "Element 404. Reacts with developers. Stack overflow. Issue overknown.",
+            "— это интеллектуальная поисковая и RAG-система, созданная для нахождения точных решений сложных программных ошибок, исключений и стек-трейсов.": "is an intelligent search and RAG engine designed to find exact solutions for complex software errors, exceptions, and stack traces.",
+            "Дамп Stack Overflow": "Stack Overflow Dump",
+            "Реализовано с нуля (k₁=1.5, b=0.75)": "Built From Scratch (k₁=1.5, b=0.75)",
+            "Без внешних поисковых систем": "Zero External Search Engines",
+            "Интеграция с агентами в IDE": "IDE Agent Integration",
+            "Разработано в рамках курса НИРС (ОАД) МГТУ им. Н. Э. Баумана (кафедра ИУ5).": "Developed as part of the Research (OAD) curriculum at Bauman Moscow State Technical University (IU5).",
+            "Параметры и настройки": "Preferences & Parameters",
+            "Поисковое ядро BM25": "BM25 Search Core",
+            "Собственный инвертированный индекс (k₁ = 1.5, b = 0.75)": "Self-hosted inverted index (k₁ = 1.5, b = 0.75)",
+            "Подключено (:50051)": "Connected (:50051)",
+            "RAG-генерация ответов": "RAG Streaming",
+            "Потоковый вывод синтезированных ответов в реальном времени через SSE": "Stream synthesized answers in real time via SSE",
+            "Поиск": "Search",
+            "Код решения": "Solution Code",
+            "Скопировать код": "Copy code",
+            "Ранжированные источники Stack Overflow": "Ranked Stack Overflow Sources",
+            "Свернуть панель": "Collapse sidebar",
+            "Развернуть панель": "Expand sidebar",
+            "Закрыть меню": "Close menu",
+            "Закрыть окно": "Close dialog",
+            "Начать новый чат": "Start new chat",
+            "Меню навигации": "Toggle navigation menu",
+            "Открыть профиль / вход": "Open profile / auth",
+            "Профиль пользователя и настройки": "User Profile and Settings",
+            "Навигация по недавним чатам": "Recent chats navigation",
+            "Отправить запрос ошибки": "Send error query",
+            "Дополнительные действия и вставка стек-трейса": "Additional actions and stack trace paste",
+            "Изменить аватар": "Edit avatar",
+            "Дополнительно": "More options"
+        },
+        ru: {
+            "Recent chats": "Недавние чаты",
+            "New chat": "Новый чат",
+            "About us": "О нас",
+            "Log in": "Войти",
+            "Meet new features!": "Встречайте новые функции!",
+            "Backend developer": "Бэкенд-разработчик",
+            "Personal information": "Личные данные",
+            "Username": "Имя пользователя",
+            "Email": "Почта",
+            "Role": "Роль",
+            "Male": "Мужской",
+            "Female": "Женский",
+            "Security": "Безопасность",
+            "Change password": "Сменить пароль",
+            "Language": "Язык",
+            "English": "Английский",
+            "Русский": "Русский",
+            "Element": "Элемент",
+            "Reacts": "Реагирует",
+            "with": "на",
+            "developers": "разработчиков",
+            "Stack": "Стек",
+            "overflow.": "переполнен.",
+            "Issue": "Ошибка",
+            "overknown.": "известна.",
+            "What went wrong?": "Что пошло не так?",
+            "AI can make mistakes. Check important information.": "ИИ может совершать ошибки. Проверяйте важную информацию.",
+            "Paste full stack trace": "Вставить полный стек-трейс",
+            "Python error": "Ошибка Python",
+            "Java / JVM exception": "Исключение Java / JVM",
+            "Go panic / runtime": "Паника Go / runtime",
+            "C++ / Segfault": "Ошибка C++ / Segfault",
+            "Log in to Errorium": "Вход в Errorium",
+            "Sync your recent error history, team knowledge, and generate MCP API tokens for Cursor & Claude Code.": "Синхронизируйте историю ошибок, знания команды и создавайте токены MCP для Cursor и Claude Code.",
+            "Continue with GitHub": "Продолжить через GitHub",
+            "Continue with Google SSO": "Продолжить через Google SSO",
+            "Password": "Пароль",
+            "Remember me": "Запомнить меня",
+            "Forgot password?": "Забыли пароль?",
+            "or": "или",
+            "Continue with Yandex ID": "Войти с Яндекс ID",
+            "New here?": "Впервые здесь?",
+            "Sign up": "Регистрация",
+            "Confirm password": "Подтвердите пароль",
+            "I accept Terms & Privacy": "Я принимаю Условия и Конфиденциальность",
+            "Create account": "Создать аккаунт",
+            "Sign up with Yandex ID": "Регистрация с Яндекс ID",
+            "Already have an account?": "Уже есть аккаунт?",
+            "Enter your account email": "Введите почту от вашего аккаунта",
+            "Send reset link": "Отправить ссылку для сброса",
+            "We've sent you an email.": "Мы отправили вам письмо.",
+            "Don't forget to check your spam folder": "Не забудьте проверить папку «Спам»",
+            "Enter a new password": "Новый пароль",
+            "Enter it again": "Повторите пароль",
+            "Approve": "Подтвердить",
+            "Keep in mind that changing your password will sign you out of all other devices": "Помните, что смена пароля завершит сеансы на всех остальных устройствах",
+            "Connect Errorium search engine directly to Cursor, Claude Code, and Windsurf.": "Подключите поисковое ядро Errorium напрямую к Cursor, Claude Code и Windsurf.",
+            "Your Remote MCP Bearer Token": "Ваш Remote MCP Bearer токен",
+            "Copy": "Копировать",
+            "Copy JSON": "Копировать JSON",
+            "About Errorium": "Об Errorium",
+            "Element 404. Reacts with developers. Stack overflow. Issue overknown.": "Элемент 404. Реагирует на разработчиков. Стек переполнен. Ошибка известна.",
+            "is an intelligent search and RAG engine designed to find exact solutions for complex software errors, exceptions, and stack traces.": "— это интеллектуальная поисковая и RAG-система, созданная для нахождения точных решений сложных программных ошибок, исключений и стек-трейсов.",
+            "Stack Overflow Dump": "Дамп Stack Overflow",
+            "Built From Scratch (k₁=1.5, b=0.75)": "Реализовано с нуля (k₁=1.5, b=0.75)",
+            "Zero External Search Engines": "Без внешних поисковых систем",
+            "IDE Agent Integration": "Интеграция с агентами в IDE",
+            "Developed as part of the Research (OAD) curriculum at Bauman Moscow State Technical University (IU5).": "Разработано в рамках курса НИРС (ОАД) МГТУ им. Н. Э. Баумана (кафедра ИУ5).",
+            "Preferences & Parameters": "Параметры и настройки",
+            "BM25 Search Core": "Поисковое ядро BM25",
+            "Self-hosted inverted index (k₁ = 1.5, b = 0.75)": "Собственный инвертированный индекс (k₁ = 1.5, b = 0.75)",
+            "Connected (:50051)": "Подключено (:50051)",
+            "RAG Streaming": "RAG-генерация ответов",
+            "Stream synthesized answers in real time via SSE": "Потоковый вывод синтезированных ответов в реальном времени через SSE",
+            "Search": "Поиск",
+            "Solution Code": "Код решения",
+            "Copy code": "Скопировать код",
+            "Ranked Stack Overflow Sources": "Ранжированные источники Stack Overflow",
+            "Collapse sidebar": "Свернуть панель",
+            "Expand sidebar": "Развернуть панель",
+            "Close menu": "Закрыть меню",
+            "Close dialog": "Закрыть окно",
+            "Start new chat": "Начать новый чат",
+            "Toggle navigation menu": "Меню навигации",
+            "Open profile / auth": "Открыть профиль / вход",
+            "User Profile and Settings": "Профиль пользователя и настройки",
+            "Recent chats navigation": "Навигация по недавним чатам",
+            "Send error query": "Отправить запрос ошибки",
+            "Additional actions and stack trace paste": "Дополнительные действия и вставка стек-трейса",
+            "Edit avatar": "Изменить аватар",
+            "More options": "Дополнительно"
+        }
+    };
+
+    function t(str, targetLang = currentLang) {
+        if (!str || typeof str !== 'string') return str;
+        const trimmed = str.trim();
+        if (targetLang === 'ru') {
+            return I18N_STRINGS.ru[trimmed] || trimmed;
+        } else {
+            return I18N_STRINGS.en[trimmed] || trimmed;
+        }
+    }
+
+    let currentLang = 'English';
+
+    function getCurrentLanguage() {
+        const user = getAuthUser();
+        return (user && user.language) ? user.language : currentLang;
+    }
+
+    function applyLanguage(lang) {
+        currentLang = (lang === 'Русский' || lang === 'ru') ? 'Русский' : 'English';
+        const isRu = currentLang === 'Русский';
+        const target = isRu ? 'ru' : 'en';
+
+        // 1. Walk DOM text nodes and translate phrases
+        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+        let node;
+        while ((node = walker.nextNode())) {
+            const parent = node.parentElement;
+            if (!parent || parent.tagName === 'SCRIPT' || parent.tagName === 'STYLE') continue;
+            if (parent.closest('code') || parent.closest('pre')) continue;
+            if (parent.classList && (parent.classList.contains('header-logo') || parent.classList.contains('sidebar-brand') || parent.classList.contains('auth-brand-heading'))) continue;
+
+            const original = node.nodeValue.trim();
+            if (original && original !== 'Errorium') {
+                const translated = t(original, target);
+                if (translated && translated !== original) {
+                    node.nodeValue = node.nodeValue.replace(original, translated);
+                }
+            }
+        }
+
+        // 2. Translate placeholders
+        document.querySelectorAll('input, textarea').forEach(input => {
+            const ph = input.getAttribute('placeholder');
+            if (ph && ph !== 'Errorium') {
+                const translated = t(ph, target);
+                if (translated) input.setAttribute('placeholder', translated);
+            }
+        });
+
+        // 3. Translate titles and aria-labels
+        document.querySelectorAll('[title]').forEach(el => {
+            const val = el.getAttribute('title');
+            if (val && val !== 'Errorium') {
+                const translated = t(val, target);
+                if (translated) el.setAttribute('title', translated);
+            }
+        });
+
+        document.querySelectorAll('[aria-label]').forEach(el => {
+            const val = el.getAttribute('aria-label');
+            if (val && val !== 'Errorium') {
+                const translated = t(val, target);
+                if (translated) el.setAttribute('aria-label', translated);
+            }
+        });
+
+        // 4. Update language display row in profile
+        if (elements.profileInfoLang) {
+            elements.profileInfoLang.textContent = isRu ? 'Русский' : 'English';
+        }
+
+        // 5. Update user role in sidebar if default
+        if (elements.sidebarAuthRole && (elements.sidebarAuthRole.textContent === 'Backend developer' || elements.sidebarAuthRole.textContent === 'Бэкенд-разработчик')) {
+            elements.sidebarAuthRole.textContent = isRu ? 'Бэкенд-разработчик' : 'Backend developer';
+        }
+        if (elements.profileInfoRole && (elements.profileInfoRole.value === 'Backend developer' || elements.profileInfoRole.value === 'Бэкенд-разработчик')) {
+            elements.profileInfoRole.value = isRu ? 'Бэкенд-разработчик' : 'Backend developer';
+        }
+    }
+
+    // =========================================================================
     // DOM Elements Cache
     // =========================================================================
     const elements = {
@@ -435,6 +708,7 @@
             if (elements.headerAvatarGuest) elements.headerAvatarGuest.style.display = 'inline-block';
             if (elements.headerAvatarAuth) elements.headerAvatarAuth.style.display = 'none';
         }
+        applyLanguage(getCurrentLanguage());
     }
 
     // =========================================================================
@@ -625,7 +899,8 @@
         };
         user.language = user.language === 'English' ? 'Русский' : 'English';
         setAuthUser(user);
-        showToast(`Language switched to ${user.language}`);
+        applyLanguage(user.language);
+        showToast(user.language === 'Русский' ? 'Язык переключён на Русский' : 'Language switched to English');
     });
 
     elements.profileAvatarEditBadge?.addEventListener('click', (e) => {
@@ -1058,6 +1333,12 @@
     }
 
     function renderConversation(userText, assistantData) {
+        const isRu = getCurrentLanguage() === 'Русский';
+        const cardTitle = isRu ? 'Errorium RAG-синтез (BM25 Ядро)' : 'Errorium RAG Synthesis (BM25 Core)';
+        const solutionCodeText = isRu ? 'Код решения' : 'Solution Code';
+        const copyCodeText = isRu ? 'Скопировать код' : 'Copy code';
+        const sourcesText = isRu ? `Ранжированные источники Stack Overflow (${assistantData.sources.length})` : `Ranked Stack Overflow Sources (${assistantData.sources.length})`;
+
         elements.messagesContainer.innerHTML = `
             <!-- User Message -->
             <div class="message-row user">
@@ -1071,7 +1352,7 @@
                         <div class="badge-mascot">
                             <img src="/mascot.png" alt="Mascot" width="22">
                         </div>
-                        <span class="card-title">Errorium RAG Synthesis (BM25 Core)</span>
+                        <span class="card-title">${cardTitle}</span>
                     </div>
 
                     <div class="card-solution-text">
@@ -1081,8 +1362,8 @@
                     ${assistantData.code ? `
                     <div class="code-block-wrapper">
                         <div class="code-block-header">
-                            <span>Solution Code</span>
-                            <button class="code-copy-btn" onclick="copySnippet(this)">Copy code</button>
+                            <span>${solutionCodeText}</span>
+                            <button class="code-copy-btn" onclick="copySnippet(this)">${copyCodeText}</button>
                         </div>
                         <pre><code>${escapeHtml(assistantData.code)}</code></pre>
                     </div>
@@ -1090,7 +1371,7 @@
 
                     <div class="sources-card">
                         <div class="sources-header" onclick="toggleSources(this)">
-                            <span>Ranked Stack Overflow Sources (${assistantData.sources.length})</span>
+                            <span>${sourcesText}</span>
                             <span class="sources-arrow">▾</span>
                         </div>
                         <div class="sources-list">
