@@ -2015,7 +2015,7 @@ input:checked + .toggle-slider:before {
     bottom: calc(100% + 12px);
     left: 0;
     z-index: 50;
-    width: 320px;
+    width: 380px;
     max-width: calc(100vw - 32px);
     background: linear-gradient(
         145deg,
