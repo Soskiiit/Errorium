@@ -434,8 +434,11 @@ class TestFrontendSPA(unittest.TestCase):
         self.assertIn("updateAuthUI", js)
         self.assertIn("switchToProfileView", js)
 
-    def test_conversational_dialog_bubbles(self):
-        """Проверка стилей и рендеринга пузырей диалога (Chat-screen-dialog.png)."""
+    def test_chat_message_appearance_and_layout(self):
+        """Проверка восстановления внешнего вида и структуры сообщений чата (R1, R2):
+        - User сообщения рендерятся в .user-bubble со стилями (#1a233b, моноширинный шрифт) без иконки галочки.
+        - Ответ ассистента рендерит .assistant-card напрямую без приветственного пузыря и без .dialog-assistant-wrapper.
+        - .messages-container содержит строки .message-row.user и .message-row.assistant."""
         css_path = os.path.join(STATIC_DIR, "styles.css")
         js_path = os.path.join(STATIC_DIR, "app.js")
 
@@ -444,20 +447,51 @@ class TestFrontendSPA(unittest.TestCase):
         with open(js_path, "r", encoding="utf-8") as f:
             js = f.read()
 
-        # Стили пузырей и цвета
-        self.assertIn("dialog-user-bubble", css)
-        self.assertIn("dialog-assistant-bubble", css)
-        self.assertIn("dialog-assistant-avatar", css)
-        self.assertIn("dialog-check-icon", css)
-        self.assertIn("#6781db", css)
-        self.assertIn("#c0c1c6", css)
+        # 1. Проверка стилей .user-bubble в styles.css
+        self.assertIn(".user-bubble", css)
+        self.assertIn("#1a233b", css)
+        self.assertIn("rgba(255, 255, 255, 0.12)", css)
+        self.assertIn("18px 18px 4px 18px", css)
+        self.assertIn("12px 18px", css)
+        self.assertIn("#ffffff", css)
+        self.assertIn("var(--font-mono)", css)
 
-        # Рендеринг в app.js
-        self.assertIn("dialog-user-bubble", js)
-        self.assertIn("dialog-assistant-wrapper", js)
-        self.assertIn("dialog-assistant-bubble", js)
-        self.assertIn("message.svg", js)
-        self.assertIn("SyntaxError fixing", js)
+        # 2. Проверка стилей .message-row и .assistant-card в styles.css
+        self.assertIn(".message-row.user", css)
+        self.assertIn(".message-row.assistant", css)
+        self.assertIn(".assistant-card", css)
+
+        # 3. Проверка разметки и рендеринга сообщений в app.js
+        self.assertIn('<div class="message-row user">', js)
+        self.assertIn('<div class="user-bubble">${escapeHtml(userText)}</div>', js)
+        self.assertIn('<div class="message-row assistant">', js)
+        self.assertIn('<div class="assistant-card">', js)
+        self.assertIn("Errorium RAG Synthesis (BM25 Core)", js)
+
+        # 4. Проверка отсутствия старых dialog bubble оберток, аватарок и галочек
+        self.assertNotIn("dialog-user-bubble", js)
+        self.assertNotIn("dialog-assistant-wrapper", js)
+        self.assertNotIn("dialog-assistant-bubble", js)
+        self.assertNotIn("dialog-check-icon", js)
+        self.assertNotIn("SyntaxError fixing", js)
+
+        self.assertNotIn("dialog-user-bubble", css)
+        self.assertNotIn("dialog-assistant-wrapper", css)
+        self.assertNotIn("dialog-check-icon", css)
+
+    def test_sources_title_truncation(self):
+        """Проверка усечения длинных заголовков источников Stack Overflow с многоточием (text-overflow: ellipsis)."""
+        css_path = os.path.join(STATIC_DIR, "styles.css")
+        with open(css_path, "r", encoding="utf-8") as f:
+            css = f.read()
+
+        self.assertIn(".source-title", css)
+        self.assertIn("text-overflow: ellipsis", css)
+        self.assertIn("white-space: nowrap", css)
+        self.assertIn("overflow: hidden", css)
+
+    # Обратная совместимость для селекторов тестов
+    test_conversational_dialog_bubbles = test_chat_message_appearance_and_layout
 
     def test_app_js_syntax(self):
         """Проверка синтаксической валидности services/frontend/static/app.js через node --check."""

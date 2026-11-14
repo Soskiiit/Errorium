@@ -863,35 +863,13 @@
     }
 
     function renderConversation(userText, assistantData) {
-        const friendlyGreeting = userText.toLowerCase().includes('syntaxerror')
-            ? 'Of course I will be glad to help you with the SyntaxError fixing! Please give me more context, so I will be able to help you!'
-            : `Of course I will be glad to help you with the ${escapeHtml(userText)} fixing! Please give me more context, so I will be able to help you!`;
-
         elements.messagesContainer.innerHTML = `
-            <!-- User Message Dialogue Bubble (Chat-screen-dialog.png) -->
-            <div class="message-row user" style="justify-content: flex-end;">
-                <div class="dialog-user-bubble">
-                    <span>${escapeHtml(userText)}</span>
-                    <span class="dialog-check-icon" title="Delivered">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="20 6 9 17 4 12"></polyline>
-                            <polyline points="24 10 17 17 14 14"></polyline>
-                        </svg>
-                    </span>
-                </div>
+            <!-- User Message -->
+            <div class="message-row user">
+                <div class="user-bubble">${escapeHtml(userText)}</div>
             </div>
 
-            <!-- Assistant Greeting Dialogue Bubble (Chat-screen-dialog.png) -->
-            <div class="dialog-assistant-wrapper">
-                <div class="dialog-assistant-avatar">
-                    <img src="/message.svg" alt="Errorium Mascot">
-                </div>
-                <div class="dialog-assistant-bubble">
-                    ${friendlyGreeting}
-                </div>
-            </div>
-
-            <!-- Assistant Solution Card (Preserved BM25 RAG) -->
+            <!-- Assistant Solution Card -->
             <div class="message-row assistant">
                 <div class="assistant-card">
                     <div class="card-top-bar">
@@ -925,9 +903,9 @@
                                 <a href="${src.url}" target="_blank" rel="noopener noreferrer" class="source-item">
                                     <div class="source-left">
                                         <span class="source-score">▲ ${src.score}</span>
-                                        <span class="source-title">${src.title}</span>
+                                        <span class="source-title" title="${src.title}">${src.title}</span>
                                     </div>
-                                    <span style="font-size: 0.78rem; color: #64748b;">${src.tags.map(t => '#' + t).join(' ')}</span>
+                                    <span class="source-tags">${src.tags.map(t => '#' + t).join(' ')}</span>
                                 </a>
                             `).join('')}
                         </div>
