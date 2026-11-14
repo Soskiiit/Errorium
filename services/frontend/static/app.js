@@ -495,6 +495,7 @@
         refResetEmailForm: document.getElementById('ref-reset-email-form'),
         refResetEmail: document.getElementById('ref-reset-email'),
         refBtnSendReset: document.getElementById('ref-btn-send-reset'),
+        refResetNotice: document.getElementById('ref-reset-notice'),
 
         modalChangePassword: document.getElementById('modal-change-password'),
         refChangePasswordForm: document.getElementById('ref-change-password-form'),
@@ -1064,10 +1065,16 @@
     // 3. Change Password Email Modal (Change-password-email-screen.png)
     elements.refResetEmailForm?.addEventListener('submit', (e) => {
         e.preventDefault();
-        showToast('Reset email sent! Check your spam folder.');
+        if (elements.refResetNotice) {
+            elements.refResetNotice.style.display = 'block';
+        }
+        showToast(getCurrentLanguage() === 'Русский' ? 'Письмо для сброса отправлено! Проверьте папку «Спам».' : 'Reset email sent! Check your spam folder.');
         setTimeout(() => {
             showModal(elements.modalChangePassword);
-        }, 1200);
+            if (elements.refResetNotice) {
+                elements.refResetNotice.style.display = 'none';
+            }
+        }, 1600);
     });
 
     // 4. Change Password Modal (Change-password-screen.png)
