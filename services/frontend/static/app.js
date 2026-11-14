@@ -169,6 +169,7 @@
         profileInfoGenderRow: document.getElementById('profile-info-gender-row'),
         profileRowSecurity: document.getElementById('profile-row-security'),
         profileInfoLang: document.getElementById('profile-info-lang'),
+        profileInfoLangRow: document.getElementById('profile-info-lang-row'),
 
         searchRecentChats: document.getElementById('search-recent-chats'),
         recentChatsList: document.getElementById('recent-chats-list'),
@@ -602,6 +603,20 @@
         user.gender = user.gender === 'Male' ? 'Female' : 'Male';
         setAuthUser(user);
         showToast(`Gender set to ${user.gender}`);
+    });
+
+    elements.profileInfoLangRow?.addEventListener('click', () => {
+        const user = getAuthUser() || {
+            username: 'Test_user',
+            email: 'Test_user@mail.ru',
+            role: 'Backend developer',
+            gender: 'Male',
+            language: 'English',
+            avatarLetter: 'T'
+        };
+        user.language = user.language === 'English' ? 'Русский' : 'English';
+        setAuthUser(user);
+        showToast(`Language switched to ${user.language}`);
     });
 
     elements.profileAvatarEditBadge?.addEventListener('click', (e) => {
