@@ -192,7 +192,7 @@
             "Копировать": "Copy",
             "Копировать JSON": "Copy JSON",
             "Об Errorium": "About Errorium",
-            "Элемент 404. Реагирует на разработчиков. Стек переполнен. Ошибка известна.": "Element 404. Reacts with developers. Stack overflow. Issue overknown.",
+            "Элемент 404. Вызывает реакцию разработчиков. Стек переполнен, разраб преисполнен.": "Element 404. Reacts with developers. Stack overflow. Issue overknown.",
             "— это интеллектуальная поисковая и RAG-система, созданная для нахождения точных решений сложных программных ошибок, исключений и стек-трейсов.": "is an intelligent search and RAG engine designed to find exact solutions for complex software errors, exceptions, and stack traces.",
             "Дамп Stack Overflow": "Stack Overflow Dump",
             "Реализовано с нуля (k₁=1.5, b=0.75)": "Built From Scratch (k₁=1.5, b=0.75)",
@@ -286,7 +286,7 @@
             "Copy": "Копировать",
             "Copy JSON": "Копировать JSON",
             "About Errorium": "Об Errorium",
-            "Element 404. Reacts with developers. Stack overflow. Issue overknown.": "Элемент 404. Реагирует на разработчиков. Стек переполнен. Ошибка известна.",
+            "Element 404. Reacts with developers. Stack overflow. Issue overknown.": "Элемент 404. Вызывает реакцию разработчиков. Стек переполнен, разраб преисполнен.",
             "is an intelligent search and RAG engine designed to find exact solutions for complex software errors, exceptions, and stack traces.": "— это интеллектуальная поисковая и RAG-система, созданная для нахождения точных решений сложных программных ошибок, исключений и стек-трейсов.",
             "Stack Overflow Dump": "Дамп Stack Overflow",
             "Built From Scratch (k₁=1.5, b=0.75)": "Реализовано с нуля (k₁=1.5, b=0.75)",
@@ -395,8 +395,8 @@
         const heroSecondary = document.querySelector('.hero-secondary-text');
         if (heroPrimary && heroSecondary) {
             if (isRu) {
-                heroPrimary.innerHTML = 'Элемент<span class="space"> </span><span class="error-code-red">404</span><span class="space"> </span>вызывает<span class="space"> </span>реакцию<span class="space"> </span>разработчиков';
-                heroSecondary.innerHTML = 'Стек<span class="space"> </span>переполнен<span class="space"> </span>программист<span class="space"> </span>преисполнен';
+                heroPrimary.innerHTML = 'Элемент<span class="space"> </span><span class="error-code-red">404.</span><span class="space"> </span>Вызывает<span class="space"> </span>реакцию<span class="space"> </span>разработчиков.';
+                heroSecondary.innerHTML = 'Стек<span class="space"> </span>переполнен,<span class="space"> </span>разраб<span class="space"> </span>преисполнен.';
             } else {
                 heroPrimary.innerHTML = 'Element<span class="space"> </span><span class="error-code-red">404.</span><span class="space"> </span>Reacts<span class="space"> </span>with<span class="space"> </span>developers';
                 heroSecondary.innerHTML = 'Stack<span class="space"> </span>overflow.<span class="space"> </span>Issue<span class="space"> </span>overknown.';
