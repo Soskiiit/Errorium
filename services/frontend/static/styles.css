@@ -1036,7 +1036,7 @@ body {
         background 0.3s ease,
         transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     box-sizing: border-box;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .prompt-bar-container.multiline {
@@ -2009,16 +2009,15 @@ input:checked + .toggle-slider:before {
     color: #8c9fb9;
 }
 
-/* Technology Tags Popover (Horizontal Sleek Capsule Dock - Linear/Claude Style) */
+/* Technology Tags Popover (Horizontal Left-aligned Scrollable Dock) */
 .tags-popover {
     position: absolute;
-    bottom: calc(100% + 12px);
-    left: 50%;
-    transform: translateX(-50%);
+    bottom: calc(100% + 10px);
+    left: 0;
     z-index: 50;
-    width: auto;
-    max-width: min(720px, calc(100vw - 32px));
-    background: rgba(13, 20, 36, 0.88);
+    width: 100%;
+    max-width: 100%;
+    background: rgba(13, 20, 36, 0.9);
     border: 1px solid rgba(255, 255, 255, 0.16);
     border-radius: 9999px;
     padding: 6px 12px;
@@ -2035,36 +2034,54 @@ input:checked + .toggle-slider:before {
 @keyframes slideUpCapsule {
     from {
         opacity: 0;
-        transform: translate(-50%, 10px) scale(0.96);
+        transform: translateY(8px) scale(0.98);
     }
     to {
         opacity: 1;
-        transform: translate(-50%, 0) scale(1);
+        transform: translateY(0) scale(1);
     }
 }
 
 .tags-popover-notch {
-    display: none; /* Modern floating pill bar doesn't need an old-school triangle notch */
+    display: none;
 }
 
 .tags-grid {
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 6px;
+    gap: 7px;
     overflow-x: auto;
     overflow-y: hidden;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    padding: 2px 2px;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    padding: 2px 4px;
+    width: 100%;
+    box-sizing: border-box;
+    /* Custom sleek frosted scrollbar */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
 }
 
 .tags-grid::-webkit-scrollbar {
-    display: none;
+    height: 4px;
+}
+
+.tags-grid::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.tags-grid::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 9999px;
+}
+
+.tags-grid::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.35);
 }
 
 .tags-row {
-    display: contents; /* Flattens both rows into a single continuous row */
+    display: contents; /* Flattens all nested tags into a single scrollable row */
 }
 
 .tag-pill {

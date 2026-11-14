@@ -41,7 +41,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="/styles.css?v=20261114_3">
+    <link rel="stylesheet" href="/styles.css?v=20261114_4">
     <script>
         (function () {
             try {
@@ -414,53 +414,29 @@
 
             <!-- Bottom Prompt Input Area (Chat-screen.png) -->
             <footer class="app-prompt-footer" id="app-prompt-footer">
-                <!-- Technology Tags Popover (Chat-screen-with-tags.png) -->
-                <div id="tags-popover" class="tags-popover" style="display: none;">
-                    <div class="tags-popover-notch" aria-hidden="true"></div>
-                    <div class="tags-grid">
-                        <!-- Row 1: Go, Python, Java, C# -->
-                        <div class="tags-row">
-                            <button type="button" class="tag-pill tag-go" data-tag="Go">Go</button>
-                            <button type="button" class="tag-pill tag-python" data-tag="Python">Python</button>
-                            <button type="button" class="tag-pill tag-java" data-tag="Java">Java</button>
-                            <button type="button" class="tag-pill tag-csharp" data-tag="C#">C#</button>
-                        </div>
-                        <!-- Row 2: C++, JS, SQL, Rust -->
-                        <div class="tags-row">
-                            <button type="button" class="tag-pill tag-cpp" data-tag="C++">C++</button>
-                            <button type="button" class="tag-pill tag-js" data-tag="JS">JS</button>
-                            <button type="button" class="tag-pill tag-sql" data-tag="SQL">SQL</button>
-                            <button type="button" class="tag-pill tag-rust" data-tag="Rust">Rust</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Attachment / Quick Presets Popover -->
-                <div id="attach-popover" class="attach-popover" style="display: none;">
-                    <div class="popover-item" data-action="paste-trace">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
-                        <span>Paste full stack trace</span>
-                    </div>
-                    <div class="popover-item" data-action="filter-lang" data-lang="python">
-                        <span class="lang-tag">py</span>
-                        <span>Python error</span>
-                    </div>
-                    <div class="popover-item" data-action="filter-lang" data-lang="java">
-                        <span class="lang-tag">java</span>
-                        <span>Java / JVM exception</span>
-                    </div>
-                    <div class="popover-item" data-action="filter-lang" data-lang="go">
-                        <span class="lang-tag">go</span>
-                        <span>Go panic / runtime</span>
-                    </div>
-                    <div class="popover-item" data-action="filter-lang" data-lang="cpp">
-                        <span class="lang-tag">c++</span>
-                        <span>C++ / Segfault</span>
-                    </div>
-                </div>
-
                 <!-- Capsule Input Bar -->
                 <div class="prompt-bar-container">
+                    <!-- Technology Tags Popover (Modern Left-aligned Scrollable Dock) -->
+                    <div id="tags-popover" class="tags-popover" style="display: none;">
+                        <div class="tags-popover-notch" aria-hidden="true"></div>
+                        <div class="tags-grid">
+                            <!-- Row 1: Go, Python, Java, C# -->
+                            <div class="tags-row">
+                                <button type="button" class="tag-pill tag-go" data-tag="Go">Go</button>
+                                <button type="button" class="tag-pill tag-python" data-tag="Python">Python</button>
+                                <button type="button" class="tag-pill tag-java" data-tag="Java">Java</button>
+                                <button type="button" class="tag-pill tag-csharp" data-tag="C#">C#</button>
+                            </div>
+                            <!-- Row 2: C++, JS, SQL, Rust -->
+                            <div class="tags-row">
+                                <button type="button" class="tag-pill tag-cpp" data-tag="C++">C++</button>
+                                <button type="button" class="tag-pill tag-js" data-tag="JS">JS</button>
+                                <button type="button" class="tag-pill tag-sql" data-tag="SQL">SQL</button>
+                                <button type="button" class="tag-pill tag-rust" data-tag="Rust">Rust</button>
+                            </div>
+                        </div>
+                    </div>
+
                     <button id="btn-attach" class="icon-btn prompt-plus-btn" aria-label="Additional actions and stack trace paste">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="12" y1="5" x2="12" y2="19"></line>
