@@ -490,6 +490,20 @@ class TestFrontendSPA(unittest.TestCase):
         self.assertIn("white-space: nowrap", css)
         self.assertIn("overflow: hidden", css)
 
+    def test_spa_client_routing(self):
+        """Проверка реализации клиентского SPA-роутинга через History API (pushState/popstate)."""
+        js_path = os.path.join(STATIC_DIR, "app.js")
+        with open(js_path, "r", encoding="utf-8") as f:
+            js = f.read()
+
+        self.assertIn("renderCurrentRoute", js)
+        self.assertIn("window.history.pushState", js)
+        self.assertIn("popstate", js)
+        self.assertIn("/profile", js)
+        self.assertIn("/chat", js)
+        self.assertIn("/login", js)
+        self.assertIn("/register", js)
+
     # Обратная совместимость для селекторов тестов
     test_conversational_dialog_bubbles = test_chat_message_appearance_and_layout
 

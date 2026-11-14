@@ -426,15 +426,106 @@
         }
     }
 
-    function showModal(modalEl) {
+    // =========================================================================
+    // SPA Routing (History API & popstate)
+    // =========================================================================
+    let isNavigatingFromPopState = false;
+
+    function navigateTo(path, updateHistory = true) {
+        if (updateHistory && window.location.pathname !== path) {
+            window.history.pushState({ path }, '', path);
+        }
+        renderCurrentRoute();
+    }
+
+    function renderCurrentRoute() {
+        const path = window.location.pathname;
+
+        if (path === '/profile') {
+            if (getAuthUser()) {
+                switchToProfileView(false);
+            } else {
+                switchToHeroView(false);
+                showModal(elements.modalAuthRef || elements.modalAuth, false);
+            }
+            return;
+        }
+
+        if (path === '/auth' || path === '/login') {
+            switchToHeroView(false);
+            showModal(elements.modalAuthRef || elements.modalAuth, false);
+            return;
+        }
+
+        if (path === '/register' || path === '/signup') {
+            switchToHeroView(false);
+            showModal(elements.modalRegisterRef, false);
+            return;
+        }
+
+        if (path === '/settings') {
+            switchToHeroView(false);
+            showModal(elements.modalSettings, false);
+            return;
+        }
+
+        if (path === '/about') {
+            switchToHeroView(false);
+            showModal(elements.modalAbout, false);
+            return;
+        }
+
+        if (path === '/mcp') {
+            switchToHeroView(false);
+            showModal(elements.modalMcp, false);
+            return;
+        }
+
+        const chatMatch = path.match(/^\/chat(?:\/([a-zA-Z0-9_\-]+))?$/);
+        if (chatMatch) {
+            const chatId = chatMatch[1];
+            if (chatId && KNOWLEDGE_BASE[chatId]) {
+                loadChatByQuery(KNOWLEDGE_BASE[chatId].query || KNOWLEDGE_BASE[chatId].title, chatId, false);
+            } else if (chatId) {
+                loadChatByQuery(decodeURIComponent(chatId.replace(/-/g, ' ')), chatId, false);
+            } else {
+                switchToChatView(false);
+            }
+            return;
+        }
+
+        // Default: home / hero view
+        switchToHeroView(false);
+    }
+
+    window.addEventListener('popstate', () => {
+        isNavigatingFromPopState = true;
+        renderCurrentRoute();
+        isNavigatingFromPopState = false;
+    });
+
+    function showModal(modalEl, updateRoute = true) {
         closeSidebar();
-        closeAllModals();
+        closeAllModals(false);
         if (modalEl) {
             modalEl.style.display = 'flex';
+            if (updateRoute && !isNavigatingFromPopState) {
+                if (modalEl === elements.modalAuthRef || modalEl === elements.modalAuth) {
+                    if (window.location.pathname !== '/login') window.history.pushState({ modal: 'login' }, '', '/login');
+                } else if (modalEl === elements.modalRegisterRef) {
+                    if (window.location.pathname !== '/register') window.history.pushState({ modal: 'register' }, '', '/register');
+                } else if (modalEl === elements.modalSettings) {
+                    if (window.location.pathname !== '/settings') window.history.pushState({ modal: 'settings' }, '', '/settings');
+                } else if (modalEl === elements.modalAbout) {
+                    if (window.location.pathname !== '/about') window.history.pushState({ modal: 'about' }, '', '/about');
+                } else if (modalEl === elements.modalMcp) {
+                    if (window.location.pathname !== '/mcp') window.history.pushState({ modal: 'mcp' }, '', '/mcp');
+                }
+            }
         }
     }
 
-    function closeAllModals() {
+    function closeAllModals(restoreRoute = true) {
         document.querySelectorAll('.modal-overlay').forEach(modal => {
             modal.style.display = 'none';
         });
@@ -443,6 +534,12 @@
         }
         if (elements.tagsPopover) {
             elements.tagsPopover.style.display = 'none';
+        }
+        if (restoreRoute && !isNavigatingFromPopState) {
+            const path = window.location.pathname;
+            if (['/login', '/auth', '/register', '/signup', '/settings', '/about', '/mcp'].includes(path)) {
+                window.history.pushState({}, '', '/');
+            }
         }
     }
 
@@ -778,20 +875,28 @@
         loadChatByQuery(query);
     }
 
-    function switchToChatView() {
+    function switchToChatView(updateRoute = true) {
         if (elements.heroView) elements.heroView.style.display = 'none';
         if (elements.profileView) elements.profileView.style.display = 'none';
         if (elements.chatView) elements.chatView.style.display = 'flex';
+        closeAllModals(false);
+        if (updateRoute && !isNavigatingFromPopState && !window.location.pathname.startsWith('/chat')) {
+            window.history.pushState({ view: 'chat' }, '', '/chat');
+        }
     }
 
-    function switchToProfileView() {
+    function switchToProfileView(updateRoute = true) {
         if (elements.heroView) elements.heroView.style.display = 'none';
         if (elements.chatView) elements.chatView.style.display = 'none';
         if (elements.profileView) elements.profileView.style.display = 'flex';
         closeSidebar();
+        closeAllModals(false);
+        if (updateRoute && !isNavigatingFromPopState && window.location.pathname !== '/profile') {
+            window.history.pushState({ view: 'profile' }, '', '/profile');
+        }
     }
 
-    function switchToHeroView() {
+    function switchToHeroView(updateRoute = true) {
         if (elements.profileView) elements.profileView.style.display = 'none';
         if (elements.chatView) elements.chatView.style.display = 'none';
         if (elements.heroView) elements.heroView.style.display = 'flex';
@@ -799,6 +904,10 @@
         if (elements.promptInput) elements.promptInput.value = '';
         adjustTextareaHeight();
         document.querySelectorAll('.recent-chat-item').forEach(i => i.classList.remove('active'));
+        closeAllModals(false);
+        if (updateRoute && !isNavigatingFromPopState && window.location.pathname !== '/') {
+            window.history.pushState({ view: 'home' }, '', '/');
+        }
     }
 
     elements.btnNewChat?.addEventListener('click', () => {
@@ -815,9 +924,16 @@
     });
 
     // Render Chat Messages
-    function loadChatByQuery(query, chatId = null) {
-        switchToChatView();
+    function loadChatByQuery(query, chatId = null, updateRoute = true) {
+        switchToChatView(false);
         closeSidebar();
+
+        if (updateRoute && !isNavigatingFromPopState) {
+            const chatUrl = chatId ? `/chat/${encodeURIComponent(chatId)}` : '/chat';
+            if (window.location.pathname !== chatUrl) {
+                window.history.pushState({ view: 'chat', chatId, query }, '', chatUrl);
+            }
+        }
 
         // Mark active in sidebar if known
         document.querySelectorAll('.recent-chat-item').forEach(item => {
@@ -978,5 +1094,8 @@
 
     // Initialize authentication UI state from stored session
     updateAuthUI();
+
+    // Initialize SPA route based on initial URL
+    renderCurrentRoute();
 
 })();
