@@ -1039,16 +1039,8 @@ body {
     overflow: hidden;
 }
 
-.prompt-bar-container.multiline-2 {
+.prompt-bar-container.multiline {
     border-radius: 26px;
-}
-
-.prompt-bar-container.multiline-3 {
-    border-radius: 20px;
-}
-
-.prompt-bar-container.multiline-4 {
-    border-radius: 16px;
 }
 
 .prompt-bar-container:hover {

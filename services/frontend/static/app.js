@@ -1172,18 +1172,12 @@
         const scrollHeight = elements.promptInput.scrollHeight;
         elements.promptInput.style.height = Math.min(scrollHeight, 140) + 'px';
 
-        // Dynamically adjust container border-radius as lines increase
+        // Set rounded rectangle (border-radius: 26px) whenever there is more than 1 line
         if (elements.promptBarContainer) {
-            elements.promptBarContainer.classList.remove('multiline-2', 'multiline-3', 'multiline-4');
-            if (scrollHeight >= 85) {
-                // 4 or more lines -> rounded rectangle
-                elements.promptBarContainer.classList.add('multiline-4');
-            } else if (scrollHeight >= 60) {
-                // 3 lines
-                elements.promptBarContainer.classList.add('multiline-3');
-            } else if (scrollHeight >= 42) {
-                // 2 lines
-                elements.promptBarContainer.classList.add('multiline-2');
+            if (scrollHeight >= 42) {
+                elements.promptBarContainer.classList.add('multiline');
+            } else {
+                elements.promptBarContainer.classList.remove('multiline');
             }
         }
     }
