@@ -1030,12 +1030,25 @@ body {
         inset 0 -2px 6px 0 rgba(147, 197, 253, 0.15),
         inset 0 -12px 28px 0 rgba(5, 10, 25, 0.5);
     transition:
+        border-radius 0.22s cubic-bezier(0.16, 1, 0.3, 1),
         border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
         box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1),
         background 0.3s ease,
         transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     box-sizing: border-box;
     overflow: hidden;
+}
+
+.prompt-bar-container.multiline-2 {
+    border-radius: 26px;
+}
+
+.prompt-bar-container.multiline-3 {
+    border-radius: 20px;
+}
+
+.prompt-bar-container.multiline-4 {
+    border-radius: 16px;
 }
 
 .prompt-bar-container:hover {

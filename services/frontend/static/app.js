@@ -468,6 +468,7 @@
         chatView: document.getElementById('chat-view'),
         messagesContainer: document.getElementById('messages-container'),
         promptFooter: document.getElementById('app-prompt-footer'),
+        promptBarContainer: document.querySelector('.prompt-bar-container'),
 
         promptInput: document.getElementById('prompt-input'),
         btnSend: document.getElementById('btn-send'),
@@ -1166,8 +1167,25 @@
     // Auto-expanding Input & Send Logic
     // =========================================================================
     function adjustTextareaHeight() {
+        if (!elements.promptInput) return;
         elements.promptInput.style.height = 'auto';
-        elements.promptInput.style.height = Math.min(elements.promptInput.scrollHeight, 140) + 'px';
+        const scrollHeight = elements.promptInput.scrollHeight;
+        elements.promptInput.style.height = Math.min(scrollHeight, 140) + 'px';
+
+        // Dynamically adjust container border-radius as lines increase
+        if (elements.promptBarContainer) {
+            elements.promptBarContainer.classList.remove('multiline-2', 'multiline-3', 'multiline-4');
+            if (scrollHeight >= 85) {
+                // 4 or more lines -> rounded rectangle
+                elements.promptBarContainer.classList.add('multiline-4');
+            } else if (scrollHeight >= 60) {
+                // 3 lines
+                elements.promptBarContainer.classList.add('multiline-3');
+            } else if (scrollHeight >= 42) {
+                // 2 lines
+                elements.promptBarContainer.classList.add('multiline-2');
+            }
+        }
     }
 
     elements.promptInput?.addEventListener('input', adjustTextareaHeight);
