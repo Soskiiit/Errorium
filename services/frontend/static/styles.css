@@ -1005,7 +1005,7 @@ body {
 .prompt-bar-container {
     position: relative;
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     width: 100%;
     max-width: 720px;
     margin-left: auto;
@@ -1069,8 +1069,8 @@ body {
 
 /* Standalone Plus Action Button (No circle plate) */
 .prompt-plus-btn {
-    width: 32px;
-    height: 32px;
+    width: 38px;
+    height: 38px;
     color: #94a3b8;
     background: transparent;
     border: none;
@@ -1084,6 +1084,7 @@ body {
     align-items: center;
     justify-content: center;
     padding: 0;
+    margin-bottom: 0;
     transition: color 0.2s ease, transform 0.15s ease;
     position: relative;
     z-index: 2;
