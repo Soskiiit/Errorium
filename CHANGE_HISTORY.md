@@ -123,6 +123,599 @@
 - `go test ./...` в `services/gateway` — ok (handler, migrations, config).
 - Node smoke-тест билдера графа: 14 узлов / 16 ребер, категории {PRIMARY_RESULT:1, OTHER_RESULT:1, DUPLICATE:3, LINKED:9}, детерминизм, уникальность doc_id, валидность ребер и полей контракта — OK.
 - Бенчмарк не запускался: правки ранжирования и токенизации не вносились (только фронтенд).
+## [2026-11-16] — Увеличение горизонтального разнесения сообщений в чате (Milestone 1, Iteration 123)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/css/chat.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Более выразительное разнесение реплик чата по краям:**
+   - В [chat.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/chat.css) отступ для сообщений пользователя `.message-row.user` увеличен вправо до `margin-right: -24px;` с `max-width: 80%;`.
+   - Ответ ассистента `.message-row.assistant` сдвинут влево до `margin-left: -28px;` и `width: calc(100% + 28px);`.
+   - Диалог приобрёл яркую динамику живого мессенджера с чётким разделением сторон собеседников.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Разнесение сообщений пользователя и ассистента в стороны (Milestone 1, Iteration 122)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/css/chat.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Горизонтальное смещение сообщений чата:**
+   - В [chat.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/chat.css) для строки пользователя `.message-row.user` добавлен отступ `margin-right: -10px;` и ограничение `max-width: 82%;`, сдвигающее пузырь пользователя правее.
+   - Для строки ответа ассистента `.message-row.assistant` добавлен отступ `margin-left: -14px;` и ширина `width: calc(100% + 14px);`, благодаря чему аватарка маскота и бабл ответа вынесены левее, создавая отчётливую диалоговую асимметрию между репликами.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Обводка аватарки маскота в цвет границы бабла сообщения (Milestone 1, Iteration 121)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/css/chat.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Обводка аватарки маскота:**
+   - В [chat.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/chat.css) для селектора `.assistant-avatar` установлена обводка `border: 1px solid var(--border-subtle);` в единый цвет границы карточки сообщения `var(--border-subtle)` (`rgba(255, 255, 255, 0.1)`).
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Существенный подъём авы маскота ассистента в чате (Milestone 1, Iteration 120)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/css/chat.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Смещение авы маскота вверх:**
+   - В [chat.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/chat.css) для `.assistant-avatar` верхний отступ изменен на `margin-top: -18px;`, благодаря чему аватарка маскота поднята ощутимо выше относительно бабла сообщения.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Удаление синей обводки контейнера аватарки ассистента и масштабирование иконки (Milestone 1, Iteration 119)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/css/chat.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Чистая иконка ассистента без внешней синей обводки:**
+   - В [chat.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/chat.css) у контейнера `.assistant-avatar` убрана синяя граница (`border: none;`), синий полупрозрачный фон (`background: transparent;`) и внешняя тень.
+   - Размер самого контейнера установлен в `34x34px`, а изображение иконки маскота занимает все 100% пространства (`width: 100%; height: 100%; object-fit: cover;`), благодаря чему сама иконка стала значительно крупнее, детальнее и выглядит чисто без лишней рамки.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Упрощение названия блока источников и поднятие аватарки маскота (Milestone 1, Iteration 118)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/app.js`
+- `services/frontend/static/css/chat.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Лаконичный заголовок источников без слова 'Ранжированные':**
+   - В [app.js](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/app.js) в карточке решения заголовок свёрнутого блока источников изменён:
+     - RU: `Источники Stack Overflow (N)` (вместо `Ранжированные источники...`).
+     - EN: `Stack Overflow Sources (N)` (вместо `Ranked Stack Overflow...`).
+   - Обновлены двусторонние соответствия в словаре локализации `I18N_STRINGS`.
+2. **Позиция аватарки маскота:**
+   - В [chat.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/chat.css) для селектора `.assistant-avatar` отступ сверху скорректирован на `margin-top: -6px;`. Аватарка приподнята выше и теперь аккуратно визуально выравнивается с началом текста реплики ассистента.
+3. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Вынос аватарки маскота рядом с баблом ответа ИИ и скрытие плашки заголовка RAG (Milestone 1, Iteration 117)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/app.js`
+- `services/frontend/static/css/chat.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Диалоговая аватарка ассистента рядом с баблом:**
+   - В [app.js](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/app.js) из карточки решения убрана верхняя плашка `.card-top-bar` с надписью `Errorium RAG-синтез (BM25 Ядро)`.
+   - В разметку строки ответа ассистента `.message-row.assistant` добавлен элемент `.assistant-avatar` с круглым фавиконом маскота, расположенный слева от бабла карточки.
+   - В [chat.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/chat.css) настроена флекс-раскладка (`display: flex; flex-direction: row; gap: 12px;`): аватарка стоит рядом с левым верхним «хвостиком» карточки (`border-radius: 4px 20px 20px 20px`), создавая эффект прямой реплики говорящего персонажа.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Увеличение радиуса скругления остальных углов карточки ответа ИИ (.assistant-card) (Milestone 1, Iteration 116)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/css/chat.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Более выразительное закругление углов ответа ИИ:**
+   - В [chat.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/chat.css) для селектора `.assistant-card` значение `border-radius` обновлено до `4px 20px 20px 20px;`.
+   - Левый верхний угол остался почти прямым (4px), а остальные три угла (правый верхний, правый нижний и левый нижний) стали заметно мягче и округлее (20px).
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Стилизация левого верхнего угла карточки ответа ИИ (.assistant-card) по аналогии с сообщением пользователя (Milestone 1, Iteration 115)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/css/chat.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Скругление углов карточки ответа ассистента:**
+   - В [chat.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/chat.css) для селектора `.assistant-card` значение `border-radius` обновлено с `16px` на `4px 16px 16px 16px`.
+   - Теперь левый верхний угол ответа ИИ имеет минимальное закругление в 4px (аналогично правому нижнему углу сообщения пользователя `.user-bubble` со скруглением `18px 18px 4px 18px`), создавая гармоничный диалоговый вид «хвостика» входящего сообщения.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Замена иконки карточки RAG на фавикон и перевод ролей 'Фуллстек' и 'Инженер данных / ML' (Milestone 1, Iteration 114)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/app.js`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Иконка в заголовке ответа RAG-синтеза:**
+   - В [app.js](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/app.js) в функции `renderConversation` в блоке `.card-top-bar .badge-mascot` изображение заменено с общего `/mascot.png` на круглый фирменный фавикон `/favicon.png`, в точности как на референсе.
+2. **Уточнение и дополнение переводов ролей:**
+   - В словаре локализации `I18N_STRINGS` добавлена русская форма с двумя «л» для **`Fullstack developer`** $\rightarrow$ **`Фуллстек-разработчик`** (с поддержкой обратного перевода `Фуллстек-разработчик` и `Фулстек-разработчик`).
+   - Добавлен перевод роли **`Data engineer / ML`** $\rightarrow$ **`Инженер данных / ML`** (с двусторонней обратимостью).
+3. **Верификация и тесты:**
+   - Проверена 100% обратимость переводов (0 пропущенных ключей).
+   - Все 24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Полная двусторонняя локализация всех ролей пользователя в профиле и сайдбаре (Milestone 1, Iteration 113)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/css/profile.css`
+- `services/frontend/static/app.js`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Цвет бейджика карандаша аватарки:**
+   - В [profile.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/profile.css) фон кружочка кнопки редактирования фото аватарки `.profile-edit-badge` установлен в чистый белый `#ffffff`, а при наведении `#f1f5f9` — в точном соответствии с цветом заголовка никнейма под аватаркой.
+2. **Локализация всех профессиональных ролей:**
+   - В словари `I18N_STRINGS.ru` и `I18N_STRINGS.en` в [app.js](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/app.js) добавлены полные двусторонние переводы для всех 10 ролей:
+     - `Backend developer` $\leftrightarrow$ `Бэкенд-разработчик`
+     - `Frontend developer` $\leftrightarrow$ `Фронтенд-разработчик`
+     - `Fullstack developer` $\leftrightarrow$ `Фулстек-разработчик`
+     - `DevOps engineer` $\leftrightarrow$ `DevOps-инженер`
+     - `QA engineer` $\leftrightarrow$ `QA-инженер`
+     - `Data engineer / ML` $\leftrightarrow$ `Data engineer / ML`
+     - `System architect` $\leftrightarrow$ `Системный архитектор`
+     - `Mobile developer` $\leftrightarrow$ `Мобильный разработчик`
+     - `Security engineer` $\leftrightarrow$ `Инженер по безопасности`
+     - `Tech lead` $\leftrightarrow$ `Тимлид / Техлид`
+   - В `updateAuthUI()` и `applyLanguage()` добавлена динамическая локализация текущей роли пользователя как в сайдбаре (`#sidebar-auth-role`), так и в строке роли профиля (`#profile-info-role`).
+   - TreeWalker автоматически переводит элементы выпадающего меню `.role-dropdown-item`.
+3. **Верификация и тесты:**
+   - Проверена 100% обратимость переводов.
+   - Синтаксис проверен (`node --check`).
+   - Все 24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Уменьшение размера иконок карандаша в полях профиля (Milestone 1, Iteration 112)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/index.html`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Компактный размер карандашей в инпутах:**
+   - В [index.html](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/index.html) размер иконок `.profile-edit-icon` уменьшен с 16x16px до деликатных 13x13px (`width="13" height="13"`), благодаря чему они смотрятся ещё более легко и минималистично рядом со значениями полей никнейма и email.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Добавление минималистичных иконок карандаша для полей редактирования профиля (Milestone 1, Iteration 111)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/index.html`
+- `services/frontend/static/css/profile.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Иконки редактирования для никнейма и email:**
+   - В [index.html](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/index.html) с правой стороны строк полей `Username` (`#profile-info-username`) и `Email` (`#profile-info-email`) добавлены SVG-иконки карандаша (`.profile-edit-icon`) размером 16x16px (в едином стиле и размере со стрелочками-шевронами в выпадающих списках).
+   - В [profile.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/profile.css) настроена стилизация и состояния:
+     - Базовый аккуратный приглушённый цвет `#8c9fb9` с `opacity: 0.65`.
+     - При наведении курсора на строку подсветка до `#b8cef1` (`opacity: 0.95`).
+     - При активном фокусе в поле ввода — акцентный небесно-голубой цвет `#38bdf8` (`opacity: 1`).
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Отключение звёздочки курсора везде, кроме лендинга (Milestone 1, Iteration 110)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/css/base.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Показ звёздочки кометы только на лендинге:**
+   - В [base.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/base.css) базовое состояние `.cursor-comet-canvas.active` переведено в `opacity: 0;` (звёздочка и её след полностью скрыты на экранах поиска, чата, профиля и модальных окон).
+   - Правило `body.landing-active .cursor-comet-canvas.active { opacity: 1; }` активирует эффект исключительно при нахождении пользователя на промо-странице лендинга.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — 50% прозрачность звёздочки и хвоста кометы на всех экранах кроме лендинга (Milestone 1, Iteration 109)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/css/base.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Прозрачность эффекта звёздочки кометы курсора:**
+   - В [base.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/base.css) для класса `.cursor-comet-canvas.active` базовая прозрачность установлена в `opacity: 0.5;` (50% прозрачности на экранах поиска, чата, профиля, модальных окон и настроек).
+   - При переходе на лендинг (класс `body.landing-active`) активируется правило `body.landing-active .cursor-comet-canvas.active { opacity: 1; }` с сохранением полной 100% яркости и насыщенности свечения.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Уточнение толщины белой обводки аватарки в сайдбаре до 0.8px (Milestone 1, Iteration 108)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/css/profile.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Толщина обводки аватарки:**
+   - В [profile.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/profile.css) для `.user-avatar-badge` толщина границы установлена в `0.8px solid rgba(255, 255, 255, 0.85);`.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Белая обводка 1px для аватарки пользователя в сайдбаре (Milestone 1, Iteration 107)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/css/profile.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Белая рамка у аватарки:**
+   - В [profile.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/profile.css) для селектора `.user-avatar-badge` добавлена белая обводка `border: 1px solid rgba(255, 255, 255, 0.85);` и свойство `overflow: hidden;` для идеального скругления изображения фото/буквы внутри круга.
+2. **Верификация и тесты:**
+   - Все 24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Отключение подсветки (свечения) у аватарки в сайдбаре (Milestone 1, Iteration 106)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/css/profile.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Удаление box-shadow у аватарки в сайдбаре:**
+   - В [profile.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/profile.css) для селектора `.user-avatar-badge` (аватарка текущего пользователя `#sidebar-auth-avatar` в нижнем блоке сайдбара) установлено `box-shadow: none`.
+   - Теперь аватарка в боковом меню отображается аккуратно без фонового ореола/свечения.
+2. **Верификация и тесты:**
+   - Все 24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Модульная декомпозиция CSS-стилей фронтенда на отдельные файлы (Milestone 1, Iteration 105)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `services/frontend/static/css/` (11 модульных файлов)
+- `tests/unit/test_frontend_spa.py`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Декомпозиция монолитного файла `styles.css` (3787 строк) на функциональные модули:**
+   - Создана директория `services/frontend/static/css/` с логическими модулями:
+     - [base.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/base.css) — дизайн-токены CSS-переменных, глобальный сброс, типографика и холст звёздочки курсора.
+     - [layout.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/layout.css) — корневой контейнер `.app-container` и фоновый оверлей `.drawer-backdrop`.
+     - [sidebar.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/sidebar.css) — боковое меню, поиск по чатам, группировка истории, кнопка сворачивания меню.
+     - [hero.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/hero.css) — главный экран приветствия с парящим маскотом, слоганами и синей аурой свечения.
+     - [landing.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/landing.css) — лендинг (`/mcp` и `/about`), карточки преимуществ, плашки слогана, секции и навигация.
+     - [chat.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/chat.css) — диалоговые пузыри пользователя (`.user-bubble`), карточки ассистента (`.assistant-card`), источники и сниппеты кода.
+     - [prompt.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/prompt.css) — нижняя строка ввода запроса, кнопка прикрепления стек-трейса, селектор технологий.
+     - [modals.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/modals.css) — базовые модальные окна, форма настройки MCP с копированием токена, окно About.
+     - [responsive.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/responsive.css) — медиа-запросы адаптивности под планшеты, десктопы (`min-width: 930px`) и компактные по высоте экраны (`max-height: 720px`).
+     - [profile.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/profile.css) — экран профиля пользователя, аватар, дропдауны ролей/языка и сетка тегов технологий.
+     - [auth.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/auth.css) — модальные окна авторизации, регистрации, сброса пароля и алертов.
+   - [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) преобразован в чистую точку входа с директивами `@import url('./css/...')`.
+2. **Верификация и тесты:**
+   - Обновлен тест `test_frontend_spa.py` с поддержкой загрузки модульных `@import` файлов и проверкой наличия всех 11 CSS-модулей в `test_static_files_exist`.
+   - Все 24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Обновление перечня поддерживаемых AI-агентов и сред в секции MCP (Milestone 1, Iteration 104)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/index.html`
+- `services/frontend/static/app.js`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Обновление списка сред в модальном окне и на лендинге:**
+   - В [index.html](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/index.html) и словаре локализации [app.js](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/app.js) перечень сред обновлен:
+     - Ранее: `Cursor, Claude Code, and Windsurf`.
+     - Теперь: `Codex, Claude Code, Antigravity, and DeepSeek Harness` (в подзаголовке лендинга: `Codex, Claude Code, Antigravity, DeepSeek Harness, and custom AI agents`).
+   - На русском языке: `Codex, Claude Code, Antigravity и DeepSeek Harness`.
+   - Обеспечена полная обратная совместимость словаря локализации `en` <-> `ru`.
+2. **Верификация и тесты:**
+   - Проверена обратимость всех ключей I18N.
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Исправление обратного перевода секций лендинга на английский язык (Milestone 1, Iteration 103)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/app.js`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Симметричный обратный перевод RU -> EN в словаре `I18N_STRINGS.en`:**
+   - В [app.js](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/app.js) в секцию `I18N_STRINGS.en` добавлены недостающие ключи для карточек лендинга и модального окна MCP:
+     - `"Remote MCP через SSE": "Remote MCP over SSE"`
+     - `"Точный поиск BM25": "Precise BM25 Retrieval"`
+     - `"Защищенный Bearer-токен": "Secure Bearer Token"`
+     - `"Персональный Remote MCP Bearer токен:": "Personal Remote MCP Bearer Token:"`
+     - `"Сверхбыстрый IPC": "Sub-millisecond IPC"`
+     - `"Потоковый синтез": "Streaming Synthesis"`
+     - `"Насыщение частоты терминов": "Term Frequency Saturation"`
+     - `"Нормализация длины документа": "Document Length Normalization"`
+     - `"Потоковая выдача без задержек": "Zero-Latency Streaming Delivery"`
+     - `"Агент в IDE": "IDE Agent"`
+     - `"ИУ5 МГТУ": "IU5 BMSTU"`
+   - Теперь при переключении с русского на английский язык ни один элемент или заголовок карточек лендинга не остаётся на русском.
+2. **Верификация и тесты:**
+   - Запущен скрипт полной проверки обратимости переводов: 0 отсутствующих соответствий.
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Синхронизация подсветки технических терминов в описании лендинга на английском языке (Milestone 1, Iteration 102)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/index.html`
+- `services/frontend/static/app.js`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Подсветка ключевых терминов на английском языке:**
+   - В [index.html](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/index.html) и функции динамического переключения языка `applyLanguage` в [app.js](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/app.js) в описание лендинга `.landing-intro-description` для английской версии добавлены теги `<span class="tech-highlight">` в полном соответствии с русской версией.
+   - Теперь термины **`segmentation fault`**, **`runtime panic`**, **`BM25`** и **`IDE`** выделяются акцентным цветом `#93c5fd` как в русской, так и в английской версии.
+2. **Верификация и тесты:**
+   - Проверена корректность синтаксиса JavaScript (`node --check`).
+   - Все 24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Возврат английской надписи главной кнопки 'Start debugging with Errorium' при сохранении русской 'Попробовать Errorium' (Milestone 1, Iteration 101)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/index.html`
+- `services/frontend/static/app.js`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Текст кнопки лендинга:**
+   - В [index.html](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/index.html) английский исходный текст кнопки `#btn-landing-hero-start` возвращён к исходному: `Start debugging with Errorium`.
+   - В словаре локализации [app.js](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/app.js) сохранена русская версия кнопки: `Попробовать Errorium` (двустороннее сопоставление `Start debugging with Errorium` <-> `Попробовать Errorium`).
+2. **Верификация и тесты:**
+   - Проверена корректность синтаксиса JavaScript (`node --check`).
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Перевод заголовка и плашек подзаголовка на единый премиальный шрифт Plus Jakarta Sans (Milestone 1, Iteration 100)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/index.html`
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Единая типографика Plus Jakarta Sans:**
+   - В [index.html](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/index.html) расширен импорт весов `Plus Jakarta Sans: 400, 500, 600, 700, 800`.
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) для главного заголовка `.landing-welcome-title` и синих плашек подзаголовка `.landing-slogan-line` установлен `font-family: var(--font-editorial);` (Plus Jakarta Sans).
+   - Весь первый экран теперь звучит в едином целостном визуальном ключе: от массивного жирного заголовка `Hello, this is Errorium.` до аккуратных плашек слогана и текста описания.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Изменение текста главной кнопки старта на 'Попробовать Errorium' / 'Try Errorium' (Milestone 1, Iteration 99)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/index.html`
+- `services/frontend/static/app.js`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Обновление надписи кнопки:**
+   - В [index.html](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/index.html) текст кнопки `#btn-landing-hero-start` изменен со `Start debugging with Errorium` на лаконичное `Try Errorium`.
+   - В [app.js](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/app.js) настроена русская локализация `Попробовать Errorium`.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Скрытие звёздочки курсора при наведении на кнопки (Milestone 1, Iteration 98)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/app.js`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Скрытие звёздочки при наведении на кнопки:**
+   - В [app.js](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/app.js) в обработчике `mousemove` функции `initCursorComet()` добавлена проверка `e.target.closest('button, [role="button"], input[type="button"], input[type="submit"]')`.
+   - Когда курсор наводится на любую кнопку (`Start debugging`, копирование токена, переключатель языка, кнопки модалок и бокового меню), светящаяся звёздочка и её ореол мгновенно и чисто исчезают, не перекрывая текст и иконки на кнопке.
+   - Как только курсор съезжает с кнопки обратно на фон или карточки, звёздочка плавно появляется снова.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Плавное радиальное свечение вместо чёткого круга у звёздочки курсора (Milestone 1, Iteration 97)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/app.js`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Бесшовное радиальное свечение звёздочки:**
+   - В [app.js](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/app.js) в функции `initCursorComet()` жесткий круговой контур заменен на мягкий непрерывный радиальный градиент (`ctx.createRadialGradient` с радиусом 28px).
+   - Свет плавно и бесшовно затухает от яркого центра (`rgba(56, 189, 248, 0.45)`) в прозрачный фон (`rgba(56, 189, 248, 0)`), полностью устраняя эффект резкой окружности.
+   - Звёздочка выглядит воздушно и сияет естественным рассеянным неоновым ореолом.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Интерактивный эффект курсора в виде светящейся косической звёздочки/кометы со шлейфом (Milestone 1, Iteration 96)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `services/frontend/static/app.js`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Интерактивный курсор-комета / звёздочка (Cursor Comet Trail):**
+   - Фонариковая статичная подсветка заменена на динамичную изящную комету со звёздочкой и световым шлейфом:
+     - Во главе курсора — сверкающая четырехлучевая звёздочка с белым горячим центром и неоново-голубым ореолом (`#38bdf8`);
+     - За движением курсора тянется плавный мерцающий кометный шлейф с постепенным угасанием и микро-искрами;
+     - Реализовано на легковесном Canvas 2D (`initCursorComet()`), оптимизированном через физику LERP и пружинящую инерцию (`ease: 0.22`);
+     - `pointer-events: none;` — не мешает кликам, ссылкам и выделению текста;
+     - Автоматически засыпает при остановке курсора и не нагружает процессор.
+2. **Верификация и тесты:**
+   - Синтаксис проверен через `node --check services/frontend/static/app.js`.
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Деликатное повышение общей прозрачности фонарика курсора (opacity: 0.82) (Milestone 1, Iteration 95)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Деликатная прозрачность фонарика:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) для активного состояния фонарика курсора `.cursor-flashlight-torch.active` прозрачность установлена на комфортные `opacity: 0.82` (вместо плотной единицы).
+   - Свет стал совсем немного более полупрозрачным, утонченным и атмосферным.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Рассеивающееся белое свечение и окрашивание основы фонарика в гамму логотипа Errorium (Milestone 1, Iteration 94)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Более рассеянное белое свечение в центре:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) белый световой блик сделан более объемным и плавно рассеивающимся (`radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.2) 14%, rgba(255, 255, 255, 0.05) 28%, transparent 40%)`).
+2. **Основа фонарика в точном цвете слова Errorium:**
+   - Самый широкий световой ореол переведён в гамму бренда `Errorium`:
+     `rgba(56, 189, 248, 0.18)` (Sky 400), `rgba(96, 165, 250, 0.12)` (Blue 400) и `rgba(147, 197, 253, 0.05)` (Blue 300).
+   - Общий диаметр увеличен до `380px`, фильтр мягкого размытия скорректирован до `blur(22px)`.
+3. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Увеличение яркости компактного белого ядра фонарика курсора (Milestone 1, Iteration 93)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Увеличение яркости белого ядра:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) для центрального белого слоя фонарика курсора увеличена яркость:
+     `radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.18) 7%, transparent 16%)`.
+   - Точка света в центре стала заметнее и ярче, сохраняя аккуратный компактный радиус.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Увеличение прозрачности фонарика курсора и уменьшение белого ядра (Milestone 1, Iteration 92)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Деликатный баланс слоев фонарика:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) для `.cursor-flashlight-torch`:
+     - Белое световое пятно в центре уменьшено более чем в 2 раза (радиус растворения `16%` вместо `28%`, прозрачность `0.28 / 0.08`);
+     - Общая прозрачность синего огонька и голубой основы увеличена (свет стал более прозрачным, мягким и не перекрывает контрастность текста);
+     - Диаметр фонарика слегка скорректирован до аккуратных `320px`.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Композитный свет фонарика: голубая основа, смещенный синий огонек и белый центр (Milestone 1, Iteration 91)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Многослойный оптический эффект фонарика:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) для фонарика `.cursor-flashlight-torch` сформирован сложный многослойный градиент из трех оптических слоев:
+     1. **В самом центре:** маленькое яркое белое световое ядро (`radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.45) ...)`);
+     2. **Внутри основы:** более плотный синий огонек поменьше, слегка асимметрично смещенный вбок (`radial-gradient(circle at 44% 46%, rgba(37, 99, 235, 0.35) ...)`);
+     3. **Широкая основа:** мягкий рассеянный лазурно-голубой ореол вокруг (`radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.16) ...)`).
+   - Оптический эффект стал глубоким, объемным и "живым", напоминая настоящий сфокусированный луч линзового фонарика.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Добавление плавной инерции следования фонарика за курсором (LERP physics loop) (Milestone 1, Iteration 90)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/app.js`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Плавная физика и инерция курсорного фонарика:**
+   - В [app.js](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/app.js) в функцию `initCursorTorch()` внедрен физический цикл линейной интерполяции (LERP) с коэффициентом плавности `ease: 0.12`.
+   - Фонарик больше не привязан жестко к курсору, а мягко и кинематографично догоняет его с приятной пружинящей инерцией.
+   - Анимация автоматически засыпает, когда курсор останавливается, экономя ресурсы процессора.
+2. **Верификация и тесты:**
+   - Синтаксис проверен через `node --check services/frontend/static/app.js`.
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Уменьшение размера светового ореола фонарика курсора (320px) (Milestone 1, Iteration 89)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Уменьшение диаметра фонарика курсора:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) размеры `.cursor-flashlight-torch` уменьшены с `520px` до компактных и точных `320px` (`width: 320px; height: 320px; margin: -160px;`).
+   - Размытие скорректировано до `filter: blur(20px);`, свет стал более собранным и локальным вокруг курсора.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Интерактивный эффект голубого фонарика (Cursor Flashlight Torch) за курсором (Milestone 1, Iteration 88)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `services/frontend/static/app.js`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Интерактивный световой фонарик за курсором:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) добавлен класс `.cursor-flashlight-torch`:
+     - Фиксированный световой ореол диаметром `520px` с центрированием в координатах курсора;
+     - Радиальный градиент: `radial-gradient(circle, rgba(56, 189, 248, 0.14) 0%, rgba(37, 99, 235, 0.08) 35%, rgba(56, 189, 248, 0.03) 60%, transparent 80%)`;
+     - Фильтр `filter: blur(28px);`, свойство `pointer-events: none;` (не мешает кликам и выделению);
+     - Плавное появление при движении мыши и скрытие при уходе курсора с экрана (`document.mouseleave`).
+   - В [app.js](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/app.js) реализована функция `initCursorTorch()`:
+     - Оптимизирована через `requestAnimationFrame` и аппаратное 3D-ускорение (`translate3d`), обеспечивая 60/120 FPS без просадки производительности;
+     - Не активируется на сенсорных устройствах (`(pointer: coarse)`).
+2. **Верификация и тесты:**
+   - Синтаксис проверен через `node --check services/frontend/static/app.js`.
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
 
 
 ## [2026-11-16] — Установка цвета #93c5fd из палитры выделения слогана для терминов в описании (Milestone 1, Iteration 87)

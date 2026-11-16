@@ -1,0 +1,124 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+/* ==========================================================================
+   Errorium Design System (Pure Vanilla CSS, Mobile-First & Fully Adaptive)
+   Matching Chat-screen.png and Chat-screen-menu-not-authorized.png
+   ========================================================================== */
+
+:root {
+    --bg-primary: #090d17;
+    --bg-secondary: #0c1122;
+    --bg-drawer: #090e1aab;
+    --bg-card: #101628;
+    --bg-input: #121829;
+    --border-subtle: rgba(255, 255, 255, 0.1);
+    --border-focus: #3b82f6;
+
+    --text-primary: #ffffff;
+    --text-secondary: #ffffff;
+    --text-muted: #6b7a90;
+    --text-disclaimer: #4e5d78;
+
+    --color-accent-blue: #2557e8;
+    --color-accent-blue-hover: #1d46c7;
+    --color-red-404: #ea2424;
+    --color-green-accepted: #10b981;
+
+    --font-ui: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    --font-editorial: "Plus Jakarta Sans", "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+
+    --sidebar-width: 330px;
+    --header-height: 58px;
+    --footer-height: 100px;
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent !important;
+}
+
+button,
+a,
+[role="button"],
+.icon-btn {
+    -webkit-tap-highlight-color: transparent !important;
+    -webkit-touch-callout: none;
+    user-select: none;
+    -webkit-user-select: none;
+    outline: none;
+}
+
+button:focus,
+button:active,
+a:focus,
+a:active,
+[role="button"]:focus,
+[role="button"]:active,
+.icon-btn:focus,
+.icon-btn:active {
+    outline: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+}
+
+html {
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
+    background-color: var(--bg-primary);
+    overflow-x: hidden;
+}
+
+body {
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
+    height: 100dvh;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: var(--font-ui);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    position: relative;
+    margin: 0;
+    padding: 0;
+}
+
+/* Global Flashlight Cursor Torch Effect */
+/* Interactive Star / Comet Cursor Canvas */
+.cursor-comet-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+}
+
+.cursor-comet-canvas.active {
+    opacity: 0;
+}
+
+body.landing-active .cursor-comet-canvas.active {
+    opacity: 1;
+}
+
+/* Suppress transitions on initial page load to eliminate FOUC and twitching */
+.preload,
+.preload *,
+.preload *::before,
+.preload *::after {
+    -webkit-transition: none !important;
+    -moz-transition: none !important;
+    -ms-transition: none !important;
+    -o-transition: none !important;
+    transition: none !important;
+}
+

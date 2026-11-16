@@ -8,6 +8,20 @@ REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 STATIC_DIR = os.path.join(REPO_ROOT, "services", "frontend", "static")
 
 class TestFrontendSPA(unittest.TestCase):
+
+    def _load_css(self):
+        css_path = os.path.join(STATIC_DIR, "styles.css")
+        with open(css_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        def repl(m):
+            rel = m.group(1).lstrip('./')
+            p = os.path.join(STATIC_DIR, rel)
+            if os.path.isfile(p):
+                with open(p, "r", encoding="utf-8") as cf:
+                    return cf.read()
+            return m.group(0)
+        return re.sub(r"""@import\s+url\(['"]([^'"]+\.css)['"]\);?""", repl, content)
+
     def test_static_files_exist(self):
         """Проверка наличия всех ключевых файлов SPA и ассетов."""
         required_files = [
@@ -18,6 +32,17 @@ class TestFrontendSPA(unittest.TestCase):
             "blue-fire.png",
             "robots.txt",
             "sitemap.xml",
+            "css/base.css",
+            "css/layout.css",
+            "css/sidebar.css",
+            "css/hero.css",
+            "css/landing.css",
+            "css/chat.css",
+            "css/prompt.css",
+            "css/modals.css",
+            "css/responsive.css",
+            "css/profile.css",
+            "css/auth.css",
         ]
         for filename in required_files:
             file_path = os.path.join(STATIC_DIR, filename)
@@ -119,9 +144,7 @@ class TestFrontendSPA(unittest.TestCase):
 
     def test_css_responsive_and_spotlight(self):
         """Проверка стилей: наличие адаптивных медиа-запросов, запрет горизонтального скролла и фона маскота."""
-        css_path = os.path.join(STATIC_DIR, "styles.css")
-        with open(css_path, "r", encoding="utf-8") as f:
-            css = f.read()
+        css = self._load_css()
 
         # Адаптивность через медиа-запросы
         self.assertIn("@media", css)
@@ -138,9 +161,7 @@ class TestFrontendSPA(unittest.TestCase):
 
     def test_short_viewport_height_scaling(self):
         """Проверка адаптивности фона маскота blue-fire на экранах с небольшой высотой (Galaxy Fold, landscape)."""
-        css_path = os.path.join(STATIC_DIR, "styles.css")
-        with open(css_path, "r", encoding="utf-8") as f:
-            css = f.read()
+        css = self._load_css()
 
         # Проверка наличия ограничения по высоте вьюпорта (max-height)
         self.assertIn("max-height", css)
@@ -154,9 +175,7 @@ class TestFrontendSPA(unittest.TestCase):
 
     def test_sidebar_bottom_pinned_to_bottom(self):
         """Проверка фиксации нижней панели сайдбара (MCP, About us, Login) внизу при сворачивании недавних чатов."""
-        css_path = os.path.join(STATIC_DIR, "styles.css")
-        with open(css_path, "r", encoding="utf-8") as f:
-            css = f.read()
+        css = self._load_css()
 
         # Поиск блока .sidebar-bottom
         sidebar_bottom_match = re.search(r"\.sidebar-bottom\s*\{([^}]+)\}", css)
@@ -168,9 +187,7 @@ class TestFrontendSPA(unittest.TestCase):
 
     def test_desktop_sidebar_and_header_rules(self):
         """Проверка правил для широких экранов: постоянный сайдбар, скрытие крестика и скрытие центрального логотипа."""
-        css_path = os.path.join(STATIC_DIR, "styles.css")
-        with open(css_path, "r", encoding="utf-8") as f:
-            css = f.read()
+        css = self._load_css()
 
         # Извлекаем весь блок адаптивного сайдбара с учетом вложенных фигурных скобок
         start_idx = css.find("@media (min-width: 930px)")
@@ -219,8 +236,7 @@ class TestFrontendSPA(unittest.TestCase):
 
         with open(html_path, "r", encoding="utf-8") as f:
             html = f.read()
-        with open(css_path, "r", encoding="utf-8") as f:
-            css = f.read()
+        css = self._load_css()
         with open(js_path, "r", encoding="utf-8") as f:
             js = f.read()
 
@@ -443,8 +459,7 @@ class TestFrontendSPA(unittest.TestCase):
         css_path = os.path.join(STATIC_DIR, "styles.css")
         js_path = os.path.join(STATIC_DIR, "app.js")
 
-        with open(css_path, "r", encoding="utf-8") as f:
-            css = f.read()
+        css = self._load_css()
         with open(js_path, "r", encoding="utf-8") as f:
             js = f.read()
 
@@ -482,9 +497,7 @@ class TestFrontendSPA(unittest.TestCase):
 
     def test_sources_title_truncation(self):
         """Проверка усечения длинных заголовков источников Stack Overflow с многоточием (text-overflow: ellipsis)."""
-        css_path = os.path.join(STATIC_DIR, "styles.css")
-        with open(css_path, "r", encoding="utf-8") as f:
-            css = f.read()
+        css = self._load_css()
 
         self.assertIn(".source-title", css)
         self.assertIn("text-overflow: ellipsis", css)
@@ -516,8 +529,7 @@ class TestFrontendSPA(unittest.TestCase):
 
         with open(html_path, "r", encoding="utf-8") as f:
             html = f.read()
-        with open(css_path, "r", encoding="utf-8") as f:
-            css = f.read()
+        css = self._load_css()
         with open(js_path, "r", encoding="utf-8") as f:
             js = f.read()
 
