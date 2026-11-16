@@ -88,6 +88,24 @@ body {
     padding: 0;
 }
 
+/* Global Flashlight Cursor Torch Effect */
+/* Interactive Star / Comet Cursor Canvas */
+.cursor-comet-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+}
+
+.cursor-comet-canvas.active {
+    opacity: 1;
+}
+
 /* Suppress transitions on initial page load to eliminate FOUC and twitching */
 .preload,
 .preload *,
@@ -962,6 +980,7 @@ body.landing-active .drawer-backdrop {
 }
 
 .landing-welcome-title {
+    font-family: var(--font-editorial);
     font-size: clamp(2.2rem, 5vw, 3.4rem);
     font-weight: 800;
     color: #ffffff;
@@ -989,12 +1008,13 @@ body.landing-active .drawer-backdrop {
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
-    margin: -10px 0 10px 0;
+    margin: -2px 0 10px 0;
     max-width: 960px;
     width: 100%;
 }
 
 .landing-slogan-line {
+    font-family: var(--font-editorial);
     display: inline-block;
     background: linear-gradient(135deg, rgba(96, 165, 250, 0.45) 0%, rgba(56, 189, 248, 0.5) 50%, rgba(147, 197, 253, 0.45) 100%);
     color: #ffffff;
@@ -1020,7 +1040,7 @@ body.landing-active .drawer-backdrop {
     color: #cbd5e1;
     line-height: 1.75;
     letter-spacing: -0.012em;
-    margin: 0;
+    margin-top: -8px;
     max-width: 860px;
 }
 

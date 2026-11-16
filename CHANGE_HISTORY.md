@@ -1,5 +1,294 @@
 # CHANGE_HISTORY.md — История изменений проекта Errorium
 
+## [2026-11-16] — Обновление перечня поддерживаемых AI-агентов и сред в секции MCP (Milestone 1, Iteration 104)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/index.html`
+- `services/frontend/static/app.js`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Обновление списка сред в модальном окне и на лендинге:**
+   - В [index.html](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/index.html) и словаре локализации [app.js](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/app.js) перечень сред обновлен:
+     - Ранее: `Cursor, Claude Code, and Windsurf`.
+     - Теперь: `Codex, Claude Code, Antigravity, and DeepSeek Harness` (в подзаголовке лендинга: `Codex, Claude Code, Antigravity, DeepSeek Harness, and custom AI agents`).
+   - На русском языке: `Codex, Claude Code, Antigravity и DeepSeek Harness`.
+   - Обеспечена полная обратная совместимость словаря локализации `en` <-> `ru`.
+2. **Верификация и тесты:**
+   - Проверена обратимость всех ключей I18N.
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Исправление обратного перевода секций лендинга на английский язык (Milestone 1, Iteration 103)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/app.js`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Симметричный обратный перевод RU -> EN в словаре `I18N_STRINGS.en`:**
+   - В [app.js](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/app.js) в секцию `I18N_STRINGS.en` добавлены недостающие ключи для карточек лендинга и модального окна MCP:
+     - `"Remote MCP через SSE": "Remote MCP over SSE"`
+     - `"Точный поиск BM25": "Precise BM25 Retrieval"`
+     - `"Защищенный Bearer-токен": "Secure Bearer Token"`
+     - `"Персональный Remote MCP Bearer токен:": "Personal Remote MCP Bearer Token:"`
+     - `"Сверхбыстрый IPC": "Sub-millisecond IPC"`
+     - `"Потоковый синтез": "Streaming Synthesis"`
+     - `"Насыщение частоты терминов": "Term Frequency Saturation"`
+     - `"Нормализация длины документа": "Document Length Normalization"`
+     - `"Потоковая выдача без задержек": "Zero-Latency Streaming Delivery"`
+     - `"Агент в IDE": "IDE Agent"`
+     - `"ИУ5 МГТУ": "IU5 BMSTU"`
+   - Теперь при переключении с русского на английский язык ни один элемент или заголовок карточек лендинга не остаётся на русском.
+2. **Верификация и тесты:**
+   - Запущен скрипт полной проверки обратимости переводов: 0 отсутствующих соответствий.
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Синхронизация подсветки технических терминов в описании лендинга на английском языке (Milestone 1, Iteration 102)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/index.html`
+- `services/frontend/static/app.js`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Подсветка ключевых терминов на английском языке:**
+   - В [index.html](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/index.html) и функции динамического переключения языка `applyLanguage` в [app.js](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/app.js) в описание лендинга `.landing-intro-description` для английской версии добавлены теги `<span class="tech-highlight">` в полном соответствии с русской версией.
+   - Теперь термины **`segmentation fault`**, **`runtime panic`**, **`BM25`** и **`IDE`** выделяются акцентным цветом `#93c5fd` как в русской, так и в английской версии.
+2. **Верификация и тесты:**
+   - Проверена корректность синтаксиса JavaScript (`node --check`).
+   - Все 24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Возврат английской надписи главной кнопки 'Start debugging with Errorium' при сохранении русской 'Попробовать Errorium' (Milestone 1, Iteration 101)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/index.html`
+- `services/frontend/static/app.js`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Текст кнопки лендинга:**
+   - В [index.html](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/index.html) английский исходный текст кнопки `#btn-landing-hero-start` возвращён к исходному: `Start debugging with Errorium`.
+   - В словаре локализации [app.js](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/app.js) сохранена русская версия кнопки: `Попробовать Errorium` (двустороннее сопоставление `Start debugging with Errorium` <-> `Попробовать Errorium`).
+2. **Верификация и тесты:**
+   - Проверена корректность синтаксиса JavaScript (`node --check`).
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Перевод заголовка и плашек подзаголовка на единый премиальный шрифт Plus Jakarta Sans (Milestone 1, Iteration 100)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/index.html`
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Единая типографика Plus Jakarta Sans:**
+   - В [index.html](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/index.html) расширен импорт весов `Plus Jakarta Sans: 400, 500, 600, 700, 800`.
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) для главного заголовка `.landing-welcome-title` и синих плашек подзаголовка `.landing-slogan-line` установлен `font-family: var(--font-editorial);` (Plus Jakarta Sans).
+   - Весь первый экран теперь звучит в едином целостном визуальном ключе: от массивного жирного заголовка `Hello, this is Errorium.` до аккуратных плашек слогана и текста описания.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Изменение текста главной кнопки старта на 'Попробовать Errorium' / 'Try Errorium' (Milestone 1, Iteration 99)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/index.html`
+- `services/frontend/static/app.js`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Обновление надписи кнопки:**
+   - В [index.html](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/index.html) текст кнопки `#btn-landing-hero-start` изменен со `Start debugging with Errorium` на лаконичное `Try Errorium`.
+   - В [app.js](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/app.js) настроена русская локализация `Попробовать Errorium`.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Скрытие звёздочки курсора при наведении на кнопки (Milestone 1, Iteration 98)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/app.js`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Скрытие звёздочки при наведении на кнопки:**
+   - В [app.js](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/app.js) в обработчике `mousemove` функции `initCursorComet()` добавлена проверка `e.target.closest('button, [role="button"], input[type="button"], input[type="submit"]')`.
+   - Когда курсор наводится на любую кнопку (`Start debugging`, копирование токена, переключатель языка, кнопки модалок и бокового меню), светящаяся звёздочка и её ореол мгновенно и чисто исчезают, не перекрывая текст и иконки на кнопке.
+   - Как только курсор съезжает с кнопки обратно на фон или карточки, звёздочка плавно появляется снова.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Плавное радиальное свечение вместо чёткого круга у звёздочки курсора (Milestone 1, Iteration 97)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/app.js`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Бесшовное радиальное свечение звёздочки:**
+   - В [app.js](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/app.js) в функции `initCursorComet()` жесткий круговой контур заменен на мягкий непрерывный радиальный градиент (`ctx.createRadialGradient` с радиусом 28px).
+   - Свет плавно и бесшовно затухает от яркого центра (`rgba(56, 189, 248, 0.45)`) в прозрачный фон (`rgba(56, 189, 248, 0)`), полностью устраняя эффект резкой окружности.
+   - Звёздочка выглядит воздушно и сияет естественным рассеянным неоновым ореолом.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Интерактивный эффект курсора в виде светящейся косической звёздочки/кометы со шлейфом (Milestone 1, Iteration 96)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `services/frontend/static/app.js`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Интерактивный курсор-комета / звёздочка (Cursor Comet Trail):**
+   - Фонариковая статичная подсветка заменена на динамичную изящную комету со звёздочкой и световым шлейфом:
+     - Во главе курсора — сверкающая четырехлучевая звёздочка с белым горячим центром и неоново-голубым ореолом (`#38bdf8`);
+     - За движением курсора тянется плавный мерцающий кометный шлейф с постепенным угасанием и микро-искрами;
+     - Реализовано на легковесном Canvas 2D (`initCursorComet()`), оптимизированном через физику LERP и пружинящую инерцию (`ease: 0.22`);
+     - `pointer-events: none;` — не мешает кликам, ссылкам и выделению текста;
+     - Автоматически засыпает при остановке курсора и не нагружает процессор.
+2. **Верификация и тесты:**
+   - Синтаксис проверен через `node --check services/frontend/static/app.js`.
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Деликатное повышение общей прозрачности фонарика курсора (opacity: 0.82) (Milestone 1, Iteration 95)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Деликатная прозрачность фонарика:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) для активного состояния фонарика курсора `.cursor-flashlight-torch.active` прозрачность установлена на комфортные `opacity: 0.82` (вместо плотной единицы).
+   - Свет стал совсем немного более полупрозрачным, утонченным и атмосферным.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Рассеивающееся белое свечение и окрашивание основы фонарика в гамму логотипа Errorium (Milestone 1, Iteration 94)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Более рассеянное белое свечение в центре:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) белый световой блик сделан более объемным и плавно рассеивающимся (`radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.2) 14%, rgba(255, 255, 255, 0.05) 28%, transparent 40%)`).
+2. **Основа фонарика в точном цвете слова Errorium:**
+   - Самый широкий световой ореол переведён в гамму бренда `Errorium`:
+     `rgba(56, 189, 248, 0.18)` (Sky 400), `rgba(96, 165, 250, 0.12)` (Blue 400) и `rgba(147, 197, 253, 0.05)` (Blue 300).
+   - Общий диаметр увеличен до `380px`, фильтр мягкого размытия скорректирован до `blur(22px)`.
+3. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Увеличение яркости компактного белого ядра фонарика курсора (Milestone 1, Iteration 93)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Увеличение яркости белого ядра:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) для центрального белого слоя фонарика курсора увеличена яркость:
+     `radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.18) 7%, transparent 16%)`.
+   - Точка света в центре стала заметнее и ярче, сохраняя аккуратный компактный радиус.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Увеличение прозрачности фонарика курсора и уменьшение белого ядра (Milestone 1, Iteration 92)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Деликатный баланс слоев фонарика:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) для `.cursor-flashlight-torch`:
+     - Белое световое пятно в центре уменьшено более чем в 2 раза (радиус растворения `16%` вместо `28%`, прозрачность `0.28 / 0.08`);
+     - Общая прозрачность синего огонька и голубой основы увеличена (свет стал более прозрачным, мягким и не перекрывает контрастность текста);
+     - Диаметр фонарика слегка скорректирован до аккуратных `320px`.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Композитный свет фонарика: голубая основа, смещенный синий огонек и белый центр (Milestone 1, Iteration 91)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Многослойный оптический эффект фонарика:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) для фонарика `.cursor-flashlight-torch` сформирован сложный многослойный градиент из трех оптических слоев:
+     1. **В самом центре:** маленькое яркое белое световое ядро (`radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.45) ...)`);
+     2. **Внутри основы:** более плотный синий огонек поменьше, слегка асимметрично смещенный вбок (`radial-gradient(circle at 44% 46%, rgba(37, 99, 235, 0.35) ...)`);
+     3. **Широкая основа:** мягкий рассеянный лазурно-голубой ореол вокруг (`radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.16) ...)`).
+   - Оптический эффект стал глубоким, объемным и "живым", напоминая настоящий сфокусированный луч линзового фонарика.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Добавление плавной инерции следования фонарика за курсором (LERP physics loop) (Milestone 1, Iteration 90)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/app.js`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Плавная физика и инерция курсорного фонарика:**
+   - В [app.js](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/app.js) в функцию `initCursorTorch()` внедрен физический цикл линейной интерполяции (LERP) с коэффициентом плавности `ease: 0.12`.
+   - Фонарик больше не привязан жестко к курсору, а мягко и кинематографично догоняет его с приятной пружинящей инерцией.
+   - Анимация автоматически засыпает, когда курсор останавливается, экономя ресурсы процессора.
+2. **Верификация и тесты:**
+   - Синтаксис проверен через `node --check services/frontend/static/app.js`.
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Уменьшение размера светового ореола фонарика курсора (320px) (Milestone 1, Iteration 89)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Уменьшение диаметра фонарика курсора:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) размеры `.cursor-flashlight-torch` уменьшены с `520px` до компактных и точных `320px` (`width: 320px; height: 320px; margin: -160px;`).
+   - Размытие скорректировано до `filter: blur(20px);`, свет стал более собранным и локальным вокруг курсора.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Интерактивный эффект голубого фонарика (Cursor Flashlight Torch) за курсором (Milestone 1, Iteration 88)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `services/frontend/static/app.js`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Интерактивный световой фонарик за курсором:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) добавлен класс `.cursor-flashlight-torch`:
+     - Фиксированный световой ореол диаметром `520px` с центрированием в координатах курсора;
+     - Радиальный градиент: `radial-gradient(circle, rgba(56, 189, 248, 0.14) 0%, rgba(37, 99, 235, 0.08) 35%, rgba(56, 189, 248, 0.03) 60%, transparent 80%)`;
+     - Фильтр `filter: blur(28px);`, свойство `pointer-events: none;` (не мешает кликам и выделению);
+     - Плавное появление при движении мыши и скрытие при уходе курсора с экрана (`document.mouseleave`).
+   - В [app.js](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/app.js) реализована функция `initCursorTorch()`:
+     - Оптимизирована через `requestAnimationFrame` и аппаратное 3D-ускорение (`translate3d`), обеспечивая 60/120 FPS без просадки производительности;
+     - Не активируется на сенсорных устройствах (`(pointer: coarse)`).
+2. **Верификация и тесты:**
+   - Синтаксис проверен через `node --check services/frontend/static/app.js`.
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
 ## [2026-11-16] — Установка цвета #93c5fd из палитры выделения слогана для терминов в описании (Milestone 1, Iteration 87)
 
 ### Затронутые компоненты и спецификации:

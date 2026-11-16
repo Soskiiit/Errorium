@@ -188,7 +188,8 @@
             "Подтвердить": "Approve",
             "Продолжить": "Continue",
             "Помните, что смена пароля завершит сеансы на всех остальных устройствах": "Keep in mind that changing your password will sign you out of all other devices",
-            "Подключите поисковое ядро Errorium напрямую к Cursor, Claude Code и Windsurf.": "Connect Errorium search engine directly to Cursor, Claude Code, and Windsurf.",
+            "Подключите поисковое ядро Errorium напрямую к Codex, Claude Code, Antigravity и DeepSeek Harness.": "Connect Errorium search engine directly to Codex, Claude Code, Antigravity, and DeepSeek Harness.",
+            "Подключите поисковое ядро Errorium напрямую к Cursor, Claude Code и Windsurf.": "Connect Errorium search engine directly to Codex, Claude Code, Antigravity, and DeepSeek Harness.",
             "Ваш Remote MCP Bearer токен": "Your Remote MCP Bearer Token",
             "Копировать": "Copy",
             "Копировать JSON": "Copy JSON",
@@ -231,13 +232,26 @@
             "Назад в чат": "Back to Chat",
             "Попробовать": "Let's try",
             "Обзор": "Overview",
-            "Начать отладку в Errorium": "Start debugging with Errorium",
+            "Попробовать Errorium": "Start debugging with Errorium",
+            "Start debugging with Errorium": "Start debugging with Errorium",
             "Узнать больше про MCP и архитектуру": "Explore MCP & Architecture",
             "Настройка MCP": "Set up MCP",
             "Поиск решений нового поколения": "Next-Gen Engineering Search",
             "Привет, это": "Hello, this is",
+            "Агент в IDE": "IDE Agent",
+            "ИУ5 МГТУ": "IU5 BMSTU",
+            "Remote MCP через SSE": "Remote MCP over SSE",
+            "Точный поиск BM25": "Precise BM25 Retrieval",
+            "Защищенный Bearer-токен": "Secure Bearer Token",
+            "Персональный Remote MCP Bearer токен:": "Personal Remote MCP Bearer Token:",
+            "Сверхбыстрый IPC": "Sub-millisecond IPC",
+            "Потоковый синтез": "Streaming Synthesis",
+            "Насыщение частоты терминов": "Term Frequency Saturation",
+            "Нормализация длины документа": "Document Length Normalization",
+            "Потоковая выдача без задержек": "Zero-Latency Streaming Delivery",
             "Любая сложная ошибка, segmentation fault или runtime panic в вашем терминале уже кем-то решена. Errorium индексирует миллионы проверенных обсуждений с кастомным ранжированием BM25 высокой точности, доставляя готовые решения прямо в ваш браузер и агенту в IDE.": "Every cryptic exception, segmentation fault, and runtime panic you encounter in your terminal has already been diagnosed and resolved. Errorium indexes millions of verified software engineering discussions with custom high-precision BM25 ranking, delivering ready-to-run solutions directly to your browser and IDE agent.",
-            "Подключите поисковое ядро Errorium BM25 и базу знаний Stack Overflow напрямую к Cursor, Claude Code, Windsurf и собственным AI-агентам.": "Connect the Errorium BM25 search engine and Stack Overflow knowledge base directly to Cursor, Claude Code, Windsurf, and custom AI agents.",
+            "Подключите поисковое ядро Errorium BM25 и базу знаний Stack Overflow напрямую к Codex, Claude Code, Antigravity, DeepSeek Harness и собственным AI-агентам.": "Connect the Errorium BM25 search engine and Stack Overflow knowledge base directly to Codex, Claude Code, Antigravity, DeepSeek Harness, and custom AI agents.",
+            "Подключите поисковое ядро Errorium BM25 и базу знаний Stack Overflow напрямую к Cursor, Claude Code, Windsurf и собственным AI-агентам.": "Connect the Errorium BM25 search engine and Stack Overflow knowledge base directly to Codex, Claude Code, Antigravity, DeepSeek Harness, and custom AI agents.",
             "Прямой потоковый транспорт через Server-Sent Events (SSE). Не требует хранения тяжелых файлов индекса в окружении вашего редактора.": "Direct streaming transport over Server-Sent Events (SSE). No heavy local index files needed in your editor environment.",
             "Токенизатор сохраняет технические идентификаторы (исключения, C++, .NET, стек-трейсы) в исходном виде без искажения корней.": "Tokenization preserves technical identifiers (Exceptions, C++, .NET, stack traces) exactly as written without damaging stems.",
             "Каждый разработчик получает персональный токен аутентификации для приватного и высокоскоростного потокового поиска.": "Every developer receives an authenticated personal token for rate-limited, private, and high-throughput query streaming.",
@@ -311,7 +325,8 @@
             "Approve": "Подтвердить",
             "Continue": "Продолжить",
             "Keep in mind that changing your password will sign you out of all other devices": "Помните, что смена пароля завершит сеансы на всех остальных устройствах",
-            "Connect Errorium search engine directly to Cursor, Claude Code, and Windsurf.": "Подключите поисковое ядро Errorium напрямую к Cursor, Claude Code и Windsurf.",
+            "Connect Errorium search engine directly to Codex, Claude Code, Antigravity, and DeepSeek Harness.": "Подключите поисковое ядро Errorium напрямую к Codex, Claude Code, Antigravity и DeepSeek Harness.",
+            "Connect Errorium search engine directly to Cursor, Claude Code, and Windsurf.": "Подключите поисковое ядро Errorium напрямую к Codex, Claude Code, Antigravity и DeepSeek Harness.",
             "Your Remote MCP Bearer Token": "Ваш Remote MCP Bearer токен",
             "Copy": "Копировать",
             "Copy JSON": "Копировать JSON",
@@ -365,13 +380,15 @@
             "Back to Chat": "Назад в чат",
             "Let's try": "Попробовать",
             "Overview": "Обзор",
-            "Start debugging with Errorium": "Начать отладку в Errorium",
+            "Try Errorium": "Попробовать Errorium",
+            "Start debugging with Errorium": "Попробовать Errorium",
             "Explore MCP & Architecture": "Узнать больше про MCP и архитектуру",
             "Set up MCP": "Настройка MCP",
             "Next-Gen Engineering Search": "Поиск решений нового поколения",
             "Hello, this is": "Привет, это",
             "Every cryptic exception, segmentation fault, and runtime panic you encounter in your terminal has already been diagnosed and resolved. Errorium indexes millions of verified software engineering discussions with custom high-precision BM25 ranking, delivering ready-to-run solutions directly to your browser and IDE agent.": "Любая сложная ошибка, segmentation fault или runtime panic в вашем терминале уже кем-то решена. Errorium индексирует миллионы проверенных обсуждений с кастомным ранжированием BM25 высокой точности, доставляя готовые решения прямо в ваш браузер и агенту в IDE.",
-            "Connect the Errorium BM25 search engine and Stack Overflow knowledge base directly to Cursor, Claude Code, Windsurf, and custom AI agents.": "Подключите поисковое ядро Errorium BM25 и базу знаний Stack Overflow напрямую к Cursor, Claude Code, Windsurf и собственным AI-агентам.",
+            "Connect the Errorium BM25 search engine and Stack Overflow knowledge base directly to Codex, Claude Code, Antigravity, DeepSeek Harness, and custom AI agents.": "Подключите поисковое ядро Errorium BM25 и базу знаний Stack Overflow напрямую к Codex, Claude Code, Antigravity, DeepSeek Harness и собственным AI-агентам.",
+            "Connect the Errorium BM25 search engine and Stack Overflow knowledge base directly to Cursor, Claude Code, Windsurf, and custom AI agents.": "Подключите поисковое ядро Errorium BM25 и базу знаний Stack Overflow напрямую к Codex, Claude Code, Antigravity, DeepSeek Harness и собственным AI-агентам.",
             "Direct streaming transport over Server-Sent Events (SSE). No heavy local index files needed in your editor environment.": "Прямой потоковый транспорт через Server-Sent Events (SSE). Не требует хранения тяжелых файлов индекса в окружении вашего редактора.",
             "Tokenization preserves technical identifiers (Exceptions, C++, .NET, stack traces) exactly as written without damaging stems.": "Токенизатор сохраняет технические идентификаторы (исключения, C++, .NET, стек-трейсы) в исходном виде без искажения корней.",
             "Every developer receives an authenticated personal token for rate-limited, private, and high-throughput query streaming.": "Каждый разработчик получает персональный токен аутентификации для приватного и высокоскоростного потокового поиска.",
@@ -524,7 +541,7 @@
             if (isRu) {
                 landingIntroDesc.innerHTML = 'Любая сложная ошибка, <span class="tech-highlight">segmentation fault</span> или <span class="tech-highlight">runtime panic</span> в вашем терминале уже кем-то решена. Errorium индексирует миллионы проверенных обсуждений с кастомным ранжированием <span class="tech-highlight">BM25</span> высокой точности, доставляя готовые решения прямо в ваш браузер и агенту в <span class="tech-highlight">IDE</span>.';
             } else {
-                landingIntroDesc.innerHTML = 'Every cryptic exception, segmentation fault, and runtime panic you encounter in your terminal has already been diagnosed and resolved. Errorium indexes millions of verified software engineering discussions with custom high-precision BM25 ranking, delivering ready-to-run solutions directly to your browser and IDE agent.';
+                landingIntroDesc.innerHTML = 'Every cryptic exception, <span class="tech-highlight">segmentation fault</span>, and <span class="tech-highlight">runtime panic</span> you encounter in your terminal has already been diagnosed and resolved. Errorium indexes millions of verified software engineering discussions with custom high-precision <span class="tech-highlight">BM25</span> ranking, delivering ready-to-run solutions directly to your browser and <span class="tech-highlight">IDE</span> agent.';
             }
         }
     }
@@ -2076,11 +2093,208 @@
         }
     });
 
+    // =========================================================================
+    // Interactive Star / Comet Cursor with Trail Effect
+    // =========================================================================
+    function initCursorComet() {
+        if (window.matchMedia('(pointer: coarse)').matches) return;
+
+        const canvas = document.createElement('canvas');
+        canvas.className = 'cursor-comet-canvas';
+        document.body.appendChild(canvas);
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }, { passive: true });
+
+        // Physics Coordinates
+        let targetX = -100;
+        let targetY = -100;
+        let headX = -100;
+        let headY = -100;
+        let isFirstMove = true;
+        let isRunning = false;
+        let mouseInWindow = false;
+        let isOverButton = false;
+
+        // Trail history points
+        const trail = [];
+        const MAX_TRAIL = 16;
+
+        function drawStar(cx, cy, spikes, outerRadius, innerRadius, color, shadowColor, shadowBlur) {
+            let rot = Math.PI / 2 * 3;
+            let x = cx;
+            let y = cy;
+            const step = Math.PI / spikes;
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - outerRadius);
+            for (let i = 0; i < spikes; i++) {
+                x = cx + Math.cos(rot) * outerRadius;
+                y = cy + Math.sin(rot) * outerRadius;
+                ctx.lineTo(x, y);
+                rot += step;
+
+                x = cx + Math.cos(rot) * innerRadius;
+                y = cy + Math.sin(rot) * innerRadius;
+                ctx.lineTo(x, y);
+                rot += step;
+            }
+            ctx.lineTo(cx, cy - outerRadius);
+            ctx.closePath();
+
+            ctx.fillStyle = color;
+            if (shadowColor && shadowBlur) {
+                ctx.shadowColor = shadowColor;
+                ctx.shadowBlur = shadowBlur;
+            }
+            ctx.fill();
+            ctx.restore();
+        }
+
+        function renderComet() {
+            ctx.clearRect(0, 0, width, height);
+
+            // Interpolate comet head position with smooth spring inertia
+            const ease = 0.22;
+            const dx = targetX - headX;
+            const dy = targetY - headY;
+
+            headX += dx * ease;
+            headY += dy * ease;
+
+            // Record trail
+            if (mouseInWindow || trail.length > 0) {
+                trail.unshift({ x: headX, y: headY });
+                if (trail.length > MAX_TRAIL) {
+                    trail.pop();
+                }
+            }
+
+            // Draw comet trail (glowing ribbon of particles / segments)
+            for (let i = trail.length - 1; i >= 1; i--) {
+                const p1 = trail[i];
+                const p0 = trail[i - 1];
+                const ratio = 1 - (i / trail.length);
+                const size = ratio * 6.5;
+
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(p1.x, p1.y);
+                ctx.lineTo(p0.x, p0.y);
+                ctx.lineWidth = size;
+                ctx.lineCap = 'round';
+                ctx.strokeStyle = `rgba(56, 189, 248, ${ratio * 0.45})`;
+                ctx.shadowColor = '#38bdf8';
+                ctx.shadowBlur = ratio * 14;
+                ctx.stroke();
+                ctx.restore();
+
+                // Sparkle dust particle along trail
+                if (i % 3 === 0) {
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.arc(p1.x, p1.y, ratio * 2.2, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(147, 197, 253, ${ratio * 0.7})`;
+                    ctx.shadowColor = '#93c5fd';
+                    ctx.shadowBlur = 8;
+                    ctx.fill();
+                    ctx.restore();
+                }
+            }
+
+            // Draw leading comet / star head only when not hovering interactive buttons
+            if (mouseInWindow && !isOverButton && headX > 0 && headY > 0) {
+                // Soft radial gradient glow around the star (no sharp circle stroke/fill)
+                const glowGrad = ctx.createRadialGradient(headX, headY, 0, headX, headY, 28);
+                glowGrad.addColorStop(0, 'rgba(56, 189, 248, 0.45)');
+                glowGrad.addColorStop(0.35, 'rgba(56, 189, 248, 0.18)');
+                glowGrad.addColorStop(0.7, 'rgba(37, 99, 235, 0.06)');
+                glowGrad.addColorStop(1, 'rgba(56, 189, 248, 0)');
+
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(headX, headY, 28, 0, Math.PI * 2);
+                ctx.fillStyle = glowGrad;
+                ctx.fill();
+                ctx.restore();
+
+                // 4-pointed glowing Star head
+                drawStar(headX, headY, 4, 8, 3, '#ffffff', '#38bdf8', 16);
+
+                // Pure white hot center
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(headX, headY, 2, 0, Math.PI * 2);
+                ctx.fillStyle = '#ffffff';
+                ctx.shadowColor = '#ffffff';
+                ctx.shadowBlur = 10;
+                ctx.fill();
+                ctx.restore();
+            }
+
+            // Loop lifecycle
+            const dist = Math.hypot(dx, dy);
+            if (dist > 0.1 || trail.length > 0 || mouseInWindow) {
+                requestAnimationFrame(renderComet);
+            } else {
+                isRunning = false;
+            }
+        }
+
+        window.addEventListener('mousemove', (e) => {
+            targetX = e.clientX;
+            targetY = e.clientY;
+            mouseInWindow = true;
+
+            // Check if cursor is directly hovering over a button
+            const targetEl = e.target;
+            const buttonEl = targetEl && (targetEl.closest('button, [role="button"], input[type="button"], input[type="submit"]') !== null);
+            isOverButton = buttonEl;
+
+            if (isFirstMove) {
+                headX = targetX;
+                headY = targetY;
+                isFirstMove = false;
+            }
+
+            if (!canvas.classList.contains('active')) {
+                canvas.classList.add('active');
+            }
+
+            if (!isRunning) {
+                isRunning = true;
+                requestAnimationFrame(renderComet);
+            }
+        }, { passive: true });
+
+        document.addEventListener('mouseleave', () => {
+            mouseInWindow = false;
+            canvas.classList.remove('active');
+        });
+
+        document.addEventListener('mouseenter', () => {
+            mouseInWindow = true;
+            canvas.classList.add('active');
+        });
+    }
+
     // Initialize authentication UI state from stored session
     updateAuthUI();
 
     // Initialize landing scroll animation
     initLandingLogoScrollAnimation();
+
+    // Initialize cursor comet / star trail
+    initCursorComet();
 
     // Initialize SPA route based on initial URL
     renderCurrentRoute();
