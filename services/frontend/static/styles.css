@@ -933,6 +933,7 @@ body {
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
+    background: var(--bg-primary);
     pointer-events: auto;
 }
 
@@ -943,13 +944,14 @@ body {
     bottom: 100%;
     left: 0;
     right: 0;
-    height: 56px;
+    height: 100px;
     background: linear-gradient(
         to top,
         var(--bg-primary) 0%,
-        rgba(9, 13, 23, 0.85) 40%,
-        rgba(9, 13, 23, 0.4) 70%,
-        transparent 100%
+        rgba(9, 13, 23, 0.96) 20%,
+        rgba(9, 13, 23, 0.75) 45%,
+        rgba(9, 13, 23, 0.35) 75%,
+        rgba(9, 13, 23, 0) 100%
     );
     pointer-events: none;
     z-index: 25;
@@ -1051,25 +1053,6 @@ body {
         transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     box-sizing: border-box;
     overflow: visible;
-}
-
-/* Subtle top fade overlay that smoothly dissolves upward from top border */
-.prompt-bar-container::before {
-    content: '';
-    position: absolute;
-    bottom: 100%;
-    left: -20px;
-    right: -20px;
-    height: 48px;
-    background: linear-gradient(
-        to top,
-        rgba(10, 16, 32, 0.95) 0%,
-        rgba(10, 16, 32, 0.65) 40%,
-        rgba(10, 16, 32, 0.25) 75%,
-        transparent 100%
-    );
-    pointer-events: none;
-    z-index: 30;
 }
 
 .prompt-bar-container.multiline {
