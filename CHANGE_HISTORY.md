@@ -1,5 +1,215 @@
 # CHANGE_HISTORY.md — История изменений проекта Errorium
 
+## [2026-11-16] — Увеличение горизонтального разнесения сообщений в чате (Milestone 1, Iteration 123)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/css/chat.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Более выразительное разнесение реплик чата по краям:**
+   - В [chat.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/chat.css) отступ для сообщений пользователя `.message-row.user` увеличен вправо до `margin-right: -24px;` с `max-width: 80%;`.
+   - Ответ ассистента `.message-row.assistant` сдвинут влево до `margin-left: -28px;` и `width: calc(100% + 28px);`.
+   - Диалог приобрёл яркую динамику живого мессенджера с чётким разделением сторон собеседников.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Разнесение сообщений пользователя и ассистента в стороны (Milestone 1, Iteration 122)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/css/chat.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Горизонтальное смещение сообщений чата:**
+   - В [chat.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/chat.css) для строки пользователя `.message-row.user` добавлен отступ `margin-right: -10px;` и ограничение `max-width: 82%;`, сдвигающее пузырь пользователя правее.
+   - Для строки ответа ассистента `.message-row.assistant` добавлен отступ `margin-left: -14px;` и ширина `width: calc(100% + 14px);`, благодаря чему аватарка маскота и бабл ответа вынесены левее, создавая отчётливую диалоговую асимметрию между репликами.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Обводка аватарки маскота в цвет границы бабла сообщения (Milestone 1, Iteration 121)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/css/chat.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Обводка аватарки маскота:**
+   - В [chat.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/chat.css) для селектора `.assistant-avatar` установлена обводка `border: 1px solid var(--border-subtle);` в единый цвет границы карточки сообщения `var(--border-subtle)` (`rgba(255, 255, 255, 0.1)`).
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Существенный подъём авы маскота ассистента в чате (Milestone 1, Iteration 120)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/css/chat.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Смещение авы маскота вверх:**
+   - В [chat.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/chat.css) для `.assistant-avatar` верхний отступ изменен на `margin-top: -18px;`, благодаря чему аватарка маскота поднята ощутимо выше относительно бабла сообщения.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Удаление синей обводки контейнера аватарки ассистента и масштабирование иконки (Milestone 1, Iteration 119)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/css/chat.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Чистая иконка ассистента без внешней синей обводки:**
+   - В [chat.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/chat.css) у контейнера `.assistant-avatar` убрана синяя граница (`border: none;`), синий полупрозрачный фон (`background: transparent;`) и внешняя тень.
+   - Размер самого контейнера установлен в `34x34px`, а изображение иконки маскота занимает все 100% пространства (`width: 100%; height: 100%; object-fit: cover;`), благодаря чему сама иконка стала значительно крупнее, детальнее и выглядит чисто без лишней рамки.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Упрощение названия блока источников и поднятие аватарки маскота (Milestone 1, Iteration 118)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/app.js`
+- `services/frontend/static/css/chat.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Лаконичный заголовок источников без слова 'Ранжированные':**
+   - В [app.js](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/app.js) в карточке решения заголовок свёрнутого блока источников изменён:
+     - RU: `Источники Stack Overflow (N)` (вместо `Ранжированные источники...`).
+     - EN: `Stack Overflow Sources (N)` (вместо `Ranked Stack Overflow...`).
+   - Обновлены двусторонние соответствия в словаре локализации `I18N_STRINGS`.
+2. **Позиция аватарки маскота:**
+   - В [chat.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/chat.css) для селектора `.assistant-avatar` отступ сверху скорректирован на `margin-top: -6px;`. Аватарка приподнята выше и теперь аккуратно визуально выравнивается с началом текста реплики ассистента.
+3. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Вынос аватарки маскота рядом с баблом ответа ИИ и скрытие плашки заголовка RAG (Milestone 1, Iteration 117)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/app.js`
+- `services/frontend/static/css/chat.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Диалоговая аватарка ассистента рядом с баблом:**
+   - В [app.js](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/app.js) из карточки решения убрана верхняя плашка `.card-top-bar` с надписью `Errorium RAG-синтез (BM25 Ядро)`.
+   - В разметку строки ответа ассистента `.message-row.assistant` добавлен элемент `.assistant-avatar` с круглым фавиконом маскота, расположенный слева от бабла карточки.
+   - В [chat.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/chat.css) настроена флекс-раскладка (`display: flex; flex-direction: row; gap: 12px;`): аватарка стоит рядом с левым верхним «хвостиком» карточки (`border-radius: 4px 20px 20px 20px`), создавая эффект прямой реплики говорящего персонажа.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Увеличение радиуса скругления остальных углов карточки ответа ИИ (.assistant-card) (Milestone 1, Iteration 116)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/css/chat.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Более выразительное закругление углов ответа ИИ:**
+   - В [chat.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/chat.css) для селектора `.assistant-card` значение `border-radius` обновлено до `4px 20px 20px 20px;`.
+   - Левый верхний угол остался почти прямым (4px), а остальные три угла (правый верхний, правый нижний и левый нижний) стали заметно мягче и округлее (20px).
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Стилизация левого верхнего угла карточки ответа ИИ (.assistant-card) по аналогии с сообщением пользователя (Milestone 1, Iteration 115)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/css/chat.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Скругление углов карточки ответа ассистента:**
+   - В [chat.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/chat.css) для селектора `.assistant-card` значение `border-radius` обновлено с `16px` на `4px 16px 16px 16px`.
+   - Теперь левый верхний угол ответа ИИ имеет минимальное закругление в 4px (аналогично правому нижнему углу сообщения пользователя `.user-bubble` со скруглением `18px 18px 4px 18px`), создавая гармоничный диалоговый вид «хвостика» входящего сообщения.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Замена иконки карточки RAG на фавикон и перевод ролей 'Фуллстек' и 'Инженер данных / ML' (Milestone 1, Iteration 114)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/app.js`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Иконка в заголовке ответа RAG-синтеза:**
+   - В [app.js](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/app.js) в функции `renderConversation` в блоке `.card-top-bar .badge-mascot` изображение заменено с общего `/mascot.png` на круглый фирменный фавикон `/favicon.png`, в точности как на референсе.
+2. **Уточнение и дополнение переводов ролей:**
+   - В словаре локализации `I18N_STRINGS` добавлена русская форма с двумя «л» для **`Fullstack developer`** $\rightarrow$ **`Фуллстек-разработчик`** (с поддержкой обратного перевода `Фуллстек-разработчик` и `Фулстек-разработчик`).
+   - Добавлен перевод роли **`Data engineer / ML`** $\rightarrow$ **`Инженер данных / ML`** (с двусторонней обратимостью).
+3. **Верификация и тесты:**
+   - Проверена 100% обратимость переводов (0 пропущенных ключей).
+   - Все 24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Полная двусторонняя локализация всех ролей пользователя в профиле и сайдбаре (Milestone 1, Iteration 113)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/css/profile.css`
+- `services/frontend/static/app.js`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Цвет бейджика карандаша аватарки:**
+   - В [profile.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/profile.css) фон кружочка кнопки редактирования фото аватарки `.profile-edit-badge` установлен в чистый белый `#ffffff`, а при наведении `#f1f5f9` — в точном соответствии с цветом заголовка никнейма под аватаркой.
+2. **Локализация всех профессиональных ролей:**
+   - В словари `I18N_STRINGS.ru` и `I18N_STRINGS.en` в [app.js](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/app.js) добавлены полные двусторонние переводы для всех 10 ролей:
+     - `Backend developer` $\leftrightarrow$ `Бэкенд-разработчик`
+     - `Frontend developer` $\leftrightarrow$ `Фронтенд-разработчик`
+     - `Fullstack developer` $\leftrightarrow$ `Фулстек-разработчик`
+     - `DevOps engineer` $\leftrightarrow$ `DevOps-инженер`
+     - `QA engineer` $\leftrightarrow$ `QA-инженер`
+     - `Data engineer / ML` $\leftrightarrow$ `Data engineer / ML`
+     - `System architect` $\leftrightarrow$ `Системный архитектор`
+     - `Mobile developer` $\leftrightarrow$ `Мобильный разработчик`
+     - `Security engineer` $\leftrightarrow$ `Инженер по безопасности`
+     - `Tech lead` $\leftrightarrow$ `Тимлид / Техлид`
+   - В `updateAuthUI()` и `applyLanguage()` добавлена динамическая локализация текущей роли пользователя как в сайдбаре (`#sidebar-auth-role`), так и в строке роли профиля (`#profile-info-role`).
+   - TreeWalker автоматически переводит элементы выпадающего меню `.role-dropdown-item`.
+3. **Верификация и тесты:**
+   - Проверена 100% обратимость переводов.
+   - Синтаксис проверен (`node --check`).
+   - Все 24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Уменьшение размера иконок карандаша в полях профиля (Milestone 1, Iteration 112)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/index.html`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Компактный размер карандашей в инпутах:**
+   - В [index.html](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/index.html) размер иконок `.profile-edit-icon` уменьшен с 16x16px до деликатных 13x13px (`width="13" height="13"`), благодаря чему они смотрятся ещё более легко и минималистично рядом со значениями полей никнейма и email.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Добавление минималистичных иконок карандаша для полей редактирования профиля (Milestone 1, Iteration 111)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/index.html`
+- `services/frontend/static/css/profile.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Иконки редактирования для никнейма и email:**
+   - В [index.html](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/index.html) с правой стороны строк полей `Username` (`#profile-info-username`) и `Email` (`#profile-info-email`) добавлены SVG-иконки карандаша (`.profile-edit-icon`) размером 16x16px (в едином стиле и размере со стрелочками-шевронами в выпадающих списках).
+   - В [profile.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/profile.css) настроена стилизация и состояния:
+     - Базовый аккуратный приглушённый цвет `#8c9fb9` с `opacity: 0.65`.
+     - При наведении курсора на строку подсветка до `#b8cef1` (`opacity: 0.95`).
+     - При активном фокусе в поле ввода — акцентный небесно-голубой цвет `#38bdf8` (`opacity: 1`).
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
 ## [2026-11-16] — Отключение звёздочки курсора везде, кроме лендинга (Milestone 1, Iteration 110)
 
 ### Затронутые компоненты и спецификации:

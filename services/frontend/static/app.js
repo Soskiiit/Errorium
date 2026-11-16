@@ -136,6 +136,17 @@
             "Войти": "Log in",
             "Встречайте новые функции!": "Meet new features!",
             "Бэкенд-разработчик": "Backend developer",
+            "Фронтенд-разработчик": "Frontend developer",
+            "Фуллстек-разработчик": "Fullstack developer",
+            "Фулстек-разработчик": "Fullstack developer",
+            "DevOps-инженер": "DevOps engineer",
+            "QA-инженер": "QA engineer",
+            "Data engineer / ML": "Data engineer / ML",
+            "Инженер данных / ML": "Data engineer / ML",
+            "Системный архитектор": "System architect",
+            "Мобильный разработчик": "Mobile developer",
+            "Инженер по безопасности": "Security engineer",
+            "Тимлид / Техлид": "Tech lead",
             "Личные данные": "Personal information",
             "Имя пользователя": "Username",
             "Почта": "Email",
@@ -210,7 +221,8 @@
             "Поиск": "Search",
             "Код решения": "Solution Code",
             "Скопировать код": "Copy code",
-            "Ранжированные источники Stack Overflow": "Ranked Stack Overflow Sources",
+            "Источники Stack Overflow": "Stack Overflow Sources",
+            "Ранжированные источники Stack Overflow": "Stack Overflow Sources",
             "Свернуть панель": "Collapse sidebar",
             "Развернуть панель": "Expand sidebar",
             "Закрыть меню": "Close menu",
@@ -272,6 +284,15 @@
             "Log in": "Войти",
             "Meet new features!": "Встречайте новые функции!",
             "Backend developer": "Бэкенд-разработчик",
+            "Frontend developer": "Фронтенд-разработчик",
+            "Fullstack developer": "Фуллстек-разработчик",
+            "DevOps engineer": "DevOps-инженер",
+            "QA engineer": "QA-инженер",
+            "Data engineer / ML": "Инженер данных / ML",
+            "System architect": "Системный архитектор",
+            "Mobile developer": "Мобильный разработчик",
+            "Security engineer": "Инженер по безопасности",
+            "Tech lead": "Тимлид / Техлид",
             "Personal information": "Личные данные",
             "Username": "Имя пользователя",
             "Email": "Почта",
@@ -347,7 +368,8 @@
             "Search": "Поиск",
             "Solution Code": "Код решения",
             "Copy code": "Скопировать код",
-            "Ranked Stack Overflow Sources": "Ранжированные источники Stack Overflow",
+            "Stack Overflow Sources": "Источники Stack Overflow",
+            "Ranked Stack Overflow Sources": "Источники Stack Overflow",
             "Collapse sidebar": "Свернуть панель",
             "Expand sidebar": "Развернуть панель",
             "Close menu": "Закрыть меню",
@@ -527,12 +549,15 @@
             }
         }
 
-        // 6. Update user role in sidebar if default
-        if (elements.sidebarAuthRole && (elements.sidebarAuthRole.textContent === 'Backend developer' || elements.sidebarAuthRole.textContent === 'Бэкенд-разработчик')) {
-            elements.sidebarAuthRole.textContent = isRu ? 'Бэкенд-разработчик' : 'Backend developer';
+        // 6. Update user role in sidebar & profile
+        const activeUser = getAuthUser();
+        const roleVal = (activeUser && activeUser.role) ? activeUser.role : 'Backend developer';
+        const localizedRole = t(roleVal, target);
+        if (elements.sidebarAuthRole) {
+            elements.sidebarAuthRole.textContent = localizedRole;
         }
-        if (elements.profileInfoRole && (elements.profileInfoRole.value === 'Backend developer' || elements.profileInfoRole.value === 'Бэкенд-разработчик')) {
-            elements.profileInfoRole.value = isRu ? 'Бэкенд-разработчик' : 'Backend developer';
+        if (elements.profileInfoRole) {
+            elements.profileInfoRole.textContent = localizedRole;
         }
 
         // 7. Update Landing intro description (with highlighted technical terms)
@@ -923,8 +948,10 @@
                     elements.sidebarAuthAvatar.textContent = (user.avatarLetter || user.username[0] || 'T').toUpperCase();
                 }
             }
+            const targetLangCode = (getCurrentLanguage() === 'Русский') ? 'ru' : 'en';
+            const userRoleLocalized = t(user.role || 'Backend developer', targetLangCode);
             if (elements.sidebarAuthName) elements.sidebarAuthName.textContent = user.username;
-            if (elements.sidebarAuthRole) elements.sidebarAuthRole.textContent = user.role || 'Backend developer';
+            if (elements.sidebarAuthRole) elements.sidebarAuthRole.textContent = userRoleLocalized;
 
             if (elements.profileAvatarLetter) {
                 elements.profileAvatarLetter.textContent = (user.avatarLetter || user.username[0] || 'T').toUpperCase();
@@ -953,7 +980,7 @@
                 elements.profileInfoEmail.textContent = user.email || 'Test_user@mail.ru';
             }
             if (elements.profileInfoRole) {
-                elements.profileInfoRole.textContent = user.role || 'Backend developer';
+                elements.profileInfoRole.textContent = userRoleLocalized;
             }
             document.querySelectorAll('.role-dropdown-item').forEach(item => {
                 if (item.getAttribute('data-role') === (user.role || 'Backend developer')) {
@@ -1978,7 +2005,7 @@
         const cardTitle = isRu ? 'Errorium RAG-синтез (BM25 Ядро)' : 'Errorium RAG Synthesis (BM25 Core)';
         const solutionCodeText = isRu ? 'Код решения' : 'Solution Code';
         const copyCodeText = isRu ? 'Скопировать код' : 'Copy code';
-        const sourcesText = isRu ? `Ранжированные источники Stack Overflow (${assistantData.sources.length})` : `Ranked Stack Overflow Sources (${assistantData.sources.length})`;
+        const sourcesText = isRu ? `Источники Stack Overflow (${assistantData.sources.length})` : `Stack Overflow Sources (${assistantData.sources.length})`;
 
         elements.messagesContainer.innerHTML = `
             <!-- User Message -->
@@ -1988,14 +2015,10 @@
 
             <!-- Assistant Solution Card -->
             <div class="message-row assistant">
+                <div class="assistant-avatar">
+                    <img src="/favicon.png" alt="Mascot" width="28" height="28">
+                </div>
                 <div class="assistant-card">
-                    <div class="card-top-bar">
-                        <div class="badge-mascot">
-                            <img src="/mascot.png" alt="Mascot" width="22">
-                        </div>
-                        <span class="card-title">${cardTitle}</span>
-                    </div>
-
                     <div class="card-solution-text">
                         ${assistantData.solution}
                     </div>
