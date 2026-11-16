@@ -1078,8 +1078,7 @@
             if (isOutOfView && !isHeaderLogoVisible && !isAnimatingFly) {
                 isAnimatingFly = true;
 
-                // Create a smooth flying clone from the original spot to the header logo position
-                const targetRect = headerLogo.getBoundingClientRect();
+                // Step 1: Create clone at exact position of welcome text
                 const flyer = document.createElement('div');
                 flyer.className = 'landing-flying-brand';
                 flyer.textContent = 'Errorium';
@@ -1090,26 +1089,62 @@
                 flyer.style.fontWeight = computed.fontWeight;
                 flyer.style.top = Math.max(headerBottom, brandRect.top) + 'px';
                 flyer.style.left = brandRect.left + 'px';
+                flyer.style.width = brandRect.width + 'px';
+                flyer.style.height = brandRect.height + 'px';
 
                 document.body.appendChild(flyer);
 
-                // Trigger animation to header logo spot
+                // Right boundary where the word collapses into a dot
+                const rightX = brandRect.right;
+                const centerY = Math.max(headerBottom, brandRect.top) + (brandRect.height / 2);
+
+                // Phase 1: Shrink towards right into a dot (300ms)
                 requestAnimationFrame(() => {
-                    flyer.style.top = targetRect.top + 'px';
-                    flyer.style.left = targetRect.left + 'px';
-                    flyer.style.fontSize = window.getComputedStyle(headerLogo).fontSize;
-                    flyer.style.opacity = '1';
+                    flyer.style.transform = 'scaleX(0.01) scaleY(0.08)';
+                    flyer.style.opacity = '0.5';
 
                     setTimeout(() => {
-                        headerLogo.classList.add('visible');
-                        isHeaderLogoVisible = true;
                         flyer.remove();
-                        isAnimatingFly = false;
-                    }, 460);
+
+                        // Phase 2: Create luminous glowing dot at the collapse point
+                        const dot = document.createElement('div');
+                        dot.className = 'landing-morph-dot';
+                        dot.style.left = rightX + 'px';
+                        dot.style.top = centerY + 'px';
+                        document.body.appendChild(dot);
+
+                        const targetRect = headerLogo.getBoundingClientRect();
+                        // Target is right-aligned in header (center of the right edge area of logo)
+                        const targetCenterX = targetRect.right - (targetRect.width / 2);
+                        const targetCenterY = targetRect.top + (targetRect.height / 2);
+
+                        // Phase 3: Dot travels diagonally up and right into the header's right corner
+                        requestAnimationFrame(() => {
+                            dot.style.left = targetCenterX + 'px';
+                            dot.style.top = targetCenterY + 'px';
+                            dot.style.transform = 'translate(-50%, -50%) scale(1.3)';
+
+                            setTimeout(() => {
+                                // Phase 4: Dot pops and header logo expands outwards from the right
+                                dot.style.opacity = '0';
+                                dot.style.transform = 'translate(-50%, -50%) scale(2.2)';
+
+                                headerLogo.classList.remove('expand-from-dot');
+                                void headerLogo.offsetWidth; // trigger reflow
+                                headerLogo.classList.add('visible', 'expand-from-dot');
+                                isHeaderLogoVisible = true;
+
+                                setTimeout(() => {
+                                    dot.remove();
+                                    isAnimatingFly = false;
+                                }, 380);
+                            }, 450);
+                        });
+                    }, 300);
                 });
             } else if (!isOutOfView && isHeaderLogoVisible) {
                 // When scrolled back to top and welcome text is clearly visible again
-                headerLogo.classList.remove('visible');
+                headerLogo.classList.remove('visible', 'expand-from-dot');
                 isHeaderLogoVisible = false;
             }
         }, { passive: true });

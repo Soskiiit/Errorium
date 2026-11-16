@@ -661,12 +661,13 @@ body.landing-active .drawer-backdrop {
 
 .landing-header-inner {
     width: 100%;
-    max-width: 1200px;
-    padding: 0 24px;
+    max-width: 100%;
+    padding: 0 30px 0 24px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     position: relative;
+    box-sizing: border-box;
 }
 
 .landing-nav-anchors {
@@ -694,9 +695,8 @@ body.landing-active .drawer-backdrop {
 }
 
 .landing-header-logo {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
+    position: static;
+    transform: none;
     font-size: 1.55rem;
     font-weight: 700;
     letter-spacing: -0.02em;
@@ -705,41 +705,79 @@ body.landing-active .drawer-backdrop {
     user-select: none;
     -webkit-user-select: none;
     transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1), transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
-    z-index: 1;
+    z-index: 2;
     opacity: 0;
     pointer-events: none;
-    transform: translate(-50%, 8px);
+    margin: 0;
+    margin-left: auto;
+    padding-right: 4px;
+    transform-origin: right center;
 }
 
 .landing-header-logo.visible {
     opacity: 1;
     pointer-events: auto;
-    transform: translate(-50%, 0);
+    transform: none;
 }
 
 .landing-header-logo:hover {
     opacity: 0.85;
 }
 
-/* Flying Brand Clone for FLIP Animation from Hero title to Header */
+/* Flying Brand Clone and Orb for Particle/Dot Morph Animation from Hero title to Header */
 .landing-flying-brand {
     position: fixed;
     z-index: 999999;
     font-weight: 800;
     letter-spacing: -0.035em;
     pointer-events: none;
+    white-space: nowrap;
     background: linear-gradient(135deg, #60a5fa 0%, #38bdf8 50%, #93c5fd 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 0 20px rgba(56, 189, 248, 0.35));
-    transition: all 0.45s cubic-bezier(0.2, 0.9, 0.2, 1);
-    transform-origin: top left;
+    filter: drop-shadow(0 0 16px rgba(56, 189, 248, 0.4));
+    transform-origin: right center;
+    transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.32s ease;
+    will-change: transform, opacity;
 }
 
-.landing-header-right-placeholder {
-    width: 180px;
-    height: 1px;
+.landing-morph-dot {
+    position: fixed;
+    z-index: 999999;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #38bdf8;
+    box-shadow: 0 0 14px 4px rgba(56, 189, 248, 0.9), 0 0 28px 8px rgba(96, 165, 250, 0.5);
     pointer-events: none;
+    transform: translate(-50%, -50%);
+    will-change: top, left, transform, opacity;
+    transition: top 0.45s cubic-bezier(0.25, 1, 0.5, 1), left 0.45s cubic-bezier(0.25, 1, 0.5, 1), transform 0.45s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.2s ease;
+}
+
+.landing-header-logo.expand-from-dot {
+    animation: expandHeaderLogoRight 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes expandHeaderLogoRight {
+    0% {
+        opacity: 0;
+        transform: scale(0.15);
+        transform-origin: right center;
+        filter: blur(4px) drop-shadow(0 0 20px #38bdf8);
+    }
+    60% {
+        opacity: 1;
+        transform: scale(1.08);
+        transform-origin: right center;
+        filter: blur(0px) drop-shadow(0 0 14px rgba(56, 189, 248, 0.6));
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+        transform-origin: right center;
+        filter: drop-shadow(0 0 0 transparent);
+    }
 }
 
 /* Scrollable Body */
