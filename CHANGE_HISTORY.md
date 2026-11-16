@@ -1,5 +1,45 @@
 # CHANGE_HISTORY.md — История изменений проекта Errorium
 
+## [2026-11-16] — Уточнение толщины белой обводки аватарки в сайдбаре до 0.8px (Milestone 1, Iteration 108)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/css/profile.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Толщина обводки аватарки:**
+   - В [profile.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/profile.css) для `.user-avatar-badge` толщина границы установлена в `0.8px solid rgba(255, 255, 255, 0.85);`.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Белая обводка 1px для аватарки пользователя в сайдбаре (Milestone 1, Iteration 107)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/css/profile.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Белая рамка у аватарки:**
+   - В [profile.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/profile.css) для селектора `.user-avatar-badge` добавлена белая обводка `border: 1px solid rgba(255, 255, 255, 0.85);` и свойство `overflow: hidden;` для идеального скругления изображения фото/буквы внутри круга.
+2. **Верификация и тесты:**
+   - Все 24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Отключение подсветки (свечения) у аватарки в сайдбаре (Milestone 1, Iteration 106)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/css/profile.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Удаление box-shadow у аватарки в сайдбаре:**
+   - В [profile.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/profile.css) для селектора `.user-avatar-badge` (аватарка текущего пользователя `#sidebar-auth-avatar` в нижнем блоке сайдбара) установлено `box-shadow: none`.
+   - Теперь аватарка в боковом меню отображается аккуратно без фонового ореола/свечения.
+2. **Верификация и тесты:**
+   - Все 24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
 ## [2026-11-16] — Модульная декомпозиция CSS-стилей фронтенда на отдельные файлы (Milestone 1, Iteration 105)
 
 ### Затронутые компоненты и спецификации:
