@@ -42,7 +42,7 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    box-shadow: 0 2px 6px rgba(155, 81, 224, 0.4);
+    box-shadow: 0 0 6px rgba(155, 81, 224, 0.4);
 }
 
 /* Profile Screen View (Profile-screen.png) */
