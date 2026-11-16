@@ -41,7 +41,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="/styles.css?v=20261116_8">
+    <link rel="stylesheet" href="/styles.css?v=20261116_21">
     <script>
         (function () {
             try {
@@ -341,14 +341,30 @@
                                     </div>
                                 </div>
 
-                                <!-- Role row -->
-                                <div class="profile-item-row">
+                                <!-- Role row (Custom Glass Dropdown) -->
+                                <div class="profile-item-row profile-item-clickable" id="profile-info-role-row" role="button" tabindex="0">
                                     <div class="profile-row-left">
                                         <svg class="profile-row-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                             <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
                                             <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
                                         </svg>
-                                        <input type="text" class="profile-item-input" id="profile-info-role" value="Backend developer" placeholder="Role" spellcheck="false" autocomplete="off">
+                                        <span class="profile-item-value" id="profile-info-role">Backend developer</span>
+                                    </div>
+                                    <svg class="profile-chevron-icon" id="profile-role-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="6 9 12 15 18 9"></polyline>
+                                    </svg>
+                                    <!-- Role dropdown menu -->
+                                    <div class="role-dropdown-popover" id="role-dropdown-popover" style="display: none;">
+                                        <div class="role-dropdown-item" data-role="Backend developer">Backend developer</div>
+                                        <div class="role-dropdown-item" data-role="Frontend developer">Frontend developer</div>
+                                        <div class="role-dropdown-item" data-role="Fullstack developer">Fullstack developer</div>
+                                        <div class="role-dropdown-item" data-role="DevOps engineer">DevOps engineer</div>
+                                        <div class="role-dropdown-item" data-role="QA engineer">QA engineer</div>
+                                        <div class="role-dropdown-item" data-role="Data engineer / ML">Data engineer / ML</div>
+                                        <div class="role-dropdown-item" data-role="System architect">System architect</div>
+                                        <div class="role-dropdown-item" data-role="Mobile developer">Mobile developer</div>
+                                        <div class="role-dropdown-item" data-role="Security engineer">Security engineer</div>
+                                        <div class="role-dropdown-item" data-role="Tech lead">Tech lead</div>
                                     </div>
                                 </div>
 
@@ -364,9 +380,15 @@
                                         </svg>
                                         <span class="profile-item-value" id="profile-info-gender">Male</span>
                                     </div>
-                                    <svg class="profile-chevron-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <svg class="profile-chevron-icon" id="profile-gender-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <polyline points="6 9 12 15 18 9"></polyline>
                                     </svg>
+                                    <!-- Gender dropdown menu -->
+                                    <div class="profile-dropdown-popover" id="gender-dropdown-popover" style="display: none;">
+                                        <div class="profile-dropdown-item" data-gender="Not selected">Not selected</div>
+                                        <div class="profile-dropdown-item" data-gender="Male">Male</div>
+                                        <div class="profile-dropdown-item" data-gender="Female">Female</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -404,9 +426,14 @@
                                         </svg>
                                         <span class="profile-item-value" id="profile-info-lang">English</span>
                                     </div>
-                                    <svg class="profile-chevron-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <svg class="profile-chevron-icon" id="profile-lang-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <polyline points="6 9 12 15 18 9"></polyline>
                                     </svg>
+                                    <!-- Language dropdown menu -->
+                                    <div class="profile-dropdown-popover" id="lang-dropdown-popover" style="display: none;">
+                                        <div class="profile-dropdown-item" data-lang="English">English</div>
+                                        <div class="profile-dropdown-item" data-lang="Русский">Русский</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

@@ -142,6 +142,7 @@
             "Роль": "Role",
             "Мужской": "Male",
             "Женский": "Female",
+            "Не указано": "Not selected",
             "Безопасность": "Security",
             "Сменить пароль": "Change password",
             "Язык": "Language",
@@ -236,6 +237,8 @@
             "Role": "Роль",
             "Male": "Мужской",
             "Female": "Женский",
+            "Not selected": "Не указано",
+            "Not specified": "Не указано",
             "Security": "Безопасность",
             "Change password": "Сменить пароль",
             "Language": "Язык",
@@ -455,11 +458,18 @@
         profileInfoUsername: document.getElementById('profile-info-username'),
         profileInfoEmail: document.getElementById('profile-info-email'),
         profileInfoRole: document.getElementById('profile-info-role'),
+        profileInfoRoleRow: document.getElementById('profile-info-role-row'),
+        roleDropdownPopover: document.getElementById('role-dropdown-popover'),
+        profileRoleChevron: document.getElementById('profile-role-chevron'),
         profileInfoGender: document.getElementById('profile-info-gender'),
         profileInfoGenderRow: document.getElementById('profile-info-gender-row'),
+        genderDropdownPopover: document.getElementById('gender-dropdown-popover'),
+        profileGenderChevron: document.getElementById('profile-gender-chevron'),
         profileRowSecurity: document.getElementById('profile-row-security'),
         profileInfoLang: document.getElementById('profile-info-lang'),
         profileInfoLangRow: document.getElementById('profile-info-lang-row'),
+        langDropdownPopover: document.getElementById('lang-dropdown-popover'),
+        profileLangChevron: document.getElementById('profile-lang-chevron'),
 
         searchRecentChats: document.getElementById('search-recent-chats'),
         recentChatsList: document.getElementById('recent-chats-list'),
@@ -533,6 +543,72 @@
 
         toast: document.getElementById('toast')
     };
+
+    // =========================================================================
+    // Image Dominant Color Extractor (Canvas sampling with saturation boost)
+    // =========================================================================
+    function extractDominantColor(dataUrl, callback) {
+        const img = new Image();
+        img.crossOrigin = 'Anonymous';
+        img.onload = function () {
+            try {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const size = 32; // Sample resolution
+                canvas.width = size;
+                canvas.height = size;
+                ctx.drawImage(img, 0, 0, size, size);
+                const imgData = ctx.getImageData(0, 0, size, size).data;
+
+                let rTotal = 0, gTotal = 0, bTotal = 0, count = 0;
+                let maxSat = -1, bestColor = null;
+
+                for (let i = 0; i < imgData.length; i += 4) {
+                    const r = imgData[i];
+                    const g = imgData[i + 1];
+                    const b = imgData[i + 2];
+                    const a = imgData[i + 3];
+
+                    // Skip transparent, near-black or near-white pixels
+                    if (a < 128) continue;
+                    const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
+                    if (brightness < 25 || brightness > 240) continue;
+
+                    // Measure saturation
+                    const max = Math.max(r, g, b);
+                    const min = Math.min(r, g, b);
+                    const sat = max === 0 ? 0 : (max - min) / max;
+
+                    if (sat > maxSat) {
+                        maxSat = sat;
+                        bestColor = { r, g, b };
+                    }
+
+                    rTotal += r;
+                    gTotal += g;
+                    bTotal += b;
+                    count++;
+                }
+
+                if (bestColor && maxSat > 0.2) {
+                    callback(`rgba(${bestColor.r}, ${bestColor.g}, ${bestColor.b}, 0.75)`);
+                } else if (count > 0) {
+                    const rAvg = Math.round(rTotal / count);
+                    const gAvg = Math.round(gTotal / count);
+                    const bAvg = Math.round(bTotal / count);
+                    callback(`rgba(${rAvg}, ${gAvg}, ${bAvg}, 0.75)`);
+                } else {
+                    callback('rgba(155, 81, 224, 0.65)');
+                }
+            } catch (err) {
+                callback('rgba(155, 81, 224, 0.65)');
+            }
+        };
+        img.onerror = function () {
+            callback('rgba(155, 81, 224, 0.65)');
+        };
+        img.src = dataUrl;
+    }
 
     // =========================================================================
     // Sidebar Drawer & Desktop Collapse Controls
@@ -719,9 +795,13 @@
                     elements.profileAvatarImg.src = user.avatarUrl;
                     elements.profileAvatarImg.style.display = 'block';
                     if (elements.profileAvatarLetter) elements.profileAvatarLetter.style.display = 'none';
+                    if (user.avatarGlow) {
+                        elements.profileAvatarLarge?.style.setProperty('--avatar-glow-color', user.avatarGlow);
+                    }
                 } else {
                     elements.profileAvatarImg.style.display = 'none';
                     if (elements.profileAvatarLetter) elements.profileAvatarLetter.style.display = '';
+                    elements.profileAvatarLarge?.style.removeProperty('--avatar-glow-color');
                 }
             }
             if (elements.profileUsername) elements.profileUsername.textContent = user.username;
@@ -734,11 +814,33 @@
                 elements.profileInfoEmail.textContent = user.email || 'Test_user@mail.ru';
             }
             if (elements.profileInfoRole) {
-                elements.profileInfoRole.value = user.role || 'Backend developer';
                 elements.profileInfoRole.textContent = user.role || 'Backend developer';
             }
-            if (elements.profileInfoGender) elements.profileInfoGender.textContent = user.gender || 'Male';
+            document.querySelectorAll('.role-dropdown-item').forEach(item => {
+                if (item.getAttribute('data-role') === (user.role || 'Backend developer')) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+            const currentGender = (user.gender === 'Not specified' || !user.gender) ? 'Not selected' : user.gender;
+            if (elements.profileInfoGender) elements.profileInfoGender.textContent = currentGender;
+            document.querySelectorAll('#gender-dropdown-popover .profile-dropdown-item').forEach(item => {
+                if (item.getAttribute('data-gender') === currentGender) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+
             if (elements.profileInfoLang) elements.profileInfoLang.textContent = user.language || 'English';
+            document.querySelectorAll('#lang-dropdown-popover .profile-dropdown-item').forEach(item => {
+                if (item.getAttribute('data-lang') === (user.language || 'English')) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
         } else {
             if (elements.sidebarUserGuest) elements.sidebarUserGuest.style.display = 'flex';
             if (elements.sidebarUserAuth) elements.sidebarUserAuth.style.display = 'none';
@@ -912,33 +1014,93 @@
         showModal(elements.modalResetPasswordAlert);
     });
 
-    elements.profileInfoGenderRow?.addEventListener('click', () => {
-        const user = getAuthUser() || {
-            username: 'Test_user',
-            email: 'Test_user@mail.ru',
-            role: 'Backend developer',
-            gender: 'Male',
-            language: 'English',
-            avatarLetter: 'T'
-        };
-        user.gender = user.gender === 'Male' ? 'Female' : 'Male';
-        setAuthUser(user);
-        showToast(`Gender set to ${user.gender}`);
+    // Profile Gender Dropdown Logic
+    elements.profileInfoGenderRow?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!elements.genderDropdownPopover) return;
+        const isOpen = elements.genderDropdownPopover.style.display === 'flex';
+        const willOpen = !isOpen;
+        // Close other dropdowns
+        if (elements.roleDropdownPopover) elements.roleDropdownPopover.style.display = 'none';
+        elements.profileInfoRoleRow?.classList.remove('open');
+        if (elements.profileRoleChevron) elements.profileRoleChevron.style.transform = 'rotate(0deg)';
+        if (elements.langDropdownPopover) elements.langDropdownPopover.style.display = 'none';
+        elements.profileInfoLangRow?.classList.remove('open');
+        if (elements.profileLangChevron) elements.profileLangChevron.style.transform = 'rotate(0deg)';
+
+        elements.genderDropdownPopover.style.display = willOpen ? 'flex' : 'none';
+        elements.profileInfoGenderRow.classList.toggle('open', willOpen);
+        if (elements.profileGenderChevron) {
+            elements.profileGenderChevron.style.transform = willOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+        }
     });
 
-    elements.profileInfoLangRow?.addEventListener('click', () => {
-        const user = getAuthUser() || {
-            username: 'Test_user',
-            email: 'Test_user@mail.ru',
-            role: 'Backend developer',
-            gender: 'Male',
-            language: 'English',
-            avatarLetter: 'T'
-        };
-        user.language = user.language === 'English' ? 'Русский' : 'English';
-        setAuthUser(user);
-        applyLanguage(user.language);
-        showToast(user.language === 'Русский' ? 'Язык переключён на Русский' : 'Language switched to English');
+    document.querySelectorAll('#gender-dropdown-popover .profile-dropdown-item').forEach(item => {
+        item.addEventListener('click', function (e) {
+            e.stopPropagation();
+            const selectedGender = this.getAttribute('data-gender');
+            if (!selectedGender) return;
+            const user = getAuthUser() || {
+                username: 'Test_user',
+                email: 'Test_user@mail.ru',
+                role: 'Backend developer',
+                gender: 'Male',
+                language: 'English',
+                avatarLetter: 'T'
+            };
+            user.gender = selectedGender;
+            setAuthUser(user);
+            showToast(`Gender set to ${selectedGender}`);
+
+            if (elements.genderDropdownPopover) elements.genderDropdownPopover.style.display = 'none';
+            elements.profileInfoGenderRow?.classList.remove('open');
+            if (elements.profileGenderChevron) elements.profileGenderChevron.style.transform = 'rotate(0deg)';
+        });
+    });
+
+    // Profile Language Dropdown Logic
+    elements.profileInfoLangRow?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!elements.langDropdownPopover) return;
+        const isOpen = elements.langDropdownPopover.style.display === 'flex';
+        const willOpen = !isOpen;
+        // Close other dropdowns
+        if (elements.roleDropdownPopover) elements.roleDropdownPopover.style.display = 'none';
+        elements.profileInfoRoleRow?.classList.remove('open');
+        if (elements.profileRoleChevron) elements.profileRoleChevron.style.transform = 'rotate(0deg)';
+        if (elements.genderDropdownPopover) elements.genderDropdownPopover.style.display = 'none';
+        elements.profileInfoGenderRow?.classList.remove('open');
+        if (elements.profileGenderChevron) elements.profileGenderChevron.style.transform = 'rotate(0deg)';
+
+        elements.langDropdownPopover.style.display = willOpen ? 'flex' : 'none';
+        elements.profileInfoLangRow.classList.toggle('open', willOpen);
+        if (elements.profileLangChevron) {
+            elements.profileLangChevron.style.transform = willOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+        }
+    });
+
+    document.querySelectorAll('#lang-dropdown-popover .profile-dropdown-item').forEach(item => {
+        item.addEventListener('click', function (e) {
+            e.stopPropagation();
+            const selectedLang = this.getAttribute('data-lang');
+            if (!selectedLang) return;
+            const user = getAuthUser() || {
+                username: 'Test_user',
+                email: 'Test_user@mail.ru',
+                role: 'Backend developer',
+                gender: 'Male',
+                language: 'English',
+                avatarLetter: 'T'
+            };
+            user.language = selectedLang;
+            setAuthUser(user);
+            applyLanguage(user.language);
+            showToast(user.language === 'Русский' ? 'Язык переключён на Русский' : 'Language switched to English');
+
+            if (elements.langDropdownPopover) elements.langDropdownPopover.style.display = 'none';
+            elements.profileInfoLangRow?.classList.remove('open');
+            if (elements.profileLangChevron) elements.profileLangChevron.style.transform = 'rotate(0deg)';
+        });
     });
 
     elements.profileAvatarEditBadge?.addEventListener('click', (e) => {
@@ -959,17 +1121,20 @@
         const reader = new FileReader();
         reader.onload = function (event) {
             const dataUrl = event.target.result;
-            const user = getAuthUser() || {
-                username: 'Test_user',
-                email: 'Test_user@mail.ru',
-                role: 'Backend developer',
-                gender: 'Male',
-                language: 'English',
-                avatarLetter: 'T'
-            };
-            user.avatarUrl = dataUrl;
-            setAuthUser(user);
-            showToast('Avatar photo updated');
+            extractDominantColor(dataUrl, (glowColor) => {
+                const user = getAuthUser() || {
+                    username: 'Test_user',
+                    email: 'Test_user@mail.ru',
+                    role: 'Backend developer',
+                    gender: 'Male',
+                    language: 'English',
+                    avatarLetter: 'T'
+                };
+                user.avatarUrl = dataUrl;
+                user.avatarGlow = glowColor;
+                setAuthUser(user);
+                showToast('Avatar photo and glow color updated');
+            });
         };
         reader.readAsDataURL(file);
     });
@@ -1008,20 +1173,66 @@
         showToast('Email updated');
     });
 
-    elements.profileInfoRole?.addEventListener('change', (e) => {
-        const val = e.target.value.trim();
-        if (!val) return;
-        const user = getAuthUser() || {
-            username: 'Test_user',
-            email: 'Test_user@mail.ru',
-            role: 'Backend developer',
-            gender: 'Male',
-            language: 'English',
-            avatarLetter: 'T'
-        };
-        user.role = val;
-        setAuthUser(user);
-        showToast('Role updated');
+    // Profile Role Dropdown Logic
+    elements.profileInfoRoleRow?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!elements.roleDropdownPopover) return;
+        const isOpen = elements.roleDropdownPopover.style.display === 'flex';
+        const willOpen = !isOpen;
+        // Close other dropdowns
+        if (elements.genderDropdownPopover) elements.genderDropdownPopover.style.display = 'none';
+        elements.profileInfoGenderRow?.classList.remove('open');
+        if (elements.profileGenderChevron) elements.profileGenderChevron.style.transform = 'rotate(0deg)';
+        if (elements.langDropdownPopover) elements.langDropdownPopover.style.display = 'none';
+        elements.profileInfoLangRow?.classList.remove('open');
+        if (elements.profileLangChevron) elements.profileLangChevron.style.transform = 'rotate(0deg)';
+
+        elements.roleDropdownPopover.style.display = willOpen ? 'flex' : 'none';
+        elements.profileInfoRoleRow.classList.toggle('open', willOpen);
+        if (elements.profileRoleChevron) {
+            elements.profileRoleChevron.style.transform = willOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+        }
+    });
+
+    document.querySelectorAll('.role-dropdown-item').forEach(item => {
+        item.addEventListener('click', function (e) {
+            e.stopPropagation();
+            const selectedRole = this.getAttribute('data-role');
+            if (!selectedRole) return;
+            const user = getAuthUser() || {
+                username: 'Test_user',
+                email: 'Test_user@mail.ru',
+                role: 'Backend developer',
+                gender: 'Male',
+                language: 'English',
+                avatarLetter: 'T'
+            };
+            user.role = selectedRole;
+            setAuthUser(user);
+            showToast(`Role updated to ${selectedRole}`);
+
+            if (elements.roleDropdownPopover) elements.roleDropdownPopover.style.display = 'none';
+            elements.profileInfoRoleRow?.classList.remove('open');
+            if (elements.profileRoleChevron) elements.profileRoleChevron.style.transform = 'rotate(0deg)';
+        });
+    });
+
+    document.addEventListener('click', (e) => {
+        if (elements.roleDropdownPopover && !elements.profileInfoRoleRow?.contains(e.target)) {
+            elements.roleDropdownPopover.style.display = 'none';
+            elements.profileInfoRoleRow?.classList.remove('open');
+            if (elements.profileRoleChevron) elements.profileRoleChevron.style.transform = 'rotate(0deg)';
+        }
+        if (elements.genderDropdownPopover && !elements.profileInfoGenderRow?.contains(e.target)) {
+            elements.genderDropdownPopover.style.display = 'none';
+            elements.profileInfoGenderRow?.classList.remove('open');
+            if (elements.profileGenderChevron) elements.profileGenderChevron.style.transform = 'rotate(0deg)';
+        }
+        if (elements.langDropdownPopover && !elements.profileInfoLangRow?.contains(e.target)) {
+            elements.langDropdownPopover.style.display = 'none';
+            elements.profileInfoLangRow?.classList.remove('open');
+            if (elements.profileLangChevron) elements.profileLangChevron.style.transform = 'rotate(0deg)';
+        }
     });
 
     // Reference Modal Handlers
