@@ -103,6 +103,10 @@ body {
 }
 
 .cursor-comet-canvas.active {
+    opacity: 0;
+}
+
+body.landing-active .cursor-comet-canvas.active {
     opacity: 1;
 }
 

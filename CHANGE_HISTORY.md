@@ -1,5 +1,33 @@
 # CHANGE_HISTORY.md — История изменений проекта Errorium
 
+## [2026-11-16] — Отключение звёздочки курсора везде, кроме лендинга (Milestone 1, Iteration 110)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/css/base.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Показ звёздочки кометы только на лендинге:**
+   - В [base.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/base.css) базовое состояние `.cursor-comet-canvas.active` переведено в `opacity: 0;` (звёздочка и её след полностью скрыты на экранах поиска, чата, профиля и модальных окон).
+   - Правило `body.landing-active .cursor-comet-canvas.active { opacity: 1; }` активирует эффект исключительно при нахождении пользователя на промо-странице лендинга.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — 50% прозрачность звёздочки и хвоста кометы на всех экранах кроме лендинга (Milestone 1, Iteration 109)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/css/base.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Прозрачность эффекта звёздочки кометы курсора:**
+   - В [base.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/base.css) для класса `.cursor-comet-canvas.active` базовая прозрачность установлена в `opacity: 0.5;` (50% прозрачности на экранах поиска, чата, профиля, модальных окон и настроек).
+   - При переходе на лендинг (класс `body.landing-active`) активируется правило `body.landing-active .cursor-comet-canvas.active { opacity: 1; }` с сохранением полной 100% яркости и насыщенности свечения.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
 ## [2026-11-16] — Уточнение толщины белой обводки аватарки в сайдбаре до 0.8px (Milestone 1, Iteration 108)
 
 ### Затронутые компоненты и спецификации:
