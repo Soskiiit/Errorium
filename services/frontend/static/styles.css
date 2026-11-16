@@ -724,7 +724,7 @@ body.landing-active .drawer-backdrop {
     opacity: 0.85;
 }
 
-/* Flying Brand Clone and Orb for Particle/Dot Morph Animation from Hero title to Header */
+/* Flying Brand Clone and Flame Particle Animation from Hero title to Header */
 .landing-flying-brand {
     position: fixed;
     z-index: 999999;
@@ -741,18 +741,59 @@ body.landing-active .drawer-backdrop {
     will-change: transform, opacity;
 }
 
-.landing-morph-dot {
+/* Atmospheric Blue Flame Core (inspired by blue-fire.png) */
+.landing-flame-dot {
     position: fixed;
     z-index: 999999;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: #38bdf8;
-    box-shadow: 0 0 14px 4px rgba(56, 189, 248, 0.9), 0 0 28px 8px rgba(96, 165, 250, 0.5);
+    width: 14px;
+    height: 18px;
+    border-radius: 50% 50% 40% 40% / 60% 60% 40% 40%;
+    background: radial-gradient(circle at 50% 65%, #ffffff 0%, #93c5fd 25%, #38bdf8 55%, #1d4ed8 85%, transparent 100%);
+    box-shadow: 
+        0 0 16px 4px rgba(56, 189, 248, 0.95),
+        0 0 32px 10px rgba(37, 87, 232, 0.65),
+        0 0 54px 18px rgba(30, 64, 175, 0.35);
     pointer-events: none;
     transform: translate(-50%, -50%);
     will-change: top, left, transform, opacity;
-    transition: top 0.45s cubic-bezier(0.25, 1, 0.5, 1), left 0.45s cubic-bezier(0.25, 1, 0.5, 1), transform 0.45s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.2s ease;
+    transition: top 0.52s cubic-bezier(0.22, 1, 0.36, 1), left 0.52s cubic-bezier(0.22, 1, 0.36, 1), transform 0.52s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.22s ease;
+    animation: flameFlicker 0.18s ease-in-out infinite alternate;
+}
+
+/* Teardrop Flame Aura & Tail */
+.landing-flame-dot::before {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: 50% 50% 35% 35% / 70% 70% 30% 30%;
+    background: radial-gradient(circle, rgba(56, 189, 248, 0.4) 0%, transparent 70%);
+    filter: blur(4px);
+    pointer-events: none;
+}
+
+/* Secondary Ember / Spark trail */
+.landing-flame-spark {
+    position: fixed;
+    z-index: 999998;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #e0f2fe;
+    box-shadow: 0 0 8px 2px #38bdf8, 0 0 16px 4px #2563eb;
+    pointer-events: none;
+    will-change: transform, opacity;
+    transition: transform 0.4s ease-out, opacity 0.4s ease-out;
+}
+
+@keyframes flameFlicker {
+    0% {
+        filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.9)) brightness(1);
+        transform: translate(-50%, -50%) rotate(-4deg) scale(0.96);
+    }
+    100% {
+        filter: drop-shadow(0 0 18px rgba(96, 165, 250, 1)) brightness(1.25);
+        transform: translate(-50%, -50%) rotate(4deg) scale(1.08);
+    }
 }
 
 .landing-header-logo.expand-from-dot {

@@ -1106,28 +1106,52 @@
                     setTimeout(() => {
                         flyer.remove();
 
-                        // Phase 2: Create luminous glowing dot at the collapse point
-                        const dot = document.createElement('div');
-                        dot.className = 'landing-morph-dot';
-                        dot.style.left = rightX + 'px';
-                        dot.style.top = centerY + 'px';
-                        document.body.appendChild(dot);
+                        // Phase 2: Create atmospheric blue flame dot at the collapse point
+                        const flame = document.createElement('div');
+                        flame.className = 'landing-flame-dot';
+                        flame.style.left = rightX + 'px';
+                        flame.style.top = centerY + 'px';
+                        document.body.appendChild(flame);
 
                         const targetRect = headerLogo.getBoundingClientRect();
-                        // Target is right-aligned in header (center of the right edge area of logo)
+                        // Target is right-aligned in header
                         const targetCenterX = targetRect.right - (targetRect.width / 2);
                         const targetCenterY = targetRect.top + (targetRect.height / 2);
 
-                        // Phase 3: Dot travels diagonally up and right into the header's right corner
+                        // Spawn periodic trailing sparks/embers during the flight
+                        const sparks = [];
+                        const sparkInterval = setInterval(() => {
+                            if (!flame.parentNode) {
+                                clearInterval(sparkInterval);
+                                return;
+                            }
+                            const curRect = flame.getBoundingClientRect();
+                            const spark = document.createElement('div');
+                            spark.className = 'landing-flame-spark';
+                            spark.style.left = (curRect.left + curRect.width / 2 + (Math.random() * 8 - 4)) + 'px';
+                            spark.style.top = (curRect.top + curRect.height / 2 + (Math.random() * 8 - 4)) + 'px';
+                            document.body.appendChild(spark);
+                            sparks.push(spark);
+
+                            requestAnimationFrame(() => {
+                                spark.style.transform = `translate(${Math.random() * 20 - 10}px, ${Math.random() * 16 + 6}px) scale(0.2)`;
+                                spark.style.opacity = '0';
+                                setTimeout(() => spark.remove(), 400);
+                            });
+                        }, 55);
+
+                        // Phase 3: Flame travels diagonally up and right into the header's right corner
                         requestAnimationFrame(() => {
-                            dot.style.left = targetCenterX + 'px';
-                            dot.style.top = targetCenterY + 'px';
-                            dot.style.transform = 'translate(-50%, -50%) scale(1.3)';
+                            flame.style.left = targetCenterX + 'px';
+                            flame.style.top = targetCenterY + 'px';
+                            flame.style.transform = 'translate(-50%, -50%) rotate(18deg) scale(1.35)';
 
                             setTimeout(() => {
-                                // Phase 4: Dot pops and header logo expands outwards from the right
-                                dot.style.opacity = '0';
-                                dot.style.transform = 'translate(-50%, -50%) scale(2.2)';
+                                clearInterval(sparkInterval);
+
+                                // Phase 4: Flame bursts softly and header logo expands outwards
+                                flame.style.opacity = '0';
+                                flame.style.transform = 'translate(-50%, -50%) scale(2.6)';
 
                                 headerLogo.classList.remove('expand-from-dot');
                                 void headerLogo.offsetWidth; // trigger reflow
@@ -1135,10 +1159,11 @@
                                 isHeaderLogoVisible = true;
 
                                 setTimeout(() => {
-                                    dot.remove();
+                                    flame.remove();
+                                    sparks.forEach(s => s.remove());
                                     isAnimatingFly = false;
                                 }, 380);
-                            }, 450);
+                            }, 520);
                         });
                     }, 300);
                 });
