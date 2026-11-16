@@ -579,17 +579,17 @@ body {
     mask-image: linear-gradient(
         to bottom,
         #000 0%,
-        #000 calc(100% - 150px),
-        rgba(0, 0, 0, 0.7) calc(100% - 85px),
-        rgba(0, 0, 0, 0.25) calc(100% - 40px),
+        #000 calc(100% - 310px),
+        rgba(0, 0, 0, 0.55) calc(100% - 200px),
+        rgba(0, 0, 0, 0.15) calc(100% - 110px),
         transparent 100%
     );
     -webkit-mask-image: linear-gradient(
         to bottom,
         #000 0%,
-        #000 calc(100% - 150px),
-        rgba(0, 0, 0, 0.7) calc(100% - 85px),
-        rgba(0, 0, 0, 0.25) calc(100% - 40px),
+        #000 calc(100% - 310px),
+        rgba(0, 0, 0, 0.55) calc(100% - 200px),
+        rgba(0, 0, 0, 0.15) calc(100% - 110px),
         transparent 100%
     );
 }
@@ -724,7 +724,7 @@ body {
     flex: 1;
     display: flex;
     flex-direction: column;
-    padding: 16px 20px 60px;
+    padding: 16px 20px 100px;
     max-width: 840px;
     width: 100%;
     margin: 0 auto;
