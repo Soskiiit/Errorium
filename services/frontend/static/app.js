@@ -275,7 +275,26 @@
             "Высокопроизводительные контракты Protobuf между Gateway и Core (:50051)": "High-performance protobuf contracts between Gateway and Core (:50051)",
             "ИУ5 МГТУ им. Н. Э. Баумана • НИРС (ОАД)": "IU5 BMSTU • Research Coursework (OAD)",
             "Спроектировано для инженеров, подтверждено бенчмарками": "Designed for Developers, Verified by Benchmarks",
-            "Errorium строго следует академическим ограничениям: полный запрет готовых поисковых систем (Elasticsearch, Solr, Lucene, rank-bm25). Инвертированный индекс, списки постингов, токенизация кода и ранжирование BM25 полностью написаны с нуля и непрерывно верифицируются метриками Recall@k и MRR.": "Errorium enforces strict academic guidelines: zero reliance on ready-made search engines (Elasticsearch, Solr, Lucene, rank-bm25). The inverted index, memory-mapped postings list, code tokenization, and BM25 ranking formulas are completely custom-built and continuously measured against Recall@k and MRR benchmarks."
+            "Errorium строго следует академическим ограничениям: полный запрет готовых поисковых систем (Elasticsearch, Solr, Lucene, rank-bm25). Инвертированный индекс, списки постингов, токенизация кода и ранжирование BM25 полностью написаны с нуля и непрерывно верифицируются метриками Recall@k и MRR.": "Errorium enforces strict academic guidelines: zero reliance on ready-made search engines (Elasticsearch, Solr, Lucene, rank-bm25). The inverted index, memory-mapped postings list, code tokenization, and BM25 ranking formulas are completely custom-built and continuously measured against Recall@k and MRR benchmarks.",
+            "Карта связей": "Star Map",
+            "Связанные треды Stack Overflow": "Related Stack Overflow threads",
+            "Лучший результат": "Top result",
+            "Результаты Top-K": "Top-K results",
+            "Дубликаты": "Duplicates",
+            "Ссылки в ответах": "Linked in answers",
+            "Перетаскивайте узлы · Колесо — масштаб · Клик по звезде — детали": "Drag nodes · Scroll to zoom · Click a star for details",
+            "Принятый ответ": "Accepted answer",
+            "Лучший ответ": "Best answer",
+            "Открыть на Stack Overflow": "Open on Stack Overflow",
+            "Открыть карту связей": "Open Star Map",
+            "Приблизить": "Zoom in",
+            "Отдалить": "Zoom out",
+            "Вписать граф": "Fit graph",
+            "Закрыть детали": "Close details",
+            "голосов": "votes",
+            "Тред-дубликат": "Duplicate thread",
+            "Связанный тред": "Linked thread",
+            "Результат Top-K": "Top-K result"
         },
         ru: {
             "Recent chats": "Недавние чаты",
@@ -422,7 +441,27 @@
             "High-performance protobuf contracts between Gateway and Core (:50051)": "Высокопроизводительные контракты Protobuf между Gateway и Core (:50051)",
             "IU5 BMSTU • Research Coursework (OAD)": "ИУ5 МГТУ им. Н. Э. Баумана • НИРС (ОАД)",
             "Designed for Developers, Verified by Benchmarks": "Спроектировано для инженеров, подтверждено бенчмарками",
-            "Errorium enforces strict academic guidelines: zero reliance on ready-made search engines (Elasticsearch, Solr, Lucene, rank-bm25). The inverted index, memory-mapped postings list, code tokenization, and BM25 ranking formulas are completely custom-built and continuously measured against Recall@k and MRR benchmarks.": "Errorium строго следует академическим ограничениям: полный запрет готовых поисковых систем (Elasticsearch, Solr, Lucene, rank-bm25). Инвертированный индекс, списки постингов, токенизация кода и ранжирование BM25 полностью написаны с нуля и непрерывно верифицируются метриками Recall@k и MRR."
+            "Errorium enforces strict academic guidelines: zero reliance on ready-made search engines (Elasticsearch, Solr, Lucene, rank-bm25). The inverted index, memory-mapped postings list, code tokenization, and BM25 ranking formulas are completely custom-built and continuously measured against Recall@k and MRR benchmarks.": "Errorium строго следует академическим ограничениям: полный запрет готовых поисковых систем (Elasticsearch, Solr, Lucene, rank-bm25). Инвертированный индекс, списки постингов, токенизация кода и ранжирование BM25 полностью написаны с нуля и непрерывно верифицируются метриками Recall@k и MRR.",
+            "Star Map": "Карта связей",
+            "Back to chat": "Назад в чат",
+            "Related Stack Overflow threads": "Связанные треды Stack Overflow",
+            "Top result": "Лучший результат",
+            "Top-K results": "Результаты Top-K",
+            "Duplicates": "Дубликаты",
+            "Linked in answers": "Ссылки в ответах",
+            "Drag nodes · Scroll to zoom · Click a star for details": "Перетаскивайте узлы · Колесо — масштаб · Клик по звезде — детали",
+            "Accepted answer": "Принятый ответ",
+            "Best answer": "Лучший ответ",
+            "Open on Stack Overflow": "Открыть на Stack Overflow",
+            "Open Star Map": "Открыть карту связей",
+            "Zoom in": "Приблизить",
+            "Zoom out": "Отдалить",
+            "Fit graph": "Вписать граф",
+            "Close details": "Закрыть детали",
+            "votes": "голосов",
+            "Duplicate thread": "Тред-дубликат",
+            "Linked thread": "Связанный тред",
+            "Top-K result": "Результат Top-K"
         }
     };
 
@@ -640,6 +679,25 @@
         messagesContainer: document.getElementById('messages-container'),
         promptFooter: document.getElementById('app-prompt-footer'),
         promptBarContainer: document.querySelector('.prompt-bar-container'),
+
+        // Star Map (FR-3: interactive graph of related SO threads)
+        starMapView: document.getElementById('star-map-view'),
+        starMapCanvas: document.getElementById('star-map-canvas'),
+        btnStarMapBack: document.getElementById('btn-star-map-back'),
+        starMapSubtitle: document.getElementById('star-map-subtitle'),
+        starMapTooltip: document.getElementById('star-map-tooltip'),
+        starMapHint: document.getElementById('star-map-hint'),
+        starMapDetailPanel: document.getElementById('star-map-detail-panel'),
+        btnStarMapDetailClose: document.getElementById('btn-star-map-detail-close'),
+        starMapDetailCategory: document.getElementById('star-map-detail-category'),
+        starMapDetailTitle: document.getElementById('star-map-detail-title'),
+        starMapDetailTags: document.getElementById('star-map-detail-tags'),
+        starMapDetailAnswerLabel: document.getElementById('star-map-detail-answer-label'),
+        starMapDetailAnswer: document.getElementById('star-map-detail-answer'),
+        starMapDetailLink: document.getElementById('star-map-detail-link'),
+        btnStarMapZoomIn: document.getElementById('btn-star-map-zoom-in'),
+        btnStarMapZoomOut: document.getElementById('btn-star-map-zoom-out'),
+        btnStarMapFit: document.getElementById('btn-star-map-fit'),
 
         promptInput: document.getElementById('prompt-input'),
         btnSend: document.getElementById('btn-send'),
@@ -1074,6 +1132,15 @@
             return;
         }
 
+        if (path === '/star-map') {
+            if (currentAssistantData) {
+                openStarMap(false, false);
+            } else {
+                switchToHeroView(false);
+            }
+            return;
+        }
+
         const chatMatch = path.match(/^\/chat(?:\/([a-zA-Z0-9_\-]+))?$/);
         if (chatMatch) {
             const chatId = chatMatch[1];
@@ -1152,6 +1219,7 @@
     });
 
     function switchToLandingView(updateRoute = true, targetAnchor = 'mcp') {
+        hideStarMapImmediate();
         if (elements.heroView) elements.heroView.style.display = 'none';
         if (elements.chatView) elements.chatView.style.display = 'none';
         if (elements.profileView) elements.profileView.style.display = 'none';
@@ -1889,6 +1957,7 @@
     }
 
     function switchToChatView(updateRoute = true) {
+        hideStarMapImmediate();
         document.body.classList.remove('landing-active');
         if (elements.heroView) elements.heroView.style.display = 'none';
         if (elements.landingView) elements.landingView.style.display = 'none';
@@ -1902,6 +1971,7 @@
     }
 
     function switchToProfileView(updateRoute = true) {
+        hideStarMapImmediate();
         document.body.classList.remove('landing-active');
         if (elements.heroView) elements.heroView.style.display = 'none';
         if (elements.landingView) elements.landingView.style.display = 'none';
@@ -1916,6 +1986,7 @@
     }
 
     function switchToHeroView(updateRoute = true) {
+        hideStarMapImmediate();
         document.body.classList.remove('landing-active');
         if (elements.profileView) elements.profileView.style.display = 'none';
         if (elements.landingView) elements.landingView.style.display = 'none';
@@ -1923,6 +1994,8 @@
         if (elements.heroView) elements.heroView.style.display = 'flex';
         if (elements.promptFooter) elements.promptFooter.classList.remove('hidden');
         if (elements.messagesContainer) elements.messagesContainer.innerHTML = '';
+        currentAssistantData = null;
+        currentQueryText = '';
         if (elements.promptInput) elements.promptInput.value = '';
         adjustTextareaHeight();
         document.querySelectorAll('.recent-chat-item').forEach(i => i.classList.remove('active'));
@@ -2005,7 +2078,13 @@
         const cardTitle = isRu ? 'Errorium RAG-синтез (BM25 Ядро)' : 'Errorium RAG Synthesis (BM25 Core)';
         const solutionCodeText = isRu ? 'Код решения' : 'Solution Code';
         const copyCodeText = isRu ? 'Скопировать код' : 'Copy code';
+
         const sourcesText = isRu ? `Источники Stack Overflow (${assistantData.sources.length})` : `Stack Overflow Sources (${assistantData.sources.length})`;
+        const starMapText = isRu ? 'Карта связей' : 'Star Map';
+        const starMapTitle = isRu ? 'Открыть карту связей' : 'Open Star Map';
+
+        currentQueryText = userText;
+        currentAssistantData = assistantData;
 
         elements.messagesContainer.innerHTML = `
             <!-- User Message -->
@@ -2019,6 +2098,24 @@
                     <img src="/favicon.png" alt="Mascot" width="28" height="28">
                 </div>
                 <div class="assistant-card">
+                    <div class="card-top-bar">
+                        <div class="badge-mascot">
+                            <img src="/mascot.png" alt="Mascot" width="22">
+                        </div>
+                        <span class="card-title">${cardTitle}</span>
+                        <button class="star-map-open-btn" onclick="openStarMapFromCard()" title="${starMapTitle}" aria-label="${starMapTitle}">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="5" cy="6" r="2.2"></circle>
+                                <circle cx="19" cy="5" r="2.2"></circle>
+                                <circle cx="12" cy="12" r="2.6"></circle>
+                                <circle cx="6" cy="19" r="2.2"></circle>
+                                <circle cx="19" cy="18" r="2.2"></circle>
+                                <path d="M7 7.5 10 10.5M14 10.5 17.2 6.6M10 14 7.3 17.4M14.2 13.8 17.3 16.6"></path>
+                            </svg>
+                            <span>${starMapText}</span>
+                        </button>
+                    </div>
+
                     <div class="card-solution-text">
                         ${assistantData.solution}
                     </div>
@@ -2101,9 +2198,1004 @@
         }
     };
 
+    // =========================================================================
+    // Star Map — Interactive Graph of Related SO Threads (FR-3, ADR-006)
+    // Vanilla Canvas 2D + custom force simulation. Mock data until GraphService
+    // integration (FR-3.5); node/edge shapes mirror protos/graph.proto.
+    // =========================================================================
+    let currentQueryText = '';
+    let currentAssistantData = null;
+    let starMapReturnUrl = '/';
+
+    const STAR_MAP_COLORS = {
+        PRIMARY_RESULT: '#10b981',
+        OTHER_RESULT: '#f59e0b',
+        DUPLICATE: '#38bdf8',
+        LINKED: '#a855f7'
+    };
+
+    // Progressive label tiers: zoom threshold -> max title length
+    const STAR_MAP_LABEL_TIERS = [
+        { k: 0.7, len: 12 },
+        { k: 1.15, len: 26 },
+        { k: 1.8, len: 48 }
+    ];
+
+    // Mock pool of related Stack Overflow threads (FR-3.5)
+    const MOCK_RELATED_THREADS = [
+        {
+            doc_id: 1132941,
+            title: 'Least Astonishment and the Mutable Default Argument',
+            snippet: 'Why does a Python function with a default list argument keep values between calls? The default object is created once at definition time.',
+            tags: ['python', 'list', 'default-argument'],
+            score: 6890, accepted: true,
+            answer: 'Default arguments are evaluated once, when the function is defined — not on each call. A mutable default (list, dict) is therefore shared across all calls.\n\nUse None as the default and create the object inside the function:\n\ndef append_to(item, target=None):\n    if target is None:\n        target = []\n    target.append(item)\n    return target',
+            url: 'https://stackoverflow.com/questions/1132941'
+        },
+        {
+            doc_id: 53513,
+            title: 'How do I check if a list is empty?',
+            snippet: 'What is the most pythonic way to test whether a list has no elements? Comparing to [] or checking len() both feel verbose.',
+            tags: ['python', 'list'],
+            score: 4520, accepted: true,
+            answer: 'Empty sequences are falsy in Python, so the idiomatic check is:\n\nif not my_list:\n    print("list is empty")\n\nAvoid len(my_list) == 0 — it is slower and less readable. The same pattern works for strings, tuples and dicts.',
+            url: 'https://stackoverflow.com/questions/53513'
+        },
+        {
+            doc_id: 1720421,
+            title: 'How to concatenate two lists in Python?',
+            snippet: 'I want to merge list_a and list_b into a single list. What is the difference between +, extend() and unpacking?',
+            tags: ['python', 'list', 'concatenation'],
+            score: 3110, accepted: true,
+            answer: 'Use + to build a new list, or extend() to mutate in place:\n\nmerged = list_a + list_b      # new list\nlist_a.extend(list_b)         # modifies list_a\n\nSince Python 3.5 you can also unpack: merged = [*list_a, *list_b]. Note that + requires both operands to be lists, while extend() accepts any iterable.',
+            url: 'https://stackoverflow.com/questions/1720421'
+        },
+        {
+            doc_id: 38987,
+            title: 'How do I merge two dictionaries in a single expression?',
+            snippet: 'Merging dict x and dict y so that values from y win on key conflicts. Looking for a clean one-liner.',
+            tags: ['python', 'dictionary'],
+            score: 4860, accepted: true,
+            answer: 'Python 3.9+ supports the merge operator:\n\nz = x | y\n\nPython 3.5+: z = {**x, **y}\n\nOlder versions: z = dict(x, **y) — only works when y keys are strings. In all cases values from y override values from x on conflicts.',
+            url: 'https://stackoverflow.com/questions/38987'
+        },
+        {
+            doc_id: 176918,
+            title: 'Finding the index of an item in a list',
+            snippet: 'Given a list and a value, how do I get the position of the value? And what happens when the value is not present?',
+            tags: ['python', 'list', 'indexing'],
+            score: 3720, accepted: true,
+            answer: 'Use the built-in index() method:\n\nidx = my_list.index("foo")\n\nIt raises ValueError when the item is absent, so guard with a membership test or try/except. To get all positions use enumerate:\n\n[i for i, v in enumerate(my_list) if v == "foo"]',
+            url: 'https://stackoverflow.com/questions/176918'
+        },
+        {
+            doc_id: 231767,
+            title: "What does the 'yield' keyword do in Python?",
+            snippet: 'Confused about generators: how does yield differ from return, and what is the point of iterating over a generator?',
+            tags: ['python', 'generator', 'yield'],
+            score: 7340, accepted: true,
+            answer: 'yield turns a function into a generator. Each call to next() runs the function until the next yield, produces that value and suspends state — instead of computing everything upfront like return.\n\ndef countdown(n):\n    while n > 0:\n        yield n\n        n -= 1\n\nGenerators are lazy and memory-efficient: they produce items one at a time, which matters for large or infinite sequences.',
+            url: 'https://stackoverflow.com/questions/231767'
+        },
+        {
+            doc_id: 2052390,
+            title: 'Manually raising (throwing) an exception in Python',
+            snippet: 'How do I raise an exception on purpose so that callers can catch it? Which exception type should I pick?',
+            tags: ['python', 'exception', 'raise'],
+            score: 3280, accepted: true,
+            answer: 'Use the raise statement with an exception instance:\n\nraise ValueError("config must not be empty")\n\nPick the built-in type that matches the semantics (ValueError, TypeError, KeyError...). Inside an except block, bare raise re-raises the current exception preserving the traceback. Define custom types by subclassing Exception for domain errors.',
+            url: 'https://stackoverflow.com/questions/2052390'
+        },
+        {
+            doc_id: 1712227,
+            title: 'How do I get the number of elements in a list in Python?',
+            snippet: 'Looking for the equivalent of length/size methods from other languages to count items in a list.',
+            tags: ['python', 'list', 'len'],
+            score: 4210, accepted: true,
+            answer: 'Use the built-in len() function:\n\ncount = len(my_list)\n\nlen() is O(1) for lists — the size is stored, not counted. It works on any sized container: str, tuple, dict, set. For lazy iterators without a known size, consume them with sum(1 for _ in it) instead.',
+            url: 'https://stackoverflow.com/questions/1712227'
+        },
+        {
+            doc_id: 613183,
+            title: 'How do I sort a dictionary by value?',
+            snippet: 'I have a dict of word counts and want to order entries by value descending. dict itself has no sort method.',
+            tags: ['python', 'dictionary', 'sorting'],
+            score: 3540, accepted: true,
+            answer: 'Sort the items with a key function:\n\nsorted_items = sorted(d.items(), key=lambda kv: kv[1], reverse=True)\n\nSince Python 3.7 dicts preserve insertion order, so you can rebuild one: dict(sorted_items). For the top-n entries, collections.Counter(d).most_common(n) is even shorter.',
+            url: 'https://stackoverflow.com/questions/613183'
+        },
+        {
+            doc_id: 101268,
+            title: 'Hidden features of Python',
+            snippet: 'Community wiki of lesser-known language features: chained comparisons, argument unpacking, else on loops and more.',
+            tags: ['python', 'language-features'],
+            score: 5230, accepted: true,
+            answer: 'A few favorites:\n\n- Chained comparisons: 0 < x < 10\n- Argument unpacking: func(*args, **kwargs)\n- for/else: else runs when the loop was not broken\n- Conditional expressions: value = a if cond else b\n- Swapping without a temp: a, b = b, a\n\nMost of these remove boilerplate while keeping the code readable.',
+            url: 'https://stackoverflow.com/questions/101268'
+        },
+        {
+            doc_id: 26595,
+            title: "Is there any difference between 'foo is None' and 'foo == None'?",
+            snippet: 'Both checks seem to work. Is one of them preferred, and can == None ever give a wrong answer?',
+            tags: ['python', 'none', 'comparison'],
+            score: 1620, accepted: true,
+            answer: 'Use is None. None is a singleton, and identity comparison is exact and fast. == invokes __eq__, which a class can overload to return True for anything — so == None can lie. PEP 8 explicitly recommends is / is not for None checks.',
+            url: 'https://stackoverflow.com/questions/26595'
+        },
+        {
+            doc_id: 13076951,
+            title: "TypeError: 'int' object is not iterable when looping",
+            snippet: 'for i in 5: raises TypeError. I expected it to loop five times like range-based loops in other languages.',
+            tags: ['python', 'typeerror', 'list'],
+            score: 1240, accepted: true,
+            answer: 'An int is not iterable — Python has no implicit numeric range. Wrap the number in range():\n\nfor i in range(5):\n    print(i)\n\nThe same TypeError appears when unpacking or passing an int where a sequence is expected, e.g. list(5). Check that the object you iterate over is actually a collection.',
+            url: 'https://stackoverflow.com/questions/13076951'
+        },
+        {
+            doc_id: 419163,
+            title: "What does if __name__ == '__main__': do?",
+            snippet: 'Every script seems to end with this guard. What problem does it solve when a file is both imported and executed?',
+            tags: ['python', 'module', 'main'],
+            score: 4930, accepted: true,
+            answer: 'When a file runs as a script, Python sets __name__ to "__main__"; when it is imported, __name__ is the module name. The guard therefore runs code only on direct execution:\n\nif __name__ == "__main__":\n    main()\n\nThis lets a module expose reusable functions without side effects on import — essential for testable code.',
+            url: 'https://stackoverflow.com/questions/419163'
+        },
+        {
+            doc_id: 379906,
+            title: 'How do I convert a string to an integer in Python?',
+            snippet: 'Parsing numeric user input: int("42") works, but what about floats, whitespace and invalid strings?',
+            tags: ['python', 'string', 'type-conversion'],
+            score: 2860, accepted: true,
+            answer: 'Use int() for whole numbers and float() for decimals:\n\nn = int("42")        # 42\nx = float("3.14")    # 3.14\n\nint() tolerates surrounding whitespace but raises ValueError on invalid input ("4.2" is not an int string — go through float first). Wrap parsing in try/except ValueError when the source is user input.',
+            url: 'https://stackoverflow.com/questions/379906'
+        }
+    ];
+
+    function hashString(str) {
+        let h = 2166136261;
+        for (let i = 0; i < str.length; i++) {
+            h ^= str.charCodeAt(i);
+            h = Math.imul(h, 16777619);
+        }
+        return h >>> 0;
+    }
+
+    function mulberry32(seed) {
+        let a = seed >>> 0;
+        return function () {
+            a |= 0;
+            a = (a + 0x6D2B79F5) | 0;
+            let t = Math.imul(a ^ (a >>> 15), 1 | a);
+            t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+            return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+    }
+
+    function truncateText(text, limit) {
+        const clean = String(text || '').replace(/\s+/g, ' ').trim();
+        return clean.length > limit ? clean.slice(0, limit - 1) + '…' : clean;
+    }
+
+    function easeOutBack(x) {
+        const c1 = 1.70158;
+        const c3 = c1 + 1;
+        return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2);
+    }
+
+    function easeOutCubic(x) {
+        return 1 - Math.pow(1 - x, 3);
+    }
+
+    // Four-point sparkle star path centered at (0, 0), outer radius r
+    function starPath(ctx, r) {
+        const waist = r * 0.15;
+        ctx.beginPath();
+        ctx.moveTo(0, -r);
+        ctx.quadraticCurveTo(waist, -waist, r, 0);
+        ctx.quadraticCurveTo(waist, waist, 0, r);
+        ctx.quadraticCurveTo(-waist, waist, -r, 0);
+        ctx.quadraticCurveTo(-waist, -waist, 0, -r);
+        ctx.closePath();
+    }
+
+    function colorWithAlpha(hex, alpha) {
+        const v = parseInt(hex.slice(1), 16);
+        return `rgba(${(v >> 16) & 255}, ${(v >> 8) & 255}, ${v & 255}, ${alpha})`;
+    }
+
+    // Builds a graph compatible with ThreadGraphResponse (protos/graph.proto)
+    // from the RAG answer sources plus the mock related-thread pool.
+    function buildStarMapGraph(assistantData, query) {
+        const rand = mulberry32(hashString(query || 'errorium'));
+        const nodes = [];
+        const edges = [];
+        const usedIds = new Set();
+
+        const addNode = (n) => {
+            if (usedIds.has(n.doc_id)) return null;
+            usedIds.add(n.doc_id);
+            nodes.push(n);
+            return n;
+        };
+
+        const sourceTags = new Set();
+        const primaryAnswer = assistantData.solution + (assistantData.code ? '\n\n' + assistantData.code : '');
+
+        assistantData.sources.forEach((src, i) => {
+            const urlMatch = /questions\/(\d+)/.exec(src.url || '');
+            const docId = urlMatch ? parseInt(urlMatch[1], 10) : 90000000 + i;
+            (src.tags || []).forEach(tag => sourceTags.add(tag));
+            addNode({
+                doc_id: docId,
+                category: i === 0 ? 'PRIMARY_RESULT' : 'OTHER_RESULT',
+                score: src.score || 1,
+                title: src.title,
+                snippet: src.snippet || truncateText(assistantData.solution, 150),
+                has_accepted_answer: !!src.accepted,
+                tags: src.tags || [],
+                best_answer_score: Math.max(1, Math.round((src.score || 1) * 0.4)),
+                best_answer_body: primaryAnswer,
+                original_url: src.url
+            });
+        });
+
+        const primary = nodes[0];
+        const others = nodes.slice(1);
+
+        const queryWords = (query || '').toLowerCase().split(/[^a-zа-яё0-9_]+/i).filter(w => w.length > 3);
+        const ranked = MOCK_RELATED_THREADS
+            .filter(t => !usedIds.has(t.doc_id))
+            .map(t => {
+                let relevance = t.tags.filter(tag => sourceTags.has(tag)).length * 2;
+                const haystack = (t.title + ' ' + t.tags.join(' ')).toLowerCase();
+                queryWords.forEach(w => { if (haystack.includes(w)) relevance += 1; });
+                return { thread: t, relevance: relevance + rand() * 0.5 };
+            })
+            .sort((a, b) => b.relevance - a.relevance)
+            .slice(0, 12)
+            .map(entry => entry.thread);
+
+        const duplicates = [];
+        const linked = [];
+        ranked.forEach((t, i) => {
+            const node = addNode({
+                doc_id: t.doc_id,
+                category: i < 3 ? 'DUPLICATE' : 'LINKED',
+                score: t.score,
+                title: t.title,
+                snippet: t.snippet,
+                has_accepted_answer: t.accepted,
+                tags: t.tags,
+                best_answer_score: Math.max(1, Math.round(t.score * 0.6)),
+                best_answer_body: t.answer,
+                original_url: t.url
+            });
+            if (!node) return;
+            if (node.category === 'DUPLICATE') duplicates.push(node);
+            else linked.push(node);
+        });
+
+        const addEdge = (source, target, type) => {
+            if (!source || !target || source.doc_id === target.doc_id) return;
+            edges.push({ source_doc_id: source.doc_id, target_doc_id: target.doc_id, type });
+        };
+
+        others.forEach(o => addEdge(o, primary, 'LINKED_IN_ANSWER'));
+        duplicates.forEach(d => addEdge(d, primary, 'DUPLICATE_OF'));
+        linked.forEach(l => {
+            const anchor = others.length && rand() < 0.5 ? others[Math.floor(rand() * others.length)] : primary;
+            addEdge(l, anchor, 'LINKED_IN_ANSWER');
+        });
+        for (let i = 0; i + 1 < linked.length; i += 3) {
+            addEdge(linked[i], linked[i + 1], 'LINKED_IN_ANSWER');
+        }
+
+        return { nodes, edges };
+    }
+
+    // Canvas engine: custom force simulation (repulsion + springs + gravity + damping)
+    const StarMap = {
+        canvas: null, ctx: null, dpr: 1, w: 0, h: 0,
+        nodes: [], edges: [], nodeById: new Map(),
+        view: { x: 0, y: 0, k: 1 },
+        zoomAnim: null,
+        alpha: 1, raf: 0, active: false,
+        hoverNode: null, selectedNode: null,
+        dragNode: null, panning: false,
+        pointers: new Map(), moved: 0, lastPinchDist: 0,
+        stars: [], listenersBound: false, resizeObserver: null,
+        reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+
+        mount(graph) {
+            this.canvas = elements.starMapCanvas;
+            if (!this.canvas) return;
+            this.ctx = this.canvas.getContext('2d');
+            this.active = true;
+            this.hoverNode = null;
+            this.selectedNode = null;
+            this.dragNode = null;
+            this.panning = false;
+            this.pointers.clear();
+            this.zoomAnim = null;
+            this.alpha = 1;
+
+            const rand = mulberry32(hashString(currentQueryText || 'star-map'));
+            const now = performance.now();
+            this.nodeById = new Map();
+            this.nodes = graph.nodes.map((n, i) => {
+                const angle = rand() * Math.PI * 2;
+                const radius = n.category === 'PRIMARY_RESULT' ? 0 : 130 + rand() * 170;
+                const runtime = Object.assign({}, n, {
+                    x: Math.cos(angle) * radius,
+                    y: Math.sin(angle) * radius,
+                    vx: 0, vy: 0,
+                    r: Math.min(17, Math.max(5, 4 + Math.sqrt(Math.max(1, n.score)) * 0.15)) + (n.category === 'PRIMARY_RESULT' ? 1.5 : 0),
+                    color: STAR_MAP_COLORS[n.category] || '#94a3b8',
+                    tilt: (rand() - 0.5) * 0.6,
+                    twinklePhase: rand() * Math.PI * 2,
+                    twinkleSpeed: 0.7 + rand() * 1.1,
+                    birth: this.reducedMotion ? now : now + 120 + i * 45
+                });
+                this.nodeById.set(n.doc_id, runtime);
+                return runtime;
+            });
+            this.edges = graph.edges
+                .map(e => ({ source: this.nodeById.get(e.source_doc_id), target: this.nodeById.get(e.target_doc_id), type: e.type }))
+                .filter(e => e.source && e.target);
+
+            this.stars = [];
+            for (let i = 0; i < 140; i++) {
+                this.stars.push({
+                    x: Math.random(), y: Math.random(),
+                    size: 0.4 + Math.random() * 1.1,
+                    base: 0.12 + Math.random() * 0.4,
+                    phase: Math.random() * Math.PI * 2,
+                    speed: 0.4 + Math.random() * 1.2
+                });
+            }
+
+            this.bindEvents();
+            this.resize();
+            this.fitView();
+            this.hideTooltip();
+            this.closeDetails(true);
+            if (elements.starMapHint) elements.starMapHint.classList.remove('dismissed');
+            this.canvas.style.cursor = 'grab';
+
+            cancelAnimationFrame(this.raf);
+            const loop = (t) => {
+                if (!this.active) return;
+                this.tick();
+                this.applyViewAnimation(t);
+                this.render(t);
+                this.raf = requestAnimationFrame(loop);
+            };
+            this.raf = requestAnimationFrame(loop);
+        },
+
+        unmount() {
+            this.active = false;
+            cancelAnimationFrame(this.raf);
+            this.nodes = [];
+            this.edges = [];
+            this.nodeById = new Map();
+            this.hoverNode = null;
+            this.selectedNode = null;
+            this.dragNode = null;
+            this.panning = false;
+            this.pointers.clear();
+            this.zoomAnim = null;
+            this.hideTooltip();
+            this.closeDetails(true);
+        },
+
+        resize() {
+            if (!this.canvas) return;
+            const rect = this.canvas.getBoundingClientRect();
+            this.dpr = window.devicePixelRatio || 1;
+            this.w = rect.width;
+            this.h = rect.height;
+            this.canvas.width = Math.max(1, Math.round(rect.width * this.dpr));
+            this.canvas.height = Math.max(1, Math.round(rect.height * this.dpr));
+        },
+
+        fitTarget() {
+            if (!this.nodes.length || !this.w || !this.h) return null;
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            this.nodes.forEach(n => {
+                minX = Math.min(minX, n.x - n.r);
+                maxX = Math.max(maxX, n.x + n.r);
+                minY = Math.min(minY, n.y - n.r);
+                maxY = Math.max(maxY, n.y + n.r);
+            });
+            const pad = 90;
+            const k = Math.min(1.6, Math.max(0.3, Math.min(this.w / (maxX - minX + pad * 2), this.h / (maxY - minY + pad * 2))));
+            return {
+                k,
+                x: this.w / 2 - ((minX + maxX) / 2) * k,
+                y: this.h / 2 - ((minY + maxY) / 2) * k
+            };
+        },
+
+        fitView() {
+            const target = this.fitTarget();
+            if (!target) return;
+            this.view.x = target.x;
+            this.view.y = target.y;
+            this.view.k = target.k;
+        },
+
+        fitViewSmooth() {
+            const target = this.fitTarget();
+            if (target) this.animateViewTo(target, 340);
+        },
+
+        zoomAt(px, py, factor) {
+            const k2 = Math.min(3.2, Math.max(0.3, this.view.k * factor));
+            const ratio = k2 / this.view.k;
+            this.view.x = px - (px - this.view.x) * ratio;
+            this.view.y = py - (py - this.view.y) * ratio;
+            this.view.k = k2;
+        },
+
+        // Smooth button zoom: repeated clicks compound onto the pending target
+        zoomSmooth(px, py, factor) {
+            const base = this.zoomAnim ? this.zoomAnim.to : this.view;
+            const k2 = Math.min(3.2, Math.max(0.3, base.k * factor));
+            const ratio = k2 / base.k;
+            this.animateViewTo({
+                k: k2,
+                x: px - (px - base.x) * ratio,
+                y: py - (py - base.y) * ratio
+            }, 280);
+        },
+
+        animateViewTo(target, duration = 280) {
+            if (this.reducedMotion) {
+                this.zoomAnim = null;
+                this.view.x = target.x;
+                this.view.y = target.y;
+                this.view.k = target.k;
+                return;
+            }
+            this.zoomAnim = {
+                from: { x: this.view.x, y: this.view.y, k: this.view.k },
+                to: target,
+                start: performance.now(),
+                duration
+            };
+        },
+
+        applyViewAnimation(now) {
+            const anim = this.zoomAnim;
+            if (!anim) return;
+            const t = Math.min(1, (now - anim.start) / anim.duration);
+            const e = easeOutCubic(t);
+            this.view.x = anim.from.x + (anim.to.x - anim.from.x) * e;
+            this.view.y = anim.from.y + (anim.to.y - anim.from.y) * e;
+            this.view.k = anim.from.k + (anim.to.k - anim.from.k) * e;
+            if (t >= 1) this.zoomAnim = null;
+        },
+
+        toWorld(px, py) {
+            return { x: (px - this.view.x) / this.view.k, y: (py - this.view.y) / this.view.k };
+        },
+
+        pickNode(wx, wy) {
+            for (let i = this.nodes.length - 1; i >= 0; i--) {
+                const n = this.nodes[i];
+                const dx = wx - n.x;
+                const dy = wy - n.y;
+                if (dx * dx + dy * dy <= (n.r + 5) * (n.r + 5)) return n;
+            }
+            return null;
+        },
+
+        tick() {
+            if (this.alpha < 0.004) return;
+            const a = this.alpha;
+            const nodes = this.nodes;
+            const repulsion = 2600;
+            const spring = 0.028;
+            const gravity = 0.012;
+            const damping = 0.82;
+
+            for (let i = 0; i < nodes.length; i++) {
+                const ni = nodes[i];
+                for (let j = i + 1; j < nodes.length; j++) {
+                    const nj = nodes[j];
+                    let dx = ni.x - nj.x;
+                    let dy = ni.y - nj.y;
+                    let d2 = dx * dx + dy * dy;
+                    if (d2 < 1) {
+                        dx = Math.random() - 0.5;
+                        dy = Math.random() - 0.5;
+                        d2 = dx * dx + dy * dy + 0.01;
+                    }
+                    if (d2 > 90000) continue;
+                    const d = Math.sqrt(d2);
+                    const f = (repulsion * a) / d2;
+                    const fx = (dx / d) * f;
+                    const fy = (dy / d) * f;
+                    ni.vx += fx; ni.vy += fy;
+                    nj.vx -= fx; nj.vy -= fy;
+                }
+            }
+
+            this.edges.forEach(e => {
+                const dx = e.target.x - e.source.x;
+                const dy = e.target.y - e.source.y;
+                const d = Math.sqrt(dx * dx + dy * dy) || 1;
+                const rest = 105 + e.source.r + e.target.r;
+                const f = (d - rest) * spring * a;
+                const fx = (dx / d) * f;
+                const fy = (dy / d) * f;
+                e.source.vx += fx; e.source.vy += fy;
+                e.target.vx -= fx; e.target.vy -= fy;
+            });
+
+            nodes.forEach(n => {
+                if (n === this.dragNode) { n.vx = 0; n.vy = 0; return; }
+                n.vx -= n.x * gravity * a;
+                n.vy -= n.y * gravity * a;
+                n.vx *= damping;
+                n.vy *= damping;
+                n.x += n.vx;
+                n.y += n.vy;
+            });
+
+            this.alpha *= 0.982;
+        },
+
+        render(now) {
+            const ctx = this.ctx;
+            if (!ctx) return;
+            ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+            ctx.clearRect(0, 0, this.w, this.h);
+
+            this.stars.forEach(s => {
+                const twinkle = this.reducedMotion ? 1 : 0.65 + 0.35 * Math.sin(now * 0.001 * s.speed + s.phase);
+                ctx.globalAlpha = s.base * twinkle;
+                ctx.fillStyle = '#9db4d8';
+                ctx.beginPath();
+                ctx.arc(s.x * this.w, s.y * this.h, s.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1;
+
+            ctx.save();
+            ctx.translate(this.view.x, this.view.y);
+            ctx.scale(this.view.k, this.view.k);
+
+            const focus = this.hoverNode || this.selectedNode;
+            const neighbors = new Set();
+            if (focus) {
+                neighbors.add(focus.doc_id);
+                this.edges.forEach(e => {
+                    if (e.source === focus) neighbors.add(e.target.doc_id);
+                    if (e.target === focus) neighbors.add(e.source.doc_id);
+                });
+            }
+
+            this.edges.forEach(e => {
+                const connected = focus && (e.source === focus || e.target === focus);
+                let alpha = focus ? (connected ? 0.6 : 0.05) : 0.16;
+                const birthEdge = Math.max(e.source.birth, e.target.birth);
+                const edgeGrow = this.reducedMotion ? 1 : Math.min(1, Math.max(0, (now - birthEdge - 200) / 500));
+                alpha *= edgeGrow;
+                if (alpha <= 0.01) return;
+                ctx.strokeStyle = e.type === 'DUPLICATE_OF' ? `rgba(56, 189, 248, ${alpha})` : `rgba(167, 139, 250, ${alpha})`;
+                ctx.lineWidth = (connected ? 1.8 : 1.1) / this.view.k;
+                ctx.setLineDash(e.type === 'DUPLICATE_OF' ? [5 / this.view.k, 5 / this.view.k] : []);
+                ctx.beginPath();
+                ctx.moveTo(e.source.x, e.source.y);
+                ctx.lineTo(e.target.x, e.target.y);
+                ctx.stroke();
+            });
+            ctx.setLineDash([]);
+
+            this.nodes.forEach(n => {
+                const grow = this.reducedMotion ? 1 : easeOutBack(Math.min(1, Math.max(0, (now - n.birth) / 450)));
+                if (grow <= 0.01) return;
+                const dimmed = focus && !neighbors.has(n.doc_id);
+                const r = n.r * grow;
+                const twinkle = this.reducedMotion ? 1 : 0.82 + 0.18 * Math.sin(now * 0.0016 * n.twinkleSpeed + n.twinklePhase);
+                ctx.globalAlpha = dimmed ? 0.22 : 1;
+
+                // Soft halo in the node's own color
+                const haloR = r * 2.4;
+                const halo = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, haloR);
+                halo.addColorStop(0, colorWithAlpha(n.color, 0.34 * twinkle));
+                halo.addColorStop(0.55, colorWithAlpha(n.color, 0.1 * twinkle));
+                halo.addColorStop(1, colorWithAlpha(n.color, 0));
+                ctx.fillStyle = halo;
+                ctx.beginPath();
+                ctx.arc(n.x, n.y, haloR, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Four-point sparkle body with colored glow
+                ctx.save();
+                ctx.translate(n.x, n.y);
+                ctx.rotate(n.tilt);
+                ctx.shadowColor = n.color;
+                ctx.shadowBlur = (n === focus ? 24 : 14) * twinkle;
+                ctx.fillStyle = n.color;
+                starPath(ctx, r);
+                ctx.fill();
+                ctx.fill();
+                ctx.shadowBlur = 0;
+
+                // Hot white mini-star core with soft edges, aligned with the body
+                const coreR = Math.max(2, r * 0.32);
+                const coreGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, coreR);
+                coreGrad.addColorStop(0, `rgba(255, 255, 255, ${0.95 * twinkle})`);
+                coreGrad.addColorStop(0.55, `rgba(255, 255, 255, ${0.55 * twinkle})`);
+                coreGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                ctx.shadowColor = `rgba(255, 255, 255, ${0.8 * twinkle})`;
+                ctx.shadowBlur = 5 * twinkle;
+                ctx.fillStyle = coreGrad;
+                starPath(ctx, coreR);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                ctx.restore();
+
+                if (n === this.selectedNode) {
+                    const pulse = this.reducedMotion ? 0 : Math.sin(now * 0.004) * 2;
+                    ctx.strokeStyle = n.color;
+                    ctx.globalAlpha = (dimmed ? 0.22 : 1) * 0.65;
+                    ctx.lineWidth = 1.6 / this.view.k;
+                    ctx.beginPath();
+                    ctx.arc(n.x, n.y, r + 6 + pulse, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.globalAlpha = dimmed ? 0.22 : 1;
+                } else if (n === this.hoverNode) {
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.75)';
+                    ctx.lineWidth = 1.4 / this.view.k;
+                    ctx.beginPath();
+                    ctx.arc(n.x, n.y, r + 4, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                // Progressive labels: short at low zoom, fuller as zoom grows
+                const k = this.view.k;
+                const focusRelated = n === focus || (focus && neighbors.has(n.doc_id));
+                let tierIdx = -1;
+                for (let i = STAR_MAP_LABEL_TIERS.length - 1; i >= 0; i--) {
+                    if (k >= STAR_MAP_LABEL_TIERS[i].k) { tierIdx = i; break; }
+                }
+                if ((tierIdx >= 0 || focusRelated) && grow > 0.6) {
+                    const idx = Math.max(0, tierIdx);
+                    const tier = STAR_MAP_LABEL_TIERS[idx];
+                    const ramp = tierIdx < 0 ? 1 : Math.min(1, (k - tier.k) / 0.15);
+                    const baseAlpha = dimmed ? 0.3 : 0.95;
+                    const labelY = n.y + r + 6 / k;
+                    ctx.font = `${11 / k}px "JetBrains Mono", monospace`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'top';
+                    ctx.fillStyle = '#8fa3bf';
+                    if (idx > 0 && ramp < 1) {
+                        ctx.globalAlpha = baseAlpha * (1 - ramp);
+                        ctx.fillText(truncateText(n.title, STAR_MAP_LABEL_TIERS[idx - 1].len), n.x, labelY);
+                    }
+                    ctx.globalAlpha = baseAlpha * ramp;
+                    ctx.fillText(truncateText(n.title, tier.len), n.x, labelY);
+                    ctx.globalAlpha = dimmed ? 0.22 : 1;
+                }
+            });
+
+            ctx.globalAlpha = 1;
+            ctx.restore();
+        },
+
+        showTooltip(node, px, py) {
+            const tip = elements.starMapTooltip;
+            if (!tip) return;
+            tip.innerHTML = `
+                <div class="star-map-tooltip-title">${escapeHtml(node.title)}</div>
+                <div class="star-map-tooltip-snippet">${escapeHtml(node.snippet)}</div>
+                <div class="star-map-tooltip-tags">${node.tags.map(tag => '#' + escapeHtml(tag)).join(' ')}</div>
+            `;
+            tip.style.display = 'flex';
+            const tipW = tip.offsetWidth;
+            const tipH = tip.offsetHeight;
+            let left = px + 16;
+            let top = py + 16;
+            if (left + tipW > this.w - 12) left = px - tipW - 16;
+            if (top + tipH > this.h - 12) top = py - tipH - 16;
+            tip.style.left = Math.max(8, left) + 'px';
+            tip.style.top = Math.max(8, top) + 'px';
+        },
+
+        hideTooltip() {
+            if (elements.starMapTooltip) elements.starMapTooltip.style.display = 'none';
+        },
+
+        openDetails(node) {
+            const panel = elements.starMapDetailPanel;
+            if (!panel) return;
+            const isRu = getCurrentLanguage() === 'Русский';
+            const categoryNames = {
+                PRIMARY_RESULT: isRu ? 'Лучший результат' : 'Top result',
+                OTHER_RESULT: isRu ? 'Результат Top-K' : 'Top-K result',
+                DUPLICATE: isRu ? 'Тред-дубликат' : 'Duplicate thread',
+                LINKED: isRu ? 'Связанный тред' : 'Linked thread'
+            };
+            const acceptedText = isRu ? 'Принятый ответ' : 'Accepted answer';
+            const bestText = isRu ? 'Лучший ответ' : 'Best answer';
+
+            elements.starMapDetailCategory.textContent = categoryNames[node.category] || '';
+            elements.starMapDetailCategory.style.setProperty('--cat-color', node.color);
+            elements.starMapDetailTitle.textContent = node.title;
+            elements.starMapDetailTags.innerHTML = node.tags.map(tag => `<span class="star-map-detail-tag">#${escapeHtml(tag)}</span>`).join('');
+            elements.starMapDetailAnswerLabel.textContent = node.has_accepted_answer ? acceptedText : bestText;
+            elements.starMapDetailAnswer.textContent = node.best_answer_body || '';
+            elements.starMapDetailLink.href = node.original_url || '#';
+
+            panel.style.display = 'flex';
+            requestAnimationFrame(() => panel.classList.add('open'));
+        },
+
+        closeDetails(immediate = false) {
+            const panel = elements.starMapDetailPanel;
+            if (!panel) return;
+            panel.classList.remove('open');
+            if (immediate) {
+                panel.style.display = 'none';
+            } else {
+                setTimeout(() => {
+                    if (!panel.classList.contains('open')) panel.style.display = 'none';
+                }, 360);
+            }
+        },
+
+        bindEvents() {
+            if (this.listenersBound || !this.canvas) return;
+            this.listenersBound = true;
+            const canvas = this.canvas;
+
+            canvas.addEventListener('pointerdown', (e) => {
+                if (!this.active) return;
+                this.zoomAnim = null;
+                canvas.setPointerCapture(e.pointerId);
+                this.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+                if (elements.starMapHint) elements.starMapHint.classList.add('dismissed');
+                if (this.pointers.size === 1) {
+                    const rect = canvas.getBoundingClientRect();
+                    const world = this.toWorld(e.clientX - rect.left, e.clientY - rect.top);
+                    const hit = this.pickNode(world.x, world.y);
+                    this.moved = 0;
+                    if (hit) {
+                        this.dragNode = hit;
+                        this.alpha = Math.max(this.alpha, 0.4);
+                        this.hideTooltip();
+                    } else {
+                        this.panning = true;
+                    }
+                    canvas.style.cursor = 'grabbing';
+                } else if (this.pointers.size === 2) {
+                    this.dragNode = null;
+                    this.panning = false;
+                    const pts = [...this.pointers.values()];
+                    this.lastPinchDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+                }
+            });
+
+            canvas.addEventListener('pointermove', (e) => {
+                if (!this.active) return;
+                const rect = canvas.getBoundingClientRect();
+                const px = e.clientX - rect.left;
+                const py = e.clientY - rect.top;
+                const prev = this.pointers.get(e.pointerId);
+
+                if (prev) {
+                    const dx = e.clientX - prev.x;
+                    const dy = e.clientY - prev.y;
+                    prev.x = e.clientX;
+                    prev.y = e.clientY;
+                    this.moved += Math.abs(dx) + Math.abs(dy);
+
+                    if (this.pointers.size === 2) {
+                        const pts = [...this.pointers.values()];
+                        const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+                        if (this.lastPinchDist > 0 && dist > 0) {
+                            const midX = (pts[0].x + pts[1].x) / 2 - rect.left;
+                            const midY = (pts[0].y + pts[1].y) / 2 - rect.top;
+                            this.zoomAt(midX, midY, dist / this.lastPinchDist);
+                        }
+                        this.lastPinchDist = dist;
+                        return;
+                    }
+
+                    if (this.dragNode) {
+                        const world = this.toWorld(px, py);
+                        this.dragNode.x = world.x;
+                        this.dragNode.y = world.y;
+                        this.dragNode.vx = 0;
+                        this.dragNode.vy = 0;
+                        this.alpha = Math.max(this.alpha, 0.3);
+                        return;
+                    }
+                    if (this.panning) {
+                        this.view.x += dx;
+                        this.view.y += dy;
+                        this.hideTooltip();
+                        return;
+                    }
+                }
+
+                if (this.pointers.size === 0) {
+                    const world = this.toWorld(px, py);
+                    const hit = this.pickNode(world.x, world.y);
+                    if (hit !== this.hoverNode) {
+                        this.hoverNode = hit;
+                        canvas.style.cursor = hit ? 'pointer' : 'grab';
+                    }
+                    if (hit) this.showTooltip(hit, px, py);
+                    else this.hideTooltip();
+                }
+            });
+
+            const releasePointer = (e) => {
+                if (!this.active) return;
+                this.pointers.delete(e.pointerId);
+                if (this.pointers.size < 2) this.lastPinchDist = 0;
+                if (this.pointers.size > 0) return;
+                const wasDrag = this.dragNode;
+                const clicked = this.moved < 6;
+                if (wasDrag && clicked) {
+                    this.selectedNode = wasDrag;
+                    this.openDetails(wasDrag);
+                } else if (this.panning && clicked) {
+                    this.selectedNode = null;
+                    this.closeDetails();
+                }
+                this.dragNode = null;
+                this.panning = false;
+                canvas.style.cursor = this.hoverNode ? 'pointer' : 'grab';
+            };
+            canvas.addEventListener('pointerup', releasePointer);
+            canvas.addEventListener('pointercancel', releasePointer);
+
+            canvas.addEventListener('pointerleave', () => {
+                if (!this.active || this.pointers.size > 0) return;
+                this.hoverNode = null;
+                this.hideTooltip();
+                canvas.style.cursor = 'grab';
+            });
+
+            canvas.addEventListener('wheel', (e) => {
+                if (!this.active) return;
+                e.preventDefault();
+                this.zoomAnim = null;
+                const rect = canvas.getBoundingClientRect();
+                this.zoomAt(e.clientX - rect.left, e.clientY - rect.top, Math.exp(-e.deltaY * 0.0012));
+                if (elements.starMapHint) elements.starMapHint.classList.add('dismissed');
+            }, { passive: false });
+
+            if (!this.resizeObserver && window.ResizeObserver) {
+                this.resizeObserver = new ResizeObserver(() => {
+                    if (this.active) this.resize();
+                });
+                this.resizeObserver.observe(canvas);
+            }
+        }
+    };
+
+    // Animated view transitions: chat + prompt bar leave, Star Map appears (FR-3.4)
+    function openStarMap(animate = true, updateRoute = true) {
+        if (!currentAssistantData || !elements.starMapView) return;
+        if (document.body.classList.contains('star-map-active')) return;
+
+        if (updateRoute) {
+            starMapReturnUrl = window.location.pathname + window.location.search;
+        }
+        const graph = buildStarMapGraph(currentAssistantData, currentQueryText);
+        if (elements.starMapSubtitle) {
+            elements.starMapSubtitle.textContent = truncateText(currentQueryText, 64);
+        }
+
+        if (updateRoute && !isNavigatingFromPopState && window.location.pathname !== '/star-map') {
+            window.history.pushState({ view: 'star-map' }, '', '/star-map');
+        }
+
+        const finalize = () => {
+            document.body.classList.remove('landing-active');
+            if (elements.heroView) elements.heroView.style.display = 'none';
+            if (elements.landingView) elements.landingView.style.display = 'none';
+            if (elements.profileView) elements.profileView.style.display = 'none';
+            if (elements.chatView) {
+                elements.chatView.style.display = 'none';
+                elements.chatView.classList.remove('map-leaving');
+            }
+            if (elements.promptFooter) {
+                elements.promptFooter.classList.add('hidden');
+                elements.promptFooter.classList.remove('map-leaving', 'map-entering');
+            }
+            elements.starMapView.style.display = 'flex';
+            document.body.classList.add('star-map-active');
+            if (animate) {
+                elements.starMapView.classList.add('map-entering');
+                setTimeout(() => elements.starMapView.classList.remove('map-entering'), 480);
+            }
+            StarMap.mount(graph);
+        };
+
+        if (animate && elements.chatView && elements.chatView.style.display !== 'none') {
+            elements.chatView.classList.add('map-leaving');
+            if (elements.promptFooter) elements.promptFooter.classList.add('map-leaving');
+            setTimeout(finalize, 270);
+        } else {
+            finalize();
+        }
+    }
+
+    function closeStarMap(animate = true, updateRoute = true) {
+        if (!document.body.classList.contains('star-map-active')) return;
+
+        const finalize = () => {
+            StarMap.unmount();
+            if (elements.starMapView) {
+                elements.starMapView.style.display = 'none';
+                elements.starMapView.classList.remove('map-leaving', 'map-entering');
+            }
+            document.body.classList.remove('star-map-active');
+            if (elements.chatView) {
+                elements.chatView.style.display = 'flex';
+                if (animate) {
+                    elements.chatView.classList.add('map-entering');
+                    setTimeout(() => elements.chatView.classList.remove('map-entering'), 400);
+                }
+            }
+            if (elements.promptFooter) {
+                elements.promptFooter.classList.remove('hidden', 'map-leaving');
+                if (animate) {
+                    elements.promptFooter.classList.add('map-entering');
+                    setTimeout(() => elements.promptFooter.classList.remove('map-entering'), 400);
+                }
+            }
+            if (updateRoute && !isNavigatingFromPopState) {
+                window.history.pushState({ view: 'chat' }, '', starMapReturnUrl || '/');
+            }
+        };
+
+        if (animate && elements.starMapView) {
+            elements.starMapView.classList.add('map-leaving');
+            setTimeout(finalize, 230);
+        } else {
+            finalize();
+        }
+    }
+
+    function hideStarMapImmediate() {
+        if (!elements.starMapView) return;
+        StarMap.unmount();
+        elements.starMapView.style.display = 'none';
+        elements.starMapView.classList.remove('map-leaving', 'map-entering');
+        document.body.classList.remove('star-map-active');
+        if (elements.chatView) elements.chatView.classList.remove('map-leaving', 'map-entering');
+        if (elements.promptFooter) elements.promptFooter.classList.remove('map-leaving', 'map-entering');
+    }
+
+    elements.btnStarMapBack?.addEventListener('click', () => closeStarMap());
+    elements.btnStarMapZoomIn?.addEventListener('click', () => StarMap.zoomSmooth(StarMap.w / 2, StarMap.h / 2, 1.25));
+    elements.btnStarMapZoomOut?.addEventListener('click', () => StarMap.zoomSmooth(StarMap.w / 2, StarMap.h / 2, 0.8));
+    elements.btnStarMapFit?.addEventListener('click', () => StarMap.fitViewSmooth());
+    elements.btnStarMapDetailClose?.addEventListener('click', () => {
+        StarMap.selectedNode = null;
+        StarMap.closeDetails();
+    });
+
+    window.openStarMapFromCard = function () {
+        openStarMap();
+    };
+
     // Global keyboard shortcuts (ESC to close modals/sidebar, Ctrl/Cmd+B to toggle sidebar)
     document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') {
+            if (document.body.classList.contains('star-map-active')) {
+                closeStarMap();
+                return;
+            }
             closeAllModals();
             closeSidebar();
         } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'b') {
