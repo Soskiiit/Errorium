@@ -851,6 +851,248 @@
         <div id="toast" class="toast-message" style="display: none;" role="status"></div>
     </div>
 
+    <!-- LANDING PAGE VIEW (/mcp and /about) - Standalone Fullscreen Page Outside Main App -->
+    <div id="landing-view" class="landing-standalone-page" style="display: none;">
+        <!-- Landing Header with Left Nav Anchors & Center Errorium Logo -->
+        <header class="landing-header">
+            <div class="landing-header-inner">
+                <nav class="landing-nav-anchors" aria-label="Landing sections">
+                    <a href="#landing-intro" class="landing-anchor-link active">Overview</a>
+                    <a href="#landing-mcp" class="landing-anchor-link">MCP</a>
+                    <a href="#landing-about" class="landing-anchor-link">About us</a>
+                </nav>
+
+                <h1 class="landing-header-logo" id="landing-header-logo" title="Errorium">Errorium</h1>
+
+                <div class="landing-header-right-placeholder" aria-hidden="true"></div>
+            </div>
+        </header>
+
+        <!-- Scrollable Landing Content -->
+        <main class="landing-scroll-body">
+            <div class="landing-content-wrap">
+                <!-- SECTION: INTRO HERO / WELCOME -->
+                <section id="landing-intro" class="landing-section landing-intro-section">
+                    <!-- Background Glow Accent -->
+                    <div class="landing-hero-aura" aria-hidden="true"></div>
+
+                    <div class="landing-badge-welcome">
+                        <span class="welcome-dot"></span>
+                        <span>Next-Gen Engineering Search</span>
+                    </div>
+
+                    <h1 class="landing-welcome-title" id="landing-welcome-title">
+                        Hello, this is <span class="brand-gradient-text" id="landing-welcome-brand">Errorium</span>.
+                    </h1>
+
+                    <!-- Slogan in brand monospace style -->
+                    <div class="landing-welcome-slogan-box">
+                        <p class="landing-slogan-main">
+                            Element<span class="space"> </span><span class="error-code-red">404.</span><span class="space"> </span>Reacts<span class="space"> </span>with<span class="space"> </span>developers
+                        </p>
+                        <p class="landing-slogan-sub">
+                            Stack<span class="space"> </span>overflow.<span class="space"> </span>Issue<span class="space"> </span>overknown.
+                        </p>
+                    </div>
+
+                    <p class="landing-intro-description">
+                        Every cryptic exception, segmentation fault, and runtime panic you encounter in your terminal has already been diagnosed and resolved. Errorium indexes millions of verified software engineering discussions with custom high-precision BM25 ranking, delivering ready-to-run solutions directly to your browser and IDE agent.
+                    </p>
+
+                    <!-- Key Hero Metric Pills -->
+                    <div class="landing-hero-pills-row">
+                        <div class="hero-metric-pill">
+                            <span class="metric-dot blue"></span>
+                            <span>Zero third-party search engines</span>
+                        </div>
+                        <div class="hero-metric-pill">
+                            <span class="metric-dot green"></span>
+                            <span>Sub-millisecond gRPC search core</span>
+                        </div>
+                        <div class="hero-metric-pill">
+                            <span class="metric-dot purple"></span>
+                            <span>Cursor & Claude Code integration</span>
+                        </div>
+                    </div>
+
+                    <!-- Main Action Trigger -->
+                    <div class="landing-hero-actions">
+                        <button type="button" class="landing-hero-cta-btn" id="btn-landing-hero-start">
+                            <span>Start debugging with Errorium</span>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                                <polyline points="12 5 19 12 12 19"></polyline>
+                            </svg>
+                        </button>
+                        <a href="#landing-mcp" class="landing-hero-learn-link">
+                            <span>Explore MCP & Architecture</span>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </a>
+                    </div>
+                </section>
+
+                <!-- SECTION: MCP INTEGRATION -->
+                <section id="landing-mcp" class="landing-section">
+                    <div class="landing-section-header">
+                        <div class="landing-tag">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"></path>
+                            </svg>
+                            <span>AI Integration</span>
+                        </div>
+                        <h2 class="landing-title">Model Context Protocol (MCP)</h2>
+                        <p class="landing-subtitle">Connect the Errorium BM25 search engine and Stack Overflow knowledge base directly to Cursor, Claude Code, Windsurf, and custom AI agents.</p>
+                    </div>
+
+                    <!-- MCP Feature Cards Grid -->
+                    <div class="landing-cards-grid">
+                        <div class="landing-card">
+                            <div class="landing-card-icon mcp-glow">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="16 18 22 12 16 6"></polyline>
+                                    <polyline points="8 6 2 12 8 18"></polyline>
+                                </svg>
+                            </div>
+                            <h3 class="landing-card-title">Remote MCP over SSE</h3>
+                            <p class="landing-card-text">Direct streaming transport over Server-Sent Events (SSE). No heavy local index files needed in your editor environment.</p>
+                        </div>
+
+                        <div class="landing-card">
+                            <div class="landing-card-icon search-glow">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="11" cy="11" r="8"></circle>
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                </svg>
+                            </div>
+                            <h3 class="landing-card-title">Precise BM25 Retrieval</h3>
+                            <p class="landing-card-text">Tokenization preserves technical identifiers (Exceptions, C++, .NET, stack traces) exactly as written without damaging stems.</p>
+                        </div>
+
+                        <div class="landing-card">
+                            <div class="landing-card-icon lock-glow">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                </svg>
+                            </div>
+                            <h3 class="landing-card-title">Secure Bearer Token</h3>
+                            <p class="landing-card-text">Every developer receives an authenticated personal token for rate-limited, private, and high-throughput query streaming.</p>
+                        </div>
+                    </div>
+
+                    <!-- Interactive MCP Token & JSON Config Snippet -->
+                    <div class="landing-mcp-box">
+                        <div class="landing-mcp-token-row">
+                            <div class="landing-mcp-token-left">
+                                <span class="mcp-token-label">Personal Remote MCP Bearer Token:</span>
+                                <code class="mcp-token-value" id="landing-mcp-token">err_live_8f39a0c791b402e6e3c</code>
+                            </div>
+                            <button type="button" class="landing-copy-btn" id="btn-landing-copy-token">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                </svg>
+                                <span>Copy Token</span>
+                            </button>
+                        </div>
+
+                        <div class="landing-code-card">
+                            <div class="landing-code-header">
+                                <div class="code-header-left">
+                                    <span class="code-dot red"></span>
+                                    <span class="code-dot yellow"></span>
+                                    <span class="code-dot green"></span>
+                                    <span class="code-file-name">~/.cursor/mcp.json or claude_desktop_config.json</span>
+                                </div>
+                                <button type="button" class="landing-copy-code-btn" id="btn-landing-copy-json">
+                                    <span>Copy JSON</span>
+                                </button>
+                            </div>
+                            <pre class="landing-code-block"><code id="landing-mcp-json-snippet">{
+  "mcpServers": {
+    "errorium": {
+      "url": "https://errorium.ru/sse",
+      "headers": {
+        "Authorization": "Bearer err_live_8f39a0c791b402e6e3c"
+      }
+    }
+  }
+}</code></pre>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SECTION: ABOUT ERRORIUM -->
+                <section id="landing-about" class="landing-section">
+                    <div class="landing-section-header">
+                        <div class="landing-tag">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="16" x2="12" y2="12"></line>
+                                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                            </svg>
+                            <span>Engineering & Research</span>
+                        </div>
+                        <h2 class="landing-title">About Errorium</h2>
+                        <p class="landing-subtitle">An intelligent search and RAG engine engineered from first principles to diagnose complex software exceptions, runtime panics, and stack traces.</p>
+                    </div>
+
+                    <!-- Academic Specs Grid -->
+                    <div class="landing-specs-grid">
+                        <div class="landing-spec-card">
+                            <div class="landing-spec-val">100 GB</div>
+                            <div class="landing-spec-name">Stack Overflow Dump</div>
+                            <div class="landing-spec-desc">Streamed XML parsing with custom SPIMI index construction</div>
+                        </div>
+                        <div class="landing-spec-card">
+                            <div class="landing-spec-val">BM25</div>
+                            <div class="landing-spec-name">Built From Scratch</div>
+                            <div class="landing-spec-desc">IU5 BMSTU formula: k₁ = 1.5, b = 0.75, zero third-party search libraries</div>
+                        </div>
+                        <div class="landing-spec-card">
+                            <div class="landing-spec-val">gRPC</div>
+                            <div class="landing-spec-name">Sub-millisecond IPC</div>
+                            <div class="landing-spec-desc">High-performance protobuf contracts between Gateway and Core (:50051)</div>
+                        </div>
+                        <div class="landing-spec-card">
+                            <div class="landing-spec-val">RAG</div>
+                            <div class="landing-spec-name">Streaming Synthesis</div>
+                            <div class="landing-spec-desc">Top-K document distillation with code snippet extraction and explanations</div>
+                        </div>
+                    </div>
+
+                    <!-- Architecture & Philosophy Card -->
+                    <div class="landing-architecture-card">
+                        <div class="arch-card-badge">
+                            <span class="pulse-indicator"></span>
+                            <span>IU5 BMSTU • Research Coursework (OAD)</span>
+                        </div>
+                        <h3 class="arch-card-heading">Designed for Developers, Verified by Benchmarks</h3>
+                        <p class="arch-card-text">
+                            Errorium enforces strict academic guidelines: zero reliance on ready-made search engines (Elasticsearch, Solr, Lucene, rank-bm25). The inverted index, memory-mapped postings list, code tokenization, and BM25 ranking formulas are completely custom-built and continuously measured against Recall@k and MRR benchmarks.
+                        </p>
+                        <div class="arch-card-metrics">
+                            <div class="arch-metric-item">
+                                <span class="metric-number">k₁ = 1.5</span>
+                                <span class="metric-label">Term Frequency Saturation</span>
+                            </div>
+                            <div class="arch-metric-item">
+                                <span class="metric-number">b = 0.75</span>
+                                <span class="metric-label">Document Length Normalization</span>
+                            </div>
+                            <div class="arch-metric-item">
+                                <span class="metric-number">SSE / REST</span>
+                                <span class="metric-label">Zero-Latency Streaming Delivery</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
     <!-- Pure Vanilla SPA Script (Zero Frameworks) -->
     <script src="/app.js"></script>
 </body>

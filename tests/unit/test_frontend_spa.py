@@ -508,6 +508,48 @@ class TestFrontendSPA(unittest.TestCase):
     # Обратная совместимость для селекторов тестов
     test_conversational_dialog_bubbles = test_chat_message_appearance_and_layout
 
+    def test_landing_page_structure_and_anchors(self):
+        """Проверка наличия лендинга Errorium, якорных секций #landing-mcp и #landing-about, а также стилей."""
+        html_path = os.path.join(STATIC_DIR, "index.html")
+        css_path = os.path.join(STATIC_DIR, "styles.css")
+        js_path = os.path.join(STATIC_DIR, "app.js")
+
+        with open(html_path, "r", encoding="utf-8") as f:
+            html = f.read()
+        with open(css_path, "r", encoding="utf-8") as f:
+            css = f.read()
+        with open(js_path, "r", encoding="utf-8") as f:
+            js = f.read()
+
+        # 1. Секции лендинга и якоря в HTML
+        self.assertIn('id="landing-intro"', html)
+        self.assertIn('id="landing-mcp"', html)
+        self.assertIn('id="landing-about"', html)
+        self.assertIn('href="#landing-intro"', html)
+        self.assertIn('href="#landing-mcp"', html)
+        self.assertIn('href="#landing-about"', html)
+        self.assertIn("Hello, this is", html)
+        self.assertIn("Errorium", html)
+        self.assertIn("Model Context Protocol (MCP)", html)
+        self.assertIn("About Errorium", html)
+        self.assertIn("landing-mcp-token", html)
+        self.assertIn("landing-mcp-json-snippet", html)
+        self.assertIn("landing-standalone-page", html)
+        self.assertIn("landing-nav-anchors", html)
+        self.assertIn("btn-landing-hero-start", html)
+
+        # 2. Стили лендинга в styles.css
+        self.assertIn(".landing-content-wrap", css)
+        self.assertIn(".landing-section", css)
+        self.assertIn(".landing-standalone-page", css)
+        self.assertIn(".landing-nav-anchors", css)
+
+        # 3. Интеграция с роутингом и плавным скроллом в app.js
+        self.assertIn("switchToLandingView", js)
+        self.assertIn("landing-active", js)
+        self.assertIn("btnLandingCopyToken", js)
+        self.assertIn("btnLandingCopyJson", js)
+
     def test_app_js_syntax(self):
         """Проверка синтаксической валидности services/frontend/static/app.js через node --check."""
         js_path = os.path.join(STATIC_DIR, "app.js")

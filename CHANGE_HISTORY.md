@@ -1,5 +1,93 @@
 # CHANGE_HISTORY.md — История изменений проекта Errorium
 
+## [2026-11-16] — Увеличение верхнего отступа лендинга от хедера до начала контента (Milestone 1, Iteration 8)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+- `STATUS.md`
+
+### Суть изменений:
+1. **Отступ от хедера до контента:**
+   - В файле [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) увеличен верхний отступ контейнера скролла `.landing-scroll-body` с `40px` до `72px`, а также внутренний верхний отступ вводного блока `.landing-intro-section` с `10px` до `24px` (суммарный отступ от фиксированного хедера теперь составляет около `96px`).
+   - Скорректирован `scroll-margin-top` секций до `36px` для гармоничного скролла по якорным ссылкам.
+2. **Верификация и тесты:**
+   - Тесты пройдены: 24/24 OK (`python3 -m unittest discover tests/unit`).
+
+## [2026-11-16] — Добавление эффектного вступительного Hero-блока на лендинге с приветствием и слоганом (Milestone 1, Iteration 6)
+
+### Затронутые компоненты и спецификации:
+- `docs/Product/04-interface-and-behavior.md`
+- `services/frontend/static/index.html`
+- `services/frontend/static/styles.css`
+- `services/frontend/static/app.js`
+- `tests/unit/test_frontend_spa.py`
+- `STATUS.md`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Вступительный Hero-раздел лендинга (`#landing-intro`):**
+   - Лендинг теперь начинается не с технических деталей MCP, а с эффектного презентационного экрана:
+     - Неоновый бейдж: `Next-Gen Engineering Search`;
+     - Крупный заголовок с градиентным свечением: `Hello, this is Errorium.`;
+     - Фирменная карточка слогана в моноширинном стиле: `Element 404. Reacts with developers` / `Stack overflow. Issue overknown.`;
+     - Вводное описание назначения поисковика и RAG-синтеза для программных ошибок и аварийных дампов;
+     - Бейджи ключевых достоинств: Zero third-party search engines, Sub-millisecond gRPC search core, Cursor & Claude Code integration;
+     - Главные интерактивные кнопки: `Start debugging with Errorium` (переход в чат с фокусом на ввод) и `Explore MCP & Architecture` (плавный скролл к техническим блокам).
+2. **Якорная навигация:**
+   - В разделительную полосу добавлен якорный переключатель `Overview` (`#landing-intro`) перед `MCP` и `About us`.
+3. **Верификация и тесты:**
+   - Модульные тесты обновлены и успешно пройдены: 24/24 OK.
+
+## [2026-11-16] — Вынос лендинга в изолированный полноэкранный интерфейс с кнопкой Let's try и сквозным хедером (Milestone 1, Iteration 5)
+
+### Затронутые компоненты и спецификации:
+- `docs/Product/04-interface-and-behavior.md`
+- `services/frontend/static/index.html`
+- `services/frontend/static/styles.css`
+- `services/frontend/static/app.js`
+- `tests/unit/test_frontend_spa.py`
+- `STATUS.md`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Изолированный полноэкранный лендинг (`.landing-standalone-page`):**
+   - При переходе на лендинг через кнопки сайдбара (`MCP`, `About us`) или по URL (`/mcp`, `/about`) рабочая область чата и сайдбар полностью скрываются (`body.landing-active`), открывая страницу с нуля.
+   - В шапке лендинга по центру размещен фирменный логотип `Errorium` (как в основном приложении), слева кнопка возврата `Back to Chat`, а справа акцентная градиентная кнопка `Let's try`, возвращающая пользователя в чат и фокусирующая ввод.
+   - Разделительная полоса навигации (`.landing-divider-bar`) растянута на всю ширину экрана (`100vw`) с переключателями секций `MCP` и `About us`.
+2. **Верификация и тесты:**
+   - Обновлен тест `test_landing_page_structure_and_anchors` в `tests/unit/test_frontend_spa.py`.
+   - Проверка синтаксиса `node --check`: чисто.
+   - Модульные тесты: 24/24 успешно (OK).
+
+## [2026-11-16] — Реализация информационного лендинга Errorium с якорными переходами к MCP и About us (Milestone 1, Iteration 4)
+
+### Затронутые компоненты и спецификации:
+- `docs/Product/04-interface-and-behavior.md`
+- `services/frontend/static/index.html`
+- `services/frontend/static/styles.css`
+- `services/frontend/static/app.js`
+- `tests/unit/test_frontend_spa.py`
+- `STATUS.md`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Разработка отдельной страницы лендинга (`#landing-view`):**
+   - Главный экран чата (`#hero-view`) полностью возвращен к оригинальному минималистичному дизайну (парящий маскот, синий огонь, точный слоган `Element 404...`, капсульная строка ввода).
+   - Лендинг вынесен в отдельный самостоятельный экран `#landing-view`, который активируется при нажатии на `MCP` или `About us` в боковой панели, а также по маршрутам `/mcp` и `/about`.
+   - В верхней части экрана лендинга предусмотрены кнопка возврата в чат (`Back to Chat`) и переключатели якорей (`MCP` и `About us`).
+   - При переходе на лендинг нижний prompt bar скрывается, чтобы не заслонять контент. При возврате в чат (кнопка `Back to Chat` или `New chat`) восстанавливается исходный экран.
+   - **Секция `#landing-mcp`:** карточки преимуществ (Remote MCP over SSE, точная токенизация стектрейсов для BM25, защищенный Bearer токен), интерактивный блок с персональным токеном и JSON-конфигурацией для `~/.cursor/mcp.json` и `claude_desktop_config.json` с кнопками копирования.
+   - **Секция `#landing-about`:** академическая спецификация НИРС ИУ5 МГТУ им. Н. Э. Баумана (100 GB дамп SO, BM25 с нуля $k_1=1.5, b=0.75$, sub-millisecond IPC по gRPC, потоковый RAG), карточка философии системы и метрик ранжирования.
+2. **Якорная навигация и роутинг:**
+   - Функция `switchToLandingView(updateRoute, targetAnchor)` выполняет переключение экранов и плавный скролл к выбранному якорю.
+3. **Локализация:**
+   - Добавлены двусторонние переводы (RU <-> EN) для всех заголовков, бейджей и действий лендинга.
+4. **Тестирование и верификация:**
+   - Добавлен модульный тест `test_landing_page_structure_and_anchors` в `tests/unit/test_frontend_spa.py`.
+   - Синтаксис проверен через `node --check services/frontend/static/app.js` (код 0).
+   - Все 24 unit-теста пройдены успешно: `python3 -m unittest discover tests/unit` (OK).
+
 ## [2026-11-14] — Восстановление исходного дизайна сообщений чата в Web Frontend (Milestone 1, Iteration 3)
 
 ### Затронутые компоненты и спецификации:

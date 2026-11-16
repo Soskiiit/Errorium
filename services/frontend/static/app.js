@@ -222,7 +222,17 @@
             "Отправить запрос ошибки": "Send error query",
             "Дополнительные действия и вставка стек-трейса": "Additional actions and stack trace paste",
             "Изменить аватар": "Edit avatar",
-            "Дополнительно": "More options"
+            "Дополнительно": "More options",
+            "Скопировать токен": "Copy Token",
+            "Скопировать JSON": "Copy JSON",
+            "Скопировано в буфер": "Copied to clipboard",
+            "Архитектура и исследования": "Engineering & Research",
+            "Интеграция с AI": "AI Integration",
+            "Назад в чат": "Back to Chat",
+            "Попробовать": "Let's try",
+            "Обзор": "Overview",
+            "Начать отладку в Errorium": "Start debugging with Errorium",
+            "Узнать больше про MCP и архитектуру": "Explore MCP & Architecture"
         },
         ru: {
             "Recent chats": "Недавние чаты",
@@ -318,7 +328,28 @@
             "Send error query": "Отправить запрос ошибки",
             "Additional actions and stack trace paste": "Дополнительные действия и вставка стек-трейса",
             "Edit avatar": "Изменить аватар",
-            "More options": "Дополнительно"
+            "More options": "Дополнительно",
+            "Copy Token": "Скопировать токен",
+            "Copy JSON": "Скопировать JSON",
+            "Engineering & Research": "Архитектура и исследования",
+            "AI Integration": "Интеграция с AI",
+            "IDE Agent": "Агент в IDE",
+            "IU5 BMSTU": "ИУ5 МГТУ",
+            "About Errorium": "Об Errorium",
+            "Remote MCP over SSE": "Remote MCP через SSE",
+            "Precise BM25 Retrieval": "Точный поиск BM25",
+            "Secure Bearer Token": "Защищенный Bearer-токен",
+            "Personal Remote MCP Bearer Token:": "Персональный Remote MCP Bearer токен:",
+            "Sub-millisecond IPC": "Сверхбыстрый IPC",
+            "Streaming Synthesis": "Потоковый синтез",
+            "Term Frequency Saturation": "Насыщение частоты терминов",
+            "Document Length Normalization": "Нормализация длины документа",
+            "Zero-Latency Streaming Delivery": "Потоковая выдача без задержек",
+            "Back to Chat": "Назад в чат",
+            "Let's try": "Попробовать",
+            "Overview": "Обзор",
+            "Start debugging with Errorium": "Начать отладку в Errorium",
+            "Explore MCP & Architecture": "Узнать больше про MCP и архитектуру"
         }
     };
 
@@ -477,6 +508,9 @@
         recentChatsContainer: document.getElementById('recent-chats-container'),
 
         heroView: document.getElementById('hero-view'),
+        landingView: document.getElementById('landing-view'),
+        btnLandingBack: document.getElementById('btn-landing-back'),
+        btnLandingCta: document.getElementById('btn-landing-cta'),
         chatView: document.getElementById('chat-view'),
         messagesContainer: document.getElementById('messages-container'),
         promptFooter: document.getElementById('app-prompt-footer'),
@@ -537,6 +571,11 @@
         btnCopyMcpJson: document.getElementById('btn-copy-mcp-json'),
         mcpTokenDisplay: document.getElementById('mcp-token-display'),
         mcpJsonSnippet: document.getElementById('mcp-json-snippet'),
+
+        btnLandingCopyToken: document.getElementById('btn-landing-copy-token'),
+        btnLandingCopyJson: document.getElementById('btn-landing-copy-json'),
+        landingMcpToken: document.getElementById('landing-mcp-token'),
+        landingMcpJsonSnippet: document.getElementById('landing-mcp-json-snippet'),
 
         btnLoginGithub: document.getElementById('btn-login-github'),
         btnLoginGoogle: document.getElementById('btn-login-google'),
@@ -894,14 +933,12 @@
         }
 
         if (path === '/about') {
-            switchToHeroView(false);
-            showModal(elements.modalAbout, false);
+            switchToLandingView(false, 'landing-about');
             return;
         }
 
         if (path === '/mcp') {
-            switchToHeroView(false);
-            showModal(elements.modalMcp, false);
+            switchToLandingView(false, 'landing-mcp');
             return;
         }
 
@@ -982,9 +1019,142 @@
         });
     });
 
+    function switchToLandingView(updateRoute = true, targetAnchor = 'landing-mcp') {
+        if (elements.heroView) elements.heroView.style.display = 'none';
+        if (elements.chatView) elements.chatView.style.display = 'none';
+        if (elements.profileView) elements.profileView.style.display = 'none';
+        if (elements.landingView) elements.landingView.style.display = 'flex';
+        if (elements.promptFooter) elements.promptFooter.classList.add('hidden');
+        document.body.classList.add('landing-active');
+        closeSidebar();
+        closeAllModals(false);
+
+        // Update active anchor tab in landing nav
+        document.querySelectorAll('.landing-anchor-link').forEach(link => {
+            const href = link.getAttribute('href');
+            if (href === `#${targetAnchor}`) {
+                link.classList.add('active');
+            } else {
+                link.classList.remove('active');
+            }
+        });
+
+        const targetPath = targetAnchor === 'landing-about' ? '/about' : '/mcp';
+        if (updateRoute && !isNavigatingFromPopState && window.location.pathname !== targetPath) {
+            window.history.pushState({ view: 'landing', section: targetAnchor }, '', targetPath);
+        }
+
+        setTimeout(() => {
+            const el = document.getElementById(targetAnchor);
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }, 50);
+    }
+
+    // =========================================================================
+    // Landing Scroll Header Logo Flying Animation
+    // =========================================================================
+    let isHeaderLogoVisible = false;
+    let isAnimatingFly = false;
+
+    function initLandingLogoScrollAnimation() {
+        const scrollBody = document.querySelector('.landing-scroll-body');
+        const headerLogo = document.getElementById('landing-header-logo');
+        const welcomeBrand = document.getElementById('landing-welcome-brand');
+
+        if (!scrollBody || !headerLogo || !welcomeBrand) return;
+
+        scrollBody.addEventListener('scroll', () => {
+            if (!document.body.classList.contains('landing-active')) return;
+
+            const brandRect = welcomeBrand.getBoundingClientRect();
+            const headerRect = document.querySelector('.landing-header')?.getBoundingClientRect();
+            const headerBottom = headerRect ? headerRect.bottom : 58;
+
+            // When the welcome "Errorium" text has scrolled out of view past header
+            const isOutOfView = brandRect.bottom <= headerBottom + 10;
+
+            if (isOutOfView && !isHeaderLogoVisible && !isAnimatingFly) {
+                isAnimatingFly = true;
+
+                // Create a smooth flying clone from the original spot to the header logo position
+                const targetRect = headerLogo.getBoundingClientRect();
+                const flyer = document.createElement('div');
+                flyer.className = 'landing-flying-brand';
+                flyer.textContent = 'Errorium';
+
+                const computed = window.getComputedStyle(welcomeBrand);
+                flyer.style.fontSize = computed.fontSize;
+                flyer.style.fontFamily = computed.fontFamily;
+                flyer.style.fontWeight = computed.fontWeight;
+                flyer.style.top = Math.max(headerBottom, brandRect.top) + 'px';
+                flyer.style.left = brandRect.left + 'px';
+
+                document.body.appendChild(flyer);
+
+                // Trigger animation to header logo spot
+                requestAnimationFrame(() => {
+                    flyer.style.top = targetRect.top + 'px';
+                    flyer.style.left = targetRect.left + 'px';
+                    flyer.style.fontSize = window.getComputedStyle(headerLogo).fontSize;
+                    flyer.style.opacity = '1';
+
+                    setTimeout(() => {
+                        headerLogo.classList.add('visible');
+                        isHeaderLogoVisible = true;
+                        flyer.remove();
+                        isAnimatingFly = false;
+                    }, 460);
+                });
+            } else if (!isOutOfView && isHeaderLogoVisible) {
+                // When scrolled back to top and welcome text is clearly visible again
+                headerLogo.classList.remove('visible');
+                isHeaderLogoVisible = false;
+            }
+        }, { passive: true });
+    }
+
     // Modal & View Triggers
-    elements.btnMcp?.addEventListener('click', () => showModal(elements.modalMcp));
-    elements.btnAbout?.addEventListener('click', () => showModal(elements.modalAbout));
+    elements.btnMcp?.addEventListener('click', (e) => {
+        e.preventDefault();
+        switchToLandingView(true, 'landing-mcp');
+    });
+
+    elements.btnAbout?.addEventListener('click', (e) => {
+        e.preventDefault();
+        switchToLandingView(true, 'landing-about');
+    });
+
+    elements.btnLandingBack?.addEventListener('click', () => {
+        switchToHeroView(true);
+    });
+
+    elements.btnLandingCta?.addEventListener('click', () => {
+        switchToHeroView(true);
+        elements.promptInput?.focus();
+    });
+
+    document.getElementById('btn-landing-hero-start')?.addEventListener('click', () => {
+        switchToHeroView(true);
+        elements.promptInput?.focus();
+    });
+
+    document.getElementById('landing-header-logo')?.addEventListener('click', () => {
+        switchToHeroView(true);
+    });
+
+    // Landing Anchor tabs navigation
+    document.querySelectorAll('.landing-anchor-link').forEach(link => {
+        link.addEventListener('click', function (e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href')?.replace('#', '');
+            if (targetId) {
+                switchToLandingView(true, targetId);
+            }
+        });
+    });
+
     elements.btnSettings?.addEventListener('click', () => showModal(elements.modalSettings));
 
     elements.btnProfile?.addEventListener('click', () => {
@@ -1399,6 +1569,23 @@
         }
     });
 
+    // Landing Copy to clipboard helpers
+    elements.btnLandingCopyToken?.addEventListener('click', () => {
+        if (elements.landingMcpToken) {
+            navigator.clipboard.writeText(elements.landingMcpToken.textContent.trim()).then(() => {
+                showToast('Bearer token copied to clipboard!');
+            });
+        }
+    });
+
+    elements.btnLandingCopyJson?.addEventListener('click', () => {
+        if (elements.landingMcpJsonSnippet) {
+            navigator.clipboard.writeText(elements.landingMcpJsonSnippet.textContent).then(() => {
+                showToast('MCP configuration JSON copied!');
+            });
+        }
+    });
+
     // Toast helper
     let toastTimeout = null;
     function showToast(message) {
@@ -1512,7 +1699,9 @@
     }
 
     function switchToChatView(updateRoute = true) {
+        document.body.classList.remove('landing-active');
         if (elements.heroView) elements.heroView.style.display = 'none';
+        if (elements.landingView) elements.landingView.style.display = 'none';
         if (elements.profileView) elements.profileView.style.display = 'none';
         if (elements.chatView) elements.chatView.style.display = 'flex';
         if (elements.promptFooter) elements.promptFooter.classList.remove('hidden');
@@ -1523,7 +1712,9 @@
     }
 
     function switchToProfileView(updateRoute = true) {
+        document.body.classList.remove('landing-active');
         if (elements.heroView) elements.heroView.style.display = 'none';
+        if (elements.landingView) elements.landingView.style.display = 'none';
         if (elements.chatView) elements.chatView.style.display = 'none';
         if (elements.profileView) elements.profileView.style.display = 'flex';
         if (elements.promptFooter) elements.promptFooter.classList.add('hidden');
@@ -1535,7 +1726,9 @@
     }
 
     function switchToHeroView(updateRoute = true) {
+        document.body.classList.remove('landing-active');
         if (elements.profileView) elements.profileView.style.display = 'none';
+        if (elements.landingView) elements.landingView.style.display = 'none';
         if (elements.chatView) elements.chatView.style.display = 'none';
         if (elements.heroView) elements.heroView.style.display = 'flex';
         if (elements.promptFooter) elements.promptFooter.classList.remove('hidden');
@@ -1559,7 +1752,7 @@
     });
 
     elements.sidebarBrand?.addEventListener('click', () => {
-        switchToHeroView();
+        switchToLandingView(true, 'landing-intro');
     });
 
     // Render Chat Messages
@@ -1739,6 +1932,9 @@
 
     // Initialize authentication UI state from stored session
     updateAuthUI();
+
+    // Initialize landing scroll animation
+    initLandingLogoScrollAnimation();
 
     // Initialize SPA route based on initial URL
     renderCurrentRoute();
