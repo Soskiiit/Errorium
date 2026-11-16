@@ -17,8 +17,19 @@ STATIC_DIR = os.path.join(REPO_ROOT, "services", "frontend", "static")
 
 
 def read_static(name):
-    with open(os.path.join(STATIC_DIR, name), "r", encoding="utf-8") as f:
-        return f.read()
+    path = os.path.join(STATIC_DIR, name)
+    with open(path, "r", encoding="utf-8") as f:
+        content = f.read()
+    if name == "styles.css":
+        def repl(m):
+            rel = m.group(1).lstrip("./")
+            p = os.path.join(STATIC_DIR, rel)
+            if os.path.isfile(p):
+                with open(p, "r", encoding="utf-8") as cf:
+                    return cf.read()
+            return m.group(0)
+        return re.sub(r"""@import\s+url\(['"]([^'"]+\.css)['"]\);?""", repl, content)
+    return content
 
 
 class TestStarMap(unittest.TestCase):

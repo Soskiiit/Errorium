@@ -43,6 +43,7 @@ class TestFrontendSPA(unittest.TestCase):
             "css/responsive.css",
             "css/profile.css",
             "css/auth.css",
+            "css/star-map.css",
         ]
         for filename in required_files:
             file_path = os.path.join(STATIC_DIR, filename)
