@@ -1,5 +1,33 @@
 # CHANGE_HISTORY.md — История изменений проекта Errorium
 
+## [2026-11-16] — Модульная декомпозиция CSS-стилей фронтенда на отдельные файлы (Milestone 1, Iteration 105)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `services/frontend/static/css/` (11 модульных файлов)
+- `tests/unit/test_frontend_spa.py`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Декомпозиция монолитного файла `styles.css` (3787 строк) на функциональные модули:**
+   - Создана директория `services/frontend/static/css/` с логическими модулями:
+     - [base.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/base.css) — дизайн-токены CSS-переменных, глобальный сброс, типографика и холст звёздочки курсора.
+     - [layout.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/layout.css) — корневой контейнер `.app-container` и фоновый оверлей `.drawer-backdrop`.
+     - [sidebar.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/sidebar.css) — боковое меню, поиск по чатам, группировка истории, кнопка сворачивания меню.
+     - [hero.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/hero.css) — главный экран приветствия с парящим маскотом, слоганами и синей аурой свечения.
+     - [landing.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/landing.css) — лендинг (`/mcp` и `/about`), карточки преимуществ, плашки слогана, секции и навигация.
+     - [chat.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/chat.css) — диалоговые пузыри пользователя (`.user-bubble`), карточки ассистента (`.assistant-card`), источники и сниппеты кода.
+     - [prompt.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/prompt.css) — нижняя строка ввода запроса, кнопка прикрепления стек-трейса, селектор технологий.
+     - [modals.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/modals.css) — базовые модальные окна, форма настройки MCP с копированием токена, окно About.
+     - [responsive.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/responsive.css) — медиа-запросы адаптивности под планшеты, десктопы (`min-width: 930px`) и компактные по высоте экраны (`max-height: 720px`).
+     - [profile.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/profile.css) — экран профиля пользователя, аватар, дропдауны ролей/языка и сетка тегов технологий.
+     - [auth.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/css/auth.css) — модальные окна авторизации, регистрации, сброса пароля и алертов.
+   - [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) преобразован в чистую точку входа с директивами `@import url('./css/...')`.
+2. **Верификация и тесты:**
+   - Обновлен тест `test_frontend_spa.py` с поддержкой загрузки модульных `@import` файлов и проверкой наличия всех 11 CSS-модулей в `test_static_files_exist`.
+   - Все 24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
 ## [2026-11-16] — Обновление перечня поддерживаемых AI-агентов и сред в секции MCP (Milestone 1, Iteration 104)
 
 ### Затронутые компоненты и спецификации:
