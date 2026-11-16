@@ -41,7 +41,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="/styles.css?v=20261116_7">
+    <link rel="stylesheet" href="/styles.css?v=20261116_8">
     <script>
         (function () {
             try {
@@ -304,11 +304,13 @@
                         <div class="profile-avatar-wrapper">
                             <div class="profile-avatar-large" id="profile-avatar-large">
                                 <span id="profile-avatar-letter">T</span>
+                                <img id="profile-avatar-img" class="profile-avatar-img" alt="Avatar" style="display: none;" />
                                 <button type="button" class="profile-edit-badge" id="profile-avatar-edit-badge" aria-label="Edit avatar">
                                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
                                     </svg>
                                 </button>
+                                <input type="file" id="profile-avatar-file-input" accept="image/*" style="display: none;" />
                             </div>
                             <div class="profile-username-heading" id="profile-username">Test_user</div>
                         </div>

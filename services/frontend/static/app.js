@@ -448,7 +448,9 @@
         btnProfileBack: document.getElementById('btn-profile-back'),
         profileAvatarLarge: document.getElementById('profile-avatar-large'),
         profileAvatarLetter: document.getElementById('profile-avatar-letter'),
+        profileAvatarImg: document.getElementById('profile-avatar-img'),
         profileAvatarEditBadge: document.getElementById('profile-avatar-edit-badge'),
+        profileAvatarFileInput: document.getElementById('profile-avatar-file-input'),
         profileUsername: document.getElementById('profile-username'),
         profileInfoUsername: document.getElementById('profile-info-username'),
         profileInfoEmail: document.getElementById('profile-info-email'),
@@ -692,17 +694,35 @@
             if (elements.headerAvatarGuest) elements.headerAvatarGuest.style.display = 'none';
             if (elements.headerAvatarAuth) {
                 elements.headerAvatarAuth.style.display = 'flex';
-                elements.headerAvatarAuth.textContent = (user.avatarLetter || user.username[0] || 'T').toUpperCase();
+                if (user.avatarUrl) {
+                    elements.headerAvatarAuth.innerHTML = `<img src="${user.avatarUrl}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" alt="Avatar" />`;
+                } else {
+                    elements.headerAvatarAuth.textContent = (user.avatarLetter || user.username[0] || 'T').toUpperCase();
+                }
             }
 
             if (elements.sidebarAuthAvatar) {
-                elements.sidebarAuthAvatar.textContent = (user.avatarLetter || user.username[0] || 'T').toUpperCase();
+                if (user.avatarUrl) {
+                    elements.sidebarAuthAvatar.innerHTML = `<img src="${user.avatarUrl}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" alt="Avatar" />`;
+                } else {
+                    elements.sidebarAuthAvatar.textContent = (user.avatarLetter || user.username[0] || 'T').toUpperCase();
+                }
             }
             if (elements.sidebarAuthName) elements.sidebarAuthName.textContent = user.username;
             if (elements.sidebarAuthRole) elements.sidebarAuthRole.textContent = user.role || 'Backend developer';
 
             if (elements.profileAvatarLetter) {
                 elements.profileAvatarLetter.textContent = (user.avatarLetter || user.username[0] || 'T').toUpperCase();
+            }
+            if (elements.profileAvatarImg) {
+                if (user.avatarUrl) {
+                    elements.profileAvatarImg.src = user.avatarUrl;
+                    elements.profileAvatarImg.style.display = 'block';
+                    if (elements.profileAvatarLetter) elements.profileAvatarLetter.style.display = 'none';
+                } else {
+                    elements.profileAvatarImg.style.display = 'none';
+                    if (elements.profileAvatarLetter) elements.profileAvatarLetter.style.display = '';
+                }
             }
             if (elements.profileUsername) elements.profileUsername.textContent = user.username;
             if (elements.profileInfoUsername) {
@@ -923,20 +943,35 @@
 
     elements.profileAvatarEditBadge?.addEventListener('click', (e) => {
         e.stopPropagation();
-        const user = getAuthUser() || {
-            username: 'Test_user',
-            email: 'Test_user@mail.ru',
-            role: 'Backend developer',
-            gender: 'Male',
-            language: 'English',
-            avatarLetter: 'T'
+        elements.profileAvatarFileInput?.click();
+    });
+
+    elements.profileAvatarFileInput?.addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+
+        // Check if file is an image
+        if (!file.type.startsWith('image/')) {
+            showToast('Please select a valid image file');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function (event) {
+            const dataUrl = event.target.result;
+            const user = getAuthUser() || {
+                username: 'Test_user',
+                email: 'Test_user@mail.ru',
+                role: 'Backend developer',
+                gender: 'Male',
+                language: 'English',
+                avatarLetter: 'T'
+            };
+            user.avatarUrl = dataUrl;
+            setAuthUser(user);
+            showToast('Avatar photo updated');
         };
-        const currentName = user.username;
-        const newName = currentName === 'Test_user' ? 'Senior_developer' : 'Test_user';
-        user.username = newName;
-        user.avatarLetter = newName[0].toUpperCase();
-        setAuthUser(user);
-        showToast(`Username updated to ${newName}`);
+        reader.readAsDataURL(file);
     });
 
     // Profile input change listeners (Username, Email, Role)
