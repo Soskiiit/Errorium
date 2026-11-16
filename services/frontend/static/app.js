@@ -232,7 +232,24 @@
             "Попробовать": "Let's try",
             "Обзор": "Overview",
             "Начать отладку в Errorium": "Start debugging with Errorium",
-            "Узнать больше про MCP и архитектуру": "Explore MCP & Architecture"
+            "Узнать больше про MCP и архитектуру": "Explore MCP & Architecture",
+            "Настройка MCP": "Set up MCP",
+            "Поиск решений нового поколения": "Next-Gen Engineering Search",
+            "Привет, это": "Hello, this is",
+            "Любая сложная ошибка, segmentation fault или runtime panic в вашем терминале уже кем-то решена. Errorium индексирует миллионы проверенных обсуждений с кастомным ранжированием BM25 высокой точности, доставляя готовые решения прямо в ваш браузер и агенту в IDE.": "Every cryptic exception, segmentation fault, and runtime panic you encounter in your terminal has already been diagnosed and resolved. Errorium indexes millions of verified software engineering discussions with custom high-precision BM25 ranking, delivering ready-to-run solutions directly to your browser and IDE agent.",
+            "Подключите поисковое ядро Errorium BM25 и базу знаний Stack Overflow напрямую к Cursor, Claude Code, Windsurf и собственным AI-агентам.": "Connect the Errorium BM25 search engine and Stack Overflow knowledge base directly to Cursor, Claude Code, Windsurf, and custom AI agents.",
+            "Прямой потоковый транспорт через Server-Sent Events (SSE). Не требует хранения тяжелых файлов индекса в окружении вашего редактора.": "Direct streaming transport over Server-Sent Events (SSE). No heavy local index files needed in your editor environment.",
+            "Токенизатор сохраняет технические идентификаторы (исключения, C++, .NET, стек-трейсы) в исходном виде без искажения корней.": "Tokenization preserves technical identifiers (Exceptions, C++, .NET, stack traces) exactly as written without damaging stems.",
+            "Каждый разработчик получает персональный токен аутентификации для приватного и высокоскоростного потокового поиска.": "Every developer receives an authenticated personal token for rate-limited, private, and high-throughput query streaming.",
+            "Интеллектуальная поисковая и RAG-система, спроектированная с нуля для диагностики сложных программных ошибок, паник времени выполнения и стек-трейсов.": "An intelligent search and RAG engine engineered from first principles to diagnose complex software exceptions, runtime panics, and stack traces.",
+            "Потоковый парсинг XML с самописным построением индекса SPIMI": "Streamed XML parsing with custom SPIMI index construction",
+            "Top-K дистилляция документов с извлечением фрагментов кода и пояснений": "Top-K document distillation with code snippet extraction and explanations",
+            "Реализовано с нуля": "Built From Scratch",
+            "Формула ИУ5 МГТУ: k₁ = 1.5, b = 0.75, без готовых поисковых библиотек": "IU5 BMSTU formula: k₁ = 1.5, b = 0.75, zero third-party search libraries",
+            "Высокопроизводительные контракты Protobuf между Gateway и Core (:50051)": "High-performance protobuf contracts between Gateway and Core (:50051)",
+            "ИУ5 МГТУ им. Н. Э. Баумана • НИРС (ОАД)": "IU5 BMSTU • Research Coursework (OAD)",
+            "Спроектировано для инженеров, подтверждено бенчмарками": "Designed for Developers, Verified by Benchmarks",
+            "Errorium строго следует академическим ограничениям: полный запрет готовых поисковых систем (Elasticsearch, Solr, Lucene, rank-bm25). Инвертированный индекс, списки постингов, токенизация кода и ранжирование BM25 полностью написаны с нуля и непрерывно верифицируются метриками Recall@k и MRR.": "Errorium enforces strict academic guidelines: zero reliance on ready-made search engines (Elasticsearch, Solr, Lucene, rank-bm25). The inverted index, memory-mapped postings list, code tokenization, and BM25 ranking formulas are completely custom-built and continuously measured against Recall@k and MRR benchmarks."
         },
         ru: {
             "Recent chats": "Недавние чаты",
@@ -349,7 +366,24 @@
             "Let's try": "Попробовать",
             "Overview": "Обзор",
             "Start debugging with Errorium": "Начать отладку в Errorium",
-            "Explore MCP & Architecture": "Узнать больше про MCP и архитектуру"
+            "Explore MCP & Architecture": "Узнать больше про MCP и архитектуру",
+            "Set up MCP": "Настройка MCP",
+            "Next-Gen Engineering Search": "Поиск решений нового поколения",
+            "Hello, this is": "Привет, это",
+            "Every cryptic exception, segmentation fault, and runtime panic you encounter in your terminal has already been diagnosed and resolved. Errorium indexes millions of verified software engineering discussions with custom high-precision BM25 ranking, delivering ready-to-run solutions directly to your browser and IDE agent.": "Любая сложная ошибка, segmentation fault или runtime panic в вашем терминале уже кем-то решена. Errorium индексирует миллионы проверенных обсуждений с кастомным ранжированием BM25 высокой точности, доставляя готовые решения прямо в ваш браузер и агенту в IDE.",
+            "Connect the Errorium BM25 search engine and Stack Overflow knowledge base directly to Cursor, Claude Code, Windsurf, and custom AI agents.": "Подключите поисковое ядро Errorium BM25 и базу знаний Stack Overflow напрямую к Cursor, Claude Code, Windsurf и собственным AI-агентам.",
+            "Direct streaming transport over Server-Sent Events (SSE). No heavy local index files needed in your editor environment.": "Прямой потоковый транспорт через Server-Sent Events (SSE). Не требует хранения тяжелых файлов индекса в окружении вашего редактора.",
+            "Tokenization preserves technical identifiers (Exceptions, C++, .NET, stack traces) exactly as written without damaging stems.": "Токенизатор сохраняет технические идентификаторы (исключения, C++, .NET, стек-трейсы) в исходном виде без искажения корней.",
+            "Every developer receives an authenticated personal token for rate-limited, private, and high-throughput query streaming.": "Каждый разработчик получает персональный токен аутентификации для приватного и высокоскоростного потокового поиска.",
+            "An intelligent search and RAG engine engineered from first principles to diagnose complex software exceptions, runtime panics, and stack traces.": "Интеллектуальная поисковая и RAG-система, спроектированная с нуля для диагностики сложных программных ошибок, паник времени выполнения и стек-трейсов.",
+            "Streamed XML parsing with custom SPIMI index construction": "Потоковый парсинг XML с самописным построением индекса SPIMI",
+            "Top-K document distillation with code snippet extraction and explanations": "Top-K дистилляция документов с извлечением фрагментов кода и пояснений",
+            "Built From Scratch": "Реализовано с нуля",
+            "IU5 BMSTU formula: k₁ = 1.5, b = 0.75, zero third-party search libraries": "Формула ИУ5 МГТУ: k₁ = 1.5, b = 0.75, без готовых поисковых библиотек",
+            "High-performance protobuf contracts between Gateway and Core (:50051)": "Высокопроизводительные контракты Protobuf между Gateway и Core (:50051)",
+            "IU5 BMSTU • Research Coursework (OAD)": "ИУ5 МГТУ им. Н. Э. Баумана • НИРС (ОАД)",
+            "Designed for Developers, Verified by Benchmarks": "Спроектировано для инженеров, подтверждено бенчмарками",
+            "Errorium enforces strict academic guidelines: zero reliance on ready-made search engines (Elasticsearch, Solr, Lucene, rank-bm25). The inverted index, memory-mapped postings list, code tokenization, and BM25 ranking formulas are completely custom-built and continuously measured against Recall@k and MRR benchmarks.": "Errorium строго следует академическим ограничениям: полный запрет готовых поисковых систем (Elasticsearch, Solr, Lucene, rank-bm25). Инвертированный индекс, списки постингов, токенизация кода и ранжирование BM25 полностью написаны с нуля и непрерывно верифицируются метриками Recall@k и MRR."
         }
     };
 
@@ -363,15 +397,19 @@
         }
     }
 
+    const APP_LANG_KEY = 'errorium_app_language';
     let currentLang = 'English';
 
     function getCurrentLanguage() {
+        const storedLang = localStorage.getItem(APP_LANG_KEY);
+        if (storedLang) return storedLang;
         const user = getAuthUser();
         return (user && user.language) ? user.language : currentLang;
     }
 
     function applyLanguage(lang) {
         currentLang = (lang === 'Русский' || lang === 'ru') ? 'Русский' : 'English';
+        localStorage.setItem(APP_LANG_KEY, currentLang);
         const isRu = currentLang === 'Русский';
         const target = isRu ? 'ru' : 'en';
 
@@ -419,10 +457,29 @@
             }
         });
 
-        // 4. Update language display row in profile
+        // 4. Update language display row in profile & landing header
         if (elements.profileInfoLang) {
             elements.profileInfoLang.textContent = isRu ? 'Русский' : 'English';
         }
+        document.querySelectorAll('#lang-dropdown-popover .profile-dropdown-item').forEach(item => {
+            if (item.getAttribute('data-lang') === currentLang) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
+
+        const landingLangCurrent = document.getElementById('landing-lang-current');
+        if (landingLangCurrent) {
+            landingLangCurrent.textContent = isRu ? 'Русский' : 'English';
+        }
+        document.querySelectorAll('.landing-lang-option').forEach(item => {
+            if (item.getAttribute('data-lang') === currentLang) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
 
         // 5. Update Center Hero Slogan
         const heroPrimary = document.querySelector('.hero-primary-text');
@@ -437,12 +494,38 @@
             }
         }
 
+        // 5.1 Update Landing Slogan (English / Russian)
+        const landingTagline = document.getElementById('element-slogan-tagline');
+        if (landingTagline) {
+            if (isRu) {
+                landingTagline.innerHTML = `
+                    <span class="landing-slogan-line">Стек переполнен, <strong class="tagline-highlight">разраб преисполнен</strong> — поиск готовых инженерных решений</span>
+                    <span class="landing-slogan-line">и RAG-синтез по 100 ГБ базе знаний.</span>
+                `;
+            } else {
+                landingTagline.innerHTML = `
+                    <span class="landing-slogan-line">Stack overflow. <strong class="tagline-highlight">Issue overknown</strong> — instant engineering solutions &amp; RAG synthesis</span>
+                    <span class="landing-slogan-line">across 100 GB knowledge base.</span>
+                `;
+            }
+        }
+
         // 6. Update user role in sidebar if default
         if (elements.sidebarAuthRole && (elements.sidebarAuthRole.textContent === 'Backend developer' || elements.sidebarAuthRole.textContent === 'Бэкенд-разработчик')) {
             elements.sidebarAuthRole.textContent = isRu ? 'Бэкенд-разработчик' : 'Backend developer';
         }
         if (elements.profileInfoRole && (elements.profileInfoRole.value === 'Backend developer' || elements.profileInfoRole.value === 'Бэкенд-разработчик')) {
             elements.profileInfoRole.value = isRu ? 'Бэкенд-разработчик' : 'Backend developer';
+        }
+
+        // 7. Update Landing intro description (with highlighted technical terms)
+        const landingIntroDesc = document.querySelector('.landing-intro-description');
+        if (landingIntroDesc) {
+            if (isRu) {
+                landingIntroDesc.innerHTML = 'Любая сложная ошибка, <span class="tech-highlight">segmentation fault</span> или <span class="tech-highlight">runtime panic</span> в вашем терминале уже кем-то решена. Errorium индексирует миллионы проверенных обсуждений с кастомным ранжированием <span class="tech-highlight">BM25</span> высокой точности, доставляя готовые решения прямо в ваш браузер и агенту в <span class="tech-highlight">IDE</span>.';
+            } else {
+                landingIntroDesc.innerHTML = 'Every cryptic exception, segmentation fault, and runtime panic you encounter in your terminal has already been diagnosed and resolved. Errorium indexes millions of verified software engineering discussions with custom high-precision BM25 ranking, delivering ready-to-run solutions directly to your browser and IDE agent.';
+            }
         }
     }
 
@@ -933,12 +1016,17 @@
         }
 
         if (path === '/about') {
-            switchToLandingView(false, 'landing-about');
+            switchToLandingView(false, 'about');
             return;
         }
 
         if (path === '/mcp') {
-            switchToLandingView(false, 'landing-mcp');
+            switchToLandingView(false, 'mcp');
+            return;
+        }
+
+        if (path === '/landing' || path === '/overview') {
+            switchToLandingView(false, null);
             return;
         }
 
@@ -1019,7 +1107,7 @@
         });
     });
 
-    function switchToLandingView(updateRoute = true, targetAnchor = 'landing-mcp') {
+    function switchToLandingView(updateRoute = true, targetAnchor = 'mcp') {
         if (elements.heroView) elements.heroView.style.display = 'none';
         if (elements.chatView) elements.chatView.style.display = 'none';
         if (elements.profileView) elements.profileView.style.display = 'none';
@@ -1029,23 +1117,37 @@
         closeSidebar();
         closeAllModals(false);
 
+        // Normalize anchor
+        const anchorName = targetAnchor === 'landing-mcp' ? 'mcp' : 
+                           (targetAnchor === 'landing-about' ? 'about' : targetAnchor);
+
         // Update active anchor tab in landing nav
         document.querySelectorAll('.landing-anchor-link').forEach(link => {
             const href = link.getAttribute('href');
-            if (href === `#${targetAnchor}`) {
+            if (anchorName && href === `#${anchorName}`) {
                 link.classList.add('active');
             } else {
                 link.classList.remove('active');
             }
         });
 
-        const targetPath = targetAnchor === 'landing-about' ? '/about' : '/mcp';
-        if (updateRoute && !isNavigatingFromPopState && window.location.pathname !== targetPath) {
-            window.history.pushState({ view: 'landing', section: targetAnchor }, '', targetPath);
+        const targetHash = anchorName ? `#${anchorName}` : '';
+        const basePath = '/landing';
+        const targetUrl = `${basePath}${targetHash}`;
+
+        if (updateRoute && !isNavigatingFromPopState) {
+            if (window.location.pathname !== basePath || window.location.hash !== targetHash) {
+                window.history.pushState({ view: 'landing', section: anchorName }, '', targetUrl);
+            }
         }
 
         setTimeout(() => {
-            const el = document.getElementById(targetAnchor);
+            if (!anchorName) {
+                const scrollBody = document.querySelector('.landing-scroll-body');
+                if (scrollBody) scrollBody.scrollTo({ top: 0, behavior: 'smooth' });
+                return;
+            }
+            const el = document.getElementById(anchorName) || document.getElementById(`landing-${anchorName}`);
             if (el) {
                 el.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
@@ -1062,128 +1164,76 @@
         const scrollBody = document.querySelector('.landing-scroll-body');
         const headerLogo = document.getElementById('landing-header-logo');
         const welcomeBrand = document.getElementById('landing-welcome-brand');
+        const langSelector = document.getElementById('landing-lang-selector');
+        const navAnchorLinks = document.querySelectorAll('.landing-anchor-link');
 
         if (!scrollBody || !headerLogo || !welcomeBrand) return;
 
-        scrollBody.addEventListener('scroll', () => {
+        function updateActiveSectionOnScroll() {
             if (!document.body.classList.contains('landing-active')) return;
 
-            const brandRect = welcomeBrand.getBoundingClientRect();
             const headerRect = document.querySelector('.landing-header')?.getBoundingClientRect();
             const headerBottom = headerRect ? headerRect.bottom : 58;
 
-            // When the welcome "Errorium" text has scrolled out of view past header
-            const isOutOfView = brandRect.bottom <= headerBottom + 10;
+            // 1. Logo & Language toggle based on hero "Errorium" position
+            const brandRect = welcomeBrand.getBoundingClientRect();
+            const isOutOfView = brandRect.bottom <= headerBottom + 12;
 
-            if (isOutOfView && !isHeaderLogoVisible && !isAnimatingFly) {
-                isAnimatingFly = true;
-
-                // Step 1: Create clone at exact position of welcome text
-                const flyer = document.createElement('div');
-                flyer.className = 'landing-flying-brand';
-                flyer.textContent = 'Errorium';
-
-                const computed = window.getComputedStyle(welcomeBrand);
-                flyer.style.fontSize = computed.fontSize;
-                flyer.style.fontFamily = computed.fontFamily;
-                flyer.style.fontWeight = computed.fontWeight;
-                flyer.style.top = Math.max(headerBottom, brandRect.top) + 'px';
-                flyer.style.left = brandRect.left + 'px';
-                flyer.style.width = brandRect.width + 'px';
-                flyer.style.height = brandRect.height + 'px';
-
-                document.body.appendChild(flyer);
-
-                // Right boundary where the word collapses into a dot
-                const rightX = brandRect.right;
-                const centerY = Math.max(headerBottom, brandRect.top) + (brandRect.height / 2);
-
-                // Phase 1: Shrink towards right into a dot (300ms)
-                requestAnimationFrame(() => {
-                    flyer.style.transform = 'scaleX(0.01) scaleY(0.08)';
-                    flyer.style.opacity = '0.5';
-
-                    setTimeout(() => {
-                        flyer.remove();
-
-                        // Phase 2: Create atmospheric blue flame dot at the collapse point
-                        const flame = document.createElement('div');
-                        flame.className = 'landing-flame-dot';
-                        flame.style.left = rightX + 'px';
-                        flame.style.top = centerY + 'px';
-                        document.body.appendChild(flame);
-
-                        const targetRect = headerLogo.getBoundingClientRect();
-                        // Target is right-aligned in header
-                        const targetCenterX = targetRect.right - (targetRect.width / 2);
-                        const targetCenterY = targetRect.top + (targetRect.height / 2);
-
-                        // Spawn periodic trailing sparks/embers during the flight
-                        const sparks = [];
-                        const sparkInterval = setInterval(() => {
-                            if (!flame.parentNode) {
-                                clearInterval(sparkInterval);
-                                return;
-                            }
-                            const curRect = flame.getBoundingClientRect();
-                            const spark = document.createElement('div');
-                            spark.className = 'landing-flame-spark';
-                            spark.style.left = (curRect.left + curRect.width / 2 + (Math.random() * 8 - 4)) + 'px';
-                            spark.style.top = (curRect.top + curRect.height / 2 + (Math.random() * 8 - 4)) + 'px';
-                            document.body.appendChild(spark);
-                            sparks.push(spark);
-
-                            requestAnimationFrame(() => {
-                                spark.style.transform = `translate(${Math.random() * 20 - 10}px, ${Math.random() * 16 + 6}px) scale(0.2)`;
-                                spark.style.opacity = '0';
-                                setTimeout(() => spark.remove(), 400);
-                            });
-                        }, 55);
-
-                        // Phase 3: Flame travels diagonally up and right into the header's right corner
-                        requestAnimationFrame(() => {
-                            flame.style.left = targetCenterX + 'px';
-                            flame.style.top = targetCenterY + 'px';
-                            flame.style.transform = 'translate(-50%, -50%) rotate(18deg) scale(1.35)';
-
-                            setTimeout(() => {
-                                clearInterval(sparkInterval);
-
-                                // Phase 4: Flame bursts softly and header logo expands outwards
-                                flame.style.opacity = '0';
-                                flame.style.transform = 'translate(-50%, -50%) scale(2.6)';
-
-                                headerLogo.classList.remove('expand-from-dot');
-                                void headerLogo.offsetWidth; // trigger reflow
-                                headerLogo.classList.add('visible', 'expand-from-dot');
-                                isHeaderLogoVisible = true;
-
-                                setTimeout(() => {
-                                    flame.remove();
-                                    sparks.forEach(s => s.remove());
-                                    isAnimatingFly = false;
-                                }, 380);
-                            }, 520);
-                        });
-                    }, 300);
-                });
+            if (isOutOfView && !isHeaderLogoVisible) {
+                if (langSelector) langSelector.classList.add('hidden');
+                headerLogo.classList.add('visible');
+                isHeaderLogoVisible = true;
             } else if (!isOutOfView && isHeaderLogoVisible) {
-                // When scrolled back to top and welcome text is clearly visible again
-                headerLogo.classList.remove('visible', 'expand-from-dot');
+                if (langSelector) langSelector.classList.remove('hidden');
+                headerLogo.classList.remove('visible');
                 isHeaderLogoVisible = false;
             }
-        }, { passive: true });
+
+            // 2. Dynamic Scrollspy: highlight anchor (#mcp or #about) when scrolled to it
+            const sectionMcp = document.getElementById('mcp');
+            const sectionAbout = document.getElementById('about');
+            let currentActiveSection = null;
+
+            // Trigger threshold is around header bottom + offset
+            const threshold = headerBottom + 120;
+
+            if (sectionAbout) {
+                const aboutRect = sectionAbout.getBoundingClientRect();
+                if (aboutRect.top <= threshold) {
+                    currentActiveSection = 'about';
+                }
+            }
+
+            if (!currentActiveSection && sectionMcp) {
+                const mcpRect = sectionMcp.getBoundingClientRect();
+                if (mcpRect.top <= threshold) {
+                    currentActiveSection = 'mcp';
+                }
+            }
+
+            // Update .active class on anchor tabs
+            navAnchorLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (currentActiveSection && href === `#${currentActiveSection}`) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+        }
+
+        scrollBody.addEventListener('scroll', updateActiveSectionOnScroll, { passive: true });
     }
 
     // Modal & View Triggers
     elements.btnMcp?.addEventListener('click', (e) => {
         e.preventDefault();
-        switchToLandingView(true, 'landing-mcp');
+        switchToLandingView(true, 'mcp');
     });
 
     elements.btnAbout?.addEventListener('click', (e) => {
         e.preventDefault();
-        switchToLandingView(true, 'landing-about');
+        switchToLandingView(true, 'about');
     });
 
     elements.btnLandingBack?.addEventListener('click', () => {
@@ -1198,6 +1248,47 @@
     document.getElementById('btn-landing-hero-start')?.addEventListener('click', () => {
         switchToHeroView(true);
         elements.promptInput?.focus();
+    });
+
+    document.getElementById('landing-mascot-btn')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        switchToLandingView(true, null);
+    });
+
+    // Landing Header Language Dropdown Controller
+    const btnLandingLang = document.getElementById('btn-landing-lang');
+    const landingLangDropdown = document.getElementById('landing-lang-dropdown');
+    btnLandingLang?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!landingLangDropdown) return;
+        const isOpen = landingLangDropdown.style.display === 'flex';
+        landingLangDropdown.style.display = isOpen ? 'none' : 'flex';
+        btnLandingLang.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+    });
+
+    document.querySelectorAll('.landing-lang-option').forEach(option => {
+        option.addEventListener('click', function (e) {
+            e.stopPropagation();
+            const lang = this.getAttribute('data-lang');
+            if (lang) {
+                const user = getAuthUser();
+                if (user) {
+                    user.language = lang;
+                    setAuthUser(user);
+                }
+                applyLanguage(lang);
+                showToast(lang === 'Русский' ? 'Язык переключён на Русский' : 'Language switched to English');
+            }
+            if (landingLangDropdown) landingLangDropdown.style.display = 'none';
+            btnLandingLang?.setAttribute('aria-expanded', 'false');
+        });
+    });
+
+    document.addEventListener('click', (e) => {
+        if (landingLangDropdown && !btnLandingLang?.contains(e.target)) {
+            landingLangDropdown.style.display = 'none';
+            btnLandingLang?.setAttribute('aria-expanded', 'false');
+        }
     });
 
     document.getElementById('landing-header-logo')?.addEventListener('click', () => {
@@ -1314,18 +1405,13 @@
             e.stopPropagation();
             const selectedLang = this.getAttribute('data-lang');
             if (!selectedLang) return;
-            const user = getAuthUser() || {
-                username: 'Test_user',
-                email: 'Test_user@mail.ru',
-                role: 'Backend developer',
-                gender: 'Male',
-                language: 'English',
-                avatarLetter: 'T'
-            };
-            user.language = selectedLang;
-            setAuthUser(user);
-            applyLanguage(user.language);
-            showToast(user.language === 'Русский' ? 'Язык переключён на Русский' : 'Language switched to English');
+            const user = getAuthUser();
+            if (user) {
+                user.language = selectedLang;
+                setAuthUser(user);
+            }
+            applyLanguage(selectedLang);
+            showToast(selectedLang === 'Русский' ? 'Язык переключён на Русский' : 'Language switched to English');
 
             if (elements.langDropdownPopover) elements.langDropdownPopover.style.display = 'none';
             elements.profileInfoLangRow?.classList.remove('open');
@@ -1812,7 +1898,7 @@
     });
 
     elements.sidebarBrand?.addEventListener('click', () => {
-        switchToLandingView(true, 'landing-intro');
+        switchToLandingView(true, null);
     });
 
     // Render Chat Messages

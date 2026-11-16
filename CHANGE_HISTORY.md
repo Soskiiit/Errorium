@@ -1,5 +1,1159 @@
 # CHANGE_HISTORY.md — История изменений проекта Errorium
 
+## [2026-11-16] — Установка цвета #93c5fd из палитры выделения слогана для терминов в описании (Milestone 1, Iteration 87)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Гармонизация цвета технических терминов:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) для класса `.landing-intro-description .tech-highlight` установлен цвет **`#93c5fd`** (Soft Light Blue из градиентной палитры плашек слогана).
+   - Цвет стал заметно светлее, мягче и менее резким по сравнению с `#38bdf8`, идеально сочетаясь с фоновым градиентом выделения и текстом описания.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Подсветка акцентным цветом (#38bdf8) технических терминов в главном описании лендинга (Milestone 1, Iteration 86)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `services/frontend/static/app.js`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Снятие подсветки с карточек и перенос в главный текст описания:**
+   - Из карточек убрана стилизация заголовков, возвращен стандартный вид.
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) добавлен класс `.landing-intro-description .tech-highlight` с ярким фирменным небесно-голубым оттенком `#38bdf8` и начертанием `font-weight: 500`.
+   - В [app.js](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/app.js) для русскоязычной версии описания подсвечены оригинальные технические термины:
+     «Любая сложная ошибка, **`segmentation fault`** или **`runtime panic`** в вашем терминале уже кем-то решена. Errorium индексирует миллионы проверенных обсуждений с кастомным ранжированием **`BM25`** высокой точности, доставляя готовые решения прямо в ваш браузер и агенту в **`IDE`**.»
+   - Текст смотрится акцентно, стильно и профессионально, выделяя ключевые технические понятия в потоке речи.
+2. **Верификация и тесты:**
+   - Синтаксис проверен через `node --check services/frontend/static/app.js`.
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Подсветка фирменным цветом (#38bdf8) технических англоязычных терминов в заголовках карточек (Milestone 1, Iteration 85)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `services/frontend/static/app.js`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Цветовая подсветка непереведенных англоязычных терминов в русской версии:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) добавлен класс `.landing-card-title .tech-term` с ярким акцентным небесно-голубым цветом `#38bdf8` и начертанием `font-weight: 600`.
+   - В [app.js](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/app.js) в функции `applyLanguage` для русской версии карточек ключевые англоязычные названия подсвечены фирменным цветом:
+     - `Remote MCP` через `SSE`
+     - Точный поиск `BM25`
+     - Защищенный `Bearer`-токен
+   - В английской версии сохраняется лаконичный белый цвет заголовков.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Полная двуязычная локализация (русский язык) для всех секций и описаний лендинга (Milestone 1, Iteration 84)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/app.js`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Полный перевод всех описаний и блоков лендинга на русский язык:**
+   - В [app.js](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/app.js) в словарь `I18N_STRINGS.ru` добавлены профессиональные инженерные переводы для всех блоков:
+     - Бейдж: `Next-Gen Engineering Search` → `Поиск решений нового поколения`;
+     - Заголовок: `Hello, this is` → `Привет, это`;
+     - Главное описание: полный перевод абзаца об исключениях, паниках и поиске решений;
+     - Секция MCP: описание интеграции с Cursor, Windsurf и Claude Code, перевод `Set up MCP` → `Настройка MCP`;
+     - Описание карточек: детали транспорта через SSE, токенизации кода и персональных Bearer-токенов;
+     - Секция About us: описание академической специфики ИУ5 МГТУ, парсинга 100 ГБ дампа, потокового RAG и IPC gRPC;
+     - Карточки архитектуры: `Designed for Developers, Verified by Benchmarks` и пояснение формулы BM25.
+   - Технические заголовки карточек из присланного скриншота (`Remote MCP через SSE`, `Точный поиск BM25`, `Защищенный Bearer-токен`, а также обозначения `100 GB`, `BM25`, `RAG`, `gRPC`) оставлены аккуратными и узнаваемыми для разработчиков.
+2. **Верификация и тесты:**
+   - Синтаксис проверен через `node --check services/frontend/static/app.js`.
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Установка точного порядка плашек в About us: 100 GB -> RAG -> BM25 -> gRPC (Milestone 1, Iteration 83)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/index.html`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Новый порядок спецификаций в About us:**
+   - В [index.html](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/index.html) внутри `.landing-specs-grid` порядок карточек выставлен строго по запросу:
+     1. **`100 GB`** (Stack Overflow Dump — Streamed XML parsing with custom SPIMI index construction);
+     2. **`RAG`** (Streaming Synthesis — Top-K document distillation with code snippet extraction and explanations);
+     3. **`BM25`** (Built From Scratch — IU5 BMSTU formula: k₁ = 1.5, b = 0.75, zero third-party search libraries);
+     4. **`gRPC`** (Sub-millisecond IPC — High-performance protobuf contracts between Gateway and Core :50051).
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Перемещение плашки 100 GB на первую позицию слева в секции About us (100 GB -> BM25 -> gRPC -> RAG) (Milestone 1, Iteration 82)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/index.html`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Перемещение 100 GB в крайнее левое положение:**
+   - В [index.html](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/index.html) внутри сетки спецификаций `.landing-specs-grid` порядок карточек обновлен:
+     1. **`100 GB`** (Stack Overflow Dump — Streamed XML parsing with custom SPIMI index construction);
+     2. **`BM25`** (Built From Scratch — IU5 BMSTU formula: k₁ = 1.5, b = 0.75, zero third-party search libraries);
+     3. **`gRPC`** (Sub-millisecond IPC — High-performance protobuf contracts between Gateway and Core :50051);
+     4. **`RAG`** (Streaming Synthesis — Top-K document distillation with code snippet extraction and explanations).
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Увеличение высоты градиентной растяжки затемнения снизу вверх (height: 220px) (Milestone 1, Iteration 81)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Увеличение высоты вертикальной растяжки:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) высота псевдоэлемента `.landing-standalone-page::after` увеличена со `120px` до `220px`.
+   - Градиент настроен с плавным многошаговым переходом:
+     `linear-gradient(to top, rgba(9, 13, 23, 0.75) 0%, rgba(9, 13, 23, 0.4) 40%, rgba(9, 13, 23, 0.15) 70%, transparent 100%)`.
+   - Растяжка стала значительно выше по вертикали, сохраняя мягкую прозрачность и бесшовное растворение контента внизу экрана.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Увеличение прозрачности нижней градиентной растяжки (Milestone 1, Iteration 80)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Более прозрачная растяжка затемнения:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) для псевдоэлемента `.landing-standalone-page::after` градиент сделан более прозрачным и деликатным:
+     `linear-gradient(to top, rgba(9, 13, 23, 0.75) 0%, rgba(9, 13, 23, 0.35) 45%, transparent 100%)`, высота скорректирована до `120px`.
+   - Затухание внизу экрана стало легким и полупрозрачным, не перекрывая текст под ним.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Изменение порядка плашек в секции About us: RAG -> BM25 -> 100 GB -> gRPC (Milestone 1, Iteration 79)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/index.html`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Новый порядок спецификаций в сетке About us:**
+   - В [index.html](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/index.html) внутри сетки `.landing-specs-grid` порядок следования карточек изменен строго слева направо:
+     1. **`RAG`** (Streaming Synthesis — Top-K document distillation with code snippet extraction and explanations);
+     2. **`BM25`** (Built From Scratch — IU5 BMSTU formula: k₁ = 1.5, b = 0.75, zero third-party search libraries);
+     3. **`100 GB`** (Stack Overflow Dump — Streamed XML parsing with custom SPIMI index construction);
+     4. **`gRPC`** (Sub-millisecond IPC — High-performance protobuf contracts between Gateway and Core :50051).
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Добавление градиентной растяжки затемнения снизу вверх на лендинге (.landing-standalone-page::after) (Milestone 1, Iteration 78)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Градиентная растяжка затемнения снизу экрана:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) для контейнера `.landing-standalone-page` добавлен псевдоэлемент `::after`:
+     - Расположен внизу экрана (`bottom: 0; left: 0; right: 0; height: 140px;`);
+     - Плавный градиент снизу вверх: `linear-gradient(to top, rgba(9, 13, 23, 0.95) 0%, rgba(9, 13, 23, 0.6) 45%, transparent 100%)`;
+     - `pointer-events: none;` — не блокирует клики и взаимодействие с контентом;
+     - Создаёт красивый эффект кинематографичного затухания страницы к нижнему краю экрана.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Поднятие контента лендинга еще на 10px выше (padding-top: 84px) (Milestone 1, Iteration 77)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Поднятие контента лендинга еще на 10px выше:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) верхний внутренний отступ контейнера `.landing-scroll-body` уменьшен с `94px` до `84px`.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Корректировка верхнего отступа контента лендинга на 10px выше (padding-top: 94px) (Milestone 1, Iteration 76)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Поднятие контента лендинга на 10px выше:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) верхний внутренний отступ контейнера `.landing-scroll-body` скорректирован со `104px` до `94px`.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Увеличение верхнего отступа контента лендинга (padding-top: 104px) (Milestone 1, Iteration 75)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Смещение контента лендинга ниже:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) верхний внутренний отступ контейнера `.landing-scroll-body` увеличен с `72px` до `104px`.
+   - Вся страница лендинга (приветственный бейдж, заголовок Hello, плашки подзаголовка, описание и кнопки) теперь опустилась ниже относительно хедера, создавая больше свободного пространства и ощущение легкости.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Возврат точного оттенка градиента надписи Errorium для плашек подзаголовка (Milestone 1, Iteration 74)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Откат к предыдущему цвету плашек:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) для класса `.landing-slogan-line` возвращен точно исходный гармоничный градиент слова `Errorium`:
+     `linear-gradient(135deg, rgba(96, 165, 250, 0.45) 0%, rgba(56, 189, 248, 0.5) 50%, rgba(147, 197, 253, 0.45) 100%)`.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Смещение оттенка плашек подзаголовка чуть глубже в синий тон (Milestone 1, Iteration 73)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Тонкая корректировка тональности плашек:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) градиент `.landing-slogan-line` сдвинут чуть глубже в синий спектр:
+     `linear-gradient(135deg, rgba(59, 130, 246, 0.52) 0%, rgba(37, 140, 244, 0.52) 50%, rgba(96, 165, 250, 0.48) 100%)`.
+   - Тон стал чуть насыщеннее и благороднее, сохранив мягкую полупрозрачность и связь с палитрой `Errorium`.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Установка цвета и градиента как у логотипа Errorium для плашек подзаголовка (Milestone 1, Iteration 72)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Цвет и градиент в тон слова Errorium:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) фон плашек `.landing-slogan-line` переведён на полупрозрачный градиент в точности по палитре слова `Errorium`:
+     `linear-gradient(135deg, rgba(96, 165, 250, 0.45) 0%, rgba(56, 189, 248, 0.5) 50%, rgba(147, 197, 253, 0.45) 100%)`.
+   - Плашки теперь идеально рифмуются по цвету с главным брендовым логотипом в заголовке.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Полное удаление свечения (box-shadow: none) у плашек подзаголовка (Milestone 1, Iteration 71)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Полный отказ от свечения плашек:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) для класса `.landing-slogan-line` удалена подсветка (`box-shadow: none;`).
+   - Полупрозрачные синие прямоугольники отображаются абсолютно матово и чисто.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Ослабление белого свечения плашек подзаголовка до еле заметного флёра (box-shadow: 0 0 10px rgba(255, 255, 255, 0.08)) (Milestone 1, Iteration 70)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Снижение интенсивности свечения плашек:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) для класса `.landing-slogan-line` белое свечение ослаблено до тонкого полупрозрачного флёра:
+     `box-shadow: 0 0 10px rgba(255, 255, 255, 0.08);`.
+   - Подсветка едва уловима глазом, лишь слегка смягчает границы плашек относительно темного фона.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Добавление деликатного белого свечения у полупрозрачных плашек подзаголовка (Milestone 1, Iteration 69)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Деликатное белое свечение плашек:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) для класса `.landing-slogan-line` добавлено мягкое рассеянное белое свечение:
+     `box-shadow: 0 0 16px rgba(255, 255, 255, 0.18), 0 0 32px rgba(255, 255, 255, 0.08);`.
+   - Плашки выделения получили утонченный стеклянно-световой контур без излишней резкости.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Установка полупрозрачного синего фона (rgba(37, 99, 235, 0.55)) для плашек подзаголовка (Milestone 1, Iteration 68)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Полупрозрачный фон прямоугольников:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) для класса `.landing-slogan-line` цвет фона изменен с непрозрачного `#2563eb` на полупрозрачный `rgba(37, 99, 235, 0.55)`.
+   - Плашки теперь пропускают темную подложку страницы, создавая легкий и естественный эффект системного выделения текста.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Уменьшение вертикальных внутренних отступов (padding: 2px 10px) у плашек подзаголовка (Milestone 1, Iteration 67)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Уменьшение вертикальных отступов плашек выделения:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) для класса `.landing-slogan-line` отступы уменьшены с `6px 12px` до компактных `2px 10px;`.
+   - Скорректирован `line-height: 1.25;` и скругление углов `border-radius: 4px;` для идеальной высоты плашек под размер текста.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Удаление свечения (box-shadow: none) у прямоугольников подзаголовка (Milestone 1, Iteration 66)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Удаление эффекта свечения:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) для класса `.landing-slogan-line` удалена тень (`box-shadow: none;`).
+   - Прямоугольники теперь выглядят матово, строго и чисто, как на скриншоте системного выделения текста.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Разделение подзаголовка на отдельные синие прямоугольники для каждой строки (Milestone 1, Iteration 65)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/index.html`
+- `services/frontend/static/styles.css`
+- `services/frontend/static/app.js`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Отдельные прямоугольники для каждой строки:**
+   - В [index.html](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/index.html) и [app.js](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/app.js) подзаголовок разбит на две дискретные строки через элементы `<span class="landing-slogan-line">`.
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) для `.landing-slogan-line` задано:
+     - `display: inline-block;` и `width: fit-content;`;
+     - `background-color: #2563eb;` с индивидуальным скруглением `border-radius: 6px;`, отступами `padding: 6px 12px;` и тенью `box-shadow: 0 4px 18px rgba(37, 99, 235, 0.4);`;
+     - Контейнер `.landing-hero-subtitle-box` с `align-items: flex-start; gap: 8px;` обеспечивает ровный визуальный стек из двух независимых синих прямоугольников под заголовком.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Стилизация подзаголовка лендинга в виде дизайнерского эффекта выделения текста маркером (Milestone 1, Iteration 64)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Дизайнерский эффект выделения текста (Highlight / Selection Effect):**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) для класса подзаголовка `.landing-slogan-secondary` реализован эффект выделения синим маркером в точности по присланному скриншоту:
+     - `background-color: #2563eb;` (насыщенный синий цвет системного выделения);
+     - `display: inline;` и `box-decoration-break: clone;` (включая вендорный префикс `-webkit-box-decoration-break: clone;`), благодаря чему каждая строка при многострочном переносе получает собственные аккуратные отступы и закругления краев;
+     - `padding: 3px 8px;`, `border-radius: 4px;` и деликатное неоновое свечение `box-shadow: 0 2px 14px rgba(37, 99, 235, 0.45);`;
+     - `color: #ffffff;` с белым контрастным начертанием.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Подключение премиального шрифта Plus Jakarta Sans для главного описания лендинга (Milestone 1, Iteration 63)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/index.html`
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Подключение и настройка гарнитуры Plus Jakarta Sans:**
+   - В [index.html](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/index.html) в Google Fonts подключена элегантная гарнитура `Plus Jakarta Sans` (веса 400, 500, 600).
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) зарегистрирована переменная `--font-editorial: "Plus Jakarta Sans", "Inter", sans-serif;`.
+   - Для блока `.landing-intro-description` применен стиль `font-family: var(--font-editorial);`, `font-size: 1.15rem;`, `line-height: 1.75;`.
+   - Текст описания приобрел мягкий, чистый, современный продуктовый вид премиального AI-сервиса (в эстетике Linear / современные дизайн-системы), легко воспринимается и гармонично сочетается с заголовком и подзаголовком.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Перевод шрифта большого описания лендинга с моноширинного на гарнитуру Inter (--font-ui) (Milestone 1, Iteration 62)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Перевод описания на гарнитуру Inter:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) для класса `.landing-intro-description` шрифт заменен с моноширинного `var(--font-mono)` на чистый современный гротеск `var(--font-ui)` (Inter / sans-serif).
+   - Отрегулирован кегль (`font-size: 1.12rem`) и межстрочный интервал (`line-height: 1.7`) для комфортного и легкого чтения объемного абзаца текста.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Добавление автоподсветки активного якоря в хедере лендинга при скролле (Scrollspy) (Milestone 1, Iteration 61)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/index.html`
+- `services/frontend/static/app.js`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Интеллектуальный Scrollspy для навигации хедера лендинга:**
+   - В [app.js](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/app.js) в обработчик скролла лендинга `.landing-scroll-body` добавлено отслеживание текущей видимой секции (`#mcp` и `#about`).
+   - При долистывании до соответствующего блока кнопка в хедере (`MCP` или `About us`) автоматически получает класс `.active` с фирменной голубой подсветкой (`#38bdf8`, легкий фон `rgba(56, 189, 248, 0.12)` и начертание `600`).
+   - Если пользователь находится на самом верху (в приветственной части с маскотом и заголовком `Hello, this is Errorium`), активный фокус мягко снимается, сигнализируя, что открыт обзор первого экрана.
+2. **Верификация и тесты:**
+   - Синтаксис проверен через `node --check services/frontend/static/app.js`.
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Добавление светлой обводки в 1px для выпадающего меню выбора языка (Milestone 1, Iteration 60)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Светлая тонкая обводка выпадающего меню:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) для выпадающего меню языка `.landing-lang-dropdown` добавлена деликатная светлая обводка толщиной 1px: `border: 1px solid rgba(255, 255, 255, 0.2);`.
+   - Меню четко очерчено на темном фоне, сохраняя элегантный glassmorphism-стиль с мягким неоновым свечением.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Удаление фоновой заливки при наведении и выборе языка в выпадающем списке (Milestone 1, Iteration 59)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Удаление заливки прямоугольника опций языка:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) для состояний `.landing-lang-option:hover` и `.landing-lang-option.active` фоновая заливка убрана (`background: transparent;`).
+   - Активный или наведенный пункт теперь выделяется исключительно чистым голубым цветом текста `#38bdf8` и начертанием `font-weight: 600`, без цветных плашек и прямоугольников.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Увеличение скругления кнопки Start debugging до pill-формы (border-radius: 9999px) (Milestone 1, Iteration 58)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Увеличение скругления кнопки старта:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) для кнопки `.landing-hero-cta-btn` значение `border-radius` изменено с `14px` на плавную современную капсульную форму `9999px` (Pill shape), а горизонтальный padding увеличен до `36px`.
+   - Кнопка гармонично перекликается со скругленным бейджем `Next-Gen Engineering Search` и логотипом.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Удаление хвоста 'for Cursor & terminal' из подзаголовка лендинга (Milestone 1, Iteration 57)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/index.html`
+- `services/frontend/static/app.js`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Удаление хвоста фразы:**
+   - В [index.html](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/index.html) и [app.js](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/app.js) из подзаголовка `.landing-slogan-secondary` удален фрагмент `for Cursor & terminal` (и русское `для Cursor и терминала`).
+   - Фраза теперь читается емко и чисто:
+     > `Stack overflow. Issue overknown — instant engineering solutions & RAG synthesis across 100 GB knowledge base.`
+     > (на русском: `Стек переполнен, разраб преисполнен — поиск готовых инженерных решений и RAG-синтез по 100 ГБ базе знаний.`)
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Установка чистого белого цвета (#ffffff) для всей надписи подзаголовка лендинга (Milestone 1, Iteration 56)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Чистый белый цвет подзаголовка:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) для класса `.landing-slogan-secondary` и внутреннего `.tagline-highlight` установлен прямо чистый белый цвет **`#ffffff`**.
+   - Весь подзаголовок теперь монолитно белый, яркий, контрастный и отчетливо читаемый.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Установка шрифта JetBrains Mono для главной кнопки Start debugging with Errorium (Milestone 1, Iteration 55)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Шрифт JetBrains Mono для кнопки действия:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) для класса кнопки `.landing-hero-cta-btn` установлен моноширинный шрифт `font-family: var(--font-mono);` (JetBrains Mono), как и у описания лендинга.
+   - Скорректированы параметры `font-size: 1.05rem;`, `font-weight: 600;` и `letter-spacing: -0.015em;` для идеального визуального баланса и четкости текста в кнопке.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Смягчение яркости оттенка подзаголовка лендинга до сдержанного джинсово-синего (#5ea8d8) (Milestone 1, Iteration 54)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Уменьшение яркости оттенка:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) цвет `.landing-slogan-secondary` и `.tagline-highlight` изменен с насыщенного лазурного `#7dd3fc` на спокойный, приглушенный серо-голубой/джинсовый тон **`#5ea8d8`**.
+   - Текст перестал быть излишне светящимся, выглядит солидно, сдержанно и при этом отчетливо читается, сохраняя цветовую индивидуальность (не серый и не белый).
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Установка единого мягкого лазурного оттенка (#7dd3fc) для всей фразы подзаголовка лендинга (Milestone 1, Iteration 53)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Единый живой цвет для всего подзаголовка:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) для класса `.landing-slogan-secondary` и внутреннего `.tagline-highlight` установлен единый гармоничный оттенок **`#7dd3fc`** (Sky 300 / Soft Cyan-Blue).
+   - Подзаголовок выглядит ярко и читаемо на темном фоне, не теряясь как серый и не будучи ослепляюще белым, при этом идеально дополняет градиентный логотип `Errorium` и маскота.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Увеличение размера подзаголовка и прижатие его ближе к Hello заголовку (Milestone 1, Iteration 52)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Увеличение размера подзаголовка:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) для подзаголовка `.landing-slogan-secondary` размер шрифта увеличен с `1.15rem` до адаптивного `clamp(1.25rem, 2.2vw, 1.45rem)`.
+   - Начертание усилено до выразительного полужирного `font-weight: 600`, а акцентный текст `.tagline-highlight` окрашен в контрастный `#f1f5f9`.
+2. **Прижатие подзаголовка ближе к заголовку Hello:**
+   - Для контейнера `.landing-hero-subtitle-box` верхний отрицательный отступ скорректирован с `-4px` до `-14px`, за счет чего подзаголовок теперь плотно и естественно примыкает к главному заголовку `Hello, this is Errorium.`.
+3. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Удаление надписи Element 404 на первом экране и унификация стилей переключателя языка с кнопками навигации хедера (Milestone 1, Iteration 51)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/index.html`
+- `services/frontend/static/styles.css`
+- `services/frontend/static/app.js`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Удаление надписи Element 404:**
+   - В [index.html](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/index.html) удален блок `.landing-slogan-primary` с фразой `Element 404. Reacts with developers.`.
+   - В [app.js](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/app.js) удалена ветка обновления этого элемента, сразу выводится и переключается содержательный слоган:
+     `Stack overflow. Issue overknown — instant engineering solutions & RAG synthesis across 100 GB knowledge base for Cursor & terminal.` (на английском) и `Стек переполнен, разраб преисполнен — поиск готовых инженерных решений и RAG-синтез по 100 ГБ базе знаний для Cursor и терминала.` (на русском).
+2. **Унификация стилей переключателя языка (`.landing-lang-btn`) с кнопками MCP и About us:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) параметры `.landing-lang-btn` приведены в точное соответствие с `.landing-anchor-link`:
+     - `padding: 7px 16px;` (ранее было `6px 12px`);
+     - `font-size: 0.95rem;` (ранее было `0.88rem`);
+     - `font-weight: 500;` с переходом на `font-weight: 600;` и цвет `#38bdf8` при hover/active;
+     - `background: rgba(56, 189, 248, 0.12);` при hover (тот же небесно-голубой эффект подсветки);
+     - Пункты выпадающего списка `.landing-lang-option` также приведены к `font-size: 0.95rem;` и аналогичному padding/hover.
+3. **Верификация и тесты:**
+   - Синтаксис JS проверен: `node --check services/frontend/static/app.js`.
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Темно-бордовый цвет слогана Element 404 и обновление названия раздела на Set up MCP (Milestone 1, Iteration 50)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `services/frontend/static/index.html`
+- `services/frontend/static/app.js`
+- `tests/unit/test_frontend_spa.py`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Темно-бордовый цвет слогана:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) для строки `.landing-slogan-primary` и её внутреннего элемента `.error-code-red` установлен единый темно-бордовый оттенок `#991b1b` (темный бордовый/ruby-red). Вся фраза `Element 404. Reacts with developers.` (включая число `404`) теперь монолитно окрашена в этот цвет.
+2. **Переименование Model Context Protocol (MCP) в Set up MCP:**
+   - В [index.html](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/index.html) заголовки секции интеграции MCP на лендинге (`.landing-title`) и в модальном окне (`#mcp-modal-title`) обновлены с `Model Context Protocol (MCP)` на `Set up MCP`.
+   - В [app.js](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/app.js) добавлены двуязычные переводы (`Set up MCP` <-> `Настройка MCP`).
+3. **Верификация и тесты:**
+   - Обновлен модульный тест в [test_frontend_spa.py](file:///home/mariam/WebstormProjects/Errorium/tests/unit/test_frontend_spa.py).
+   - Все 24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Удаление обводки у кнопки и выпадающего списка языка в хедере и обеспечение глобальной смены языка во всем приложении (Milestone 1, Iteration 49)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `services/frontend/static/app.js`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Удаление обводки у переключателя языка:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) у кнопки выбора языка `.landing-lang-btn` и у самого выпадающего списка `.landing-lang-dropdown` удалена граница (`border: none;`). Элемент теперь выглядит чисто, без лишних рамок, сохраняя стильную полупрозрачную подсветку при наведении и аккуратную тень списка.
+2. **Исправление работы и глобальная синхронизация языка:**
+   - В [app.js](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/app.js) исправлена ошибка, из-за которой не срабатывал клик по пункту меню языка (вызывалась несуществующая функция `saveAuthUser` вместо `setAuthUser`).
+   - Добавлен независимый ключ сохранения языка в `localStorage` (`errorium_app_language`), благодаря чему выбранный язык сохраняется как для авторизованных пользователей, так и для гостей.
+   - Метод `applyLanguage(lang)` синхронизирует состояние активного языка во всех элементах интерфейса (в лендинге, в выпадающем списке профиля, в слоганах героя и лендинга, в подсказках, в роли пользователя).
+   - Выбор языка в хедере мгновенно переключает весь интерфейс приложения (чат, профиль, настройки, модальные окна, лендинг) и сохраняется при навигации по любым разделам SPA.
+3. **Верификация и тесты:**
+   - Синтаксис проверен через `node --check services/frontend/static/app.js`.
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+
+## [2026-11-16] — Унификация размера и веса шрифта для обеих строк слогана (1.15rem, font-weight 500) (Milestone 1, Iteration 48)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Единый размер и вес шрифта слогана:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) для обоих блоков `.landing-slogan-primary` и `.landing-slogan-secondary` задан строго одинаковый размер `font-size: 1.15rem` и одинаковый вес шрифта `font-weight: 500 (Medium)`.
+   - Внутренние акцентные элементы (`.error-code-red` и `.tagline-highlight`) приведены к единому весу `500`.
+   - Текст воспринимается аккуратно, монолитно и выдержан в едином ритме.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+## [2026-11-16] — Удаление кнопки Explore MCP & Architecture и увеличение логотипа Errorium в хедере до 1.35rem (Milestone 1, Iteration 47)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/index.html`
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Удаление кнопки Explore MCP & Architecture:**
+   - В [index.html](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/index.html) удалена вспомогательная кнопка со стрелкой `.landing-hero-learn-link`. На первом экране осталась единственная главная крупная кнопка действия `Start debugging with Errorium`.
+2. **Увеличение логотипа Errorium в хедере:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) размер шрифта для `.landing-header-logo` увеличен с `1rem` до сбалансированных `1.35rem` (21.6px), а начертание усилено до `font-weight: 700`.
+3. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+## [2026-11-16] — Удаление плитки таблицы элементов и оформление слогана как подписи сразу после Hello (Milestone 1, Iteration 46)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/index.html`
+- `services/frontend/static/styles.css`
+- `services/frontend/static/app.js`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Удаление таблицы элементов и интеграция слогана в заголовок:**
+   - В [index.html](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/index.html) полностью удален блок `.landing-element-showcase` с плиткой.
+   - Слоган и расширенное описание сути перенесены сразу под заголовок `Hello, this is Errorium.` в виде элегантной подписи `.landing-hero-subtitle-box`:
+     - Строка 1: `Element 404. Reacts with developers.` (`.landing-slogan-primary` с акцентным красным `404`);
+     - Строка 2: `Stack overflow. Issue overknown — instant engineering solutions & RAG synthesis across 100 GB knowledge base for Cursor & terminal.` (`.landing-slogan-secondary`).
+   - Ниже следует параграф `.landing-intro-description` (шрифт JetBrains Mono) и крупная кнопка старта.
+   - В [app.js](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/app.js) добавлена двуязычная локализация для обеих строк слогана.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+## [2026-11-16] — Добавление выпадающего переключателя языка в правый угол хедера лендинга (Milestone 1, Iteration 45)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/index.html`
+- `services/frontend/static/styles.css`
+- `services/frontend/static/app.js`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Переключатель языка в хедере (.landing-lang-selector):**
+   - В [index.html](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/index.html) в правый угол хедера добавлен интерактивный селектор языка (`English / Русский`) со стрелочкой и выпадающим списком.
+   - Пока страница находится наверху и логотип `Errorium` скрыт, селектор отображается в правом углу.
+   - Как только пользователь прокручивает страницу вниз и заголовок скрывается под хедером, селектор плавно растворяется (`.landing-lang-selector.hidden`), а на его месте кинематографично проявляется логотип `Errorium`. При обратном скролле наверх селектор языка плавно возвращается.
+   - Выбор языка в выпадашке моментально переводит весь интерфейс и текст слогана.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+## [2026-11-16] — Двуязычная адаптация (RU/EN) слогана и описания сути платформы (Milestone 1, Iteration 44)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/index.html`
+- `services/frontend/static/app.js`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Две полноценные языковые версии слогана-описания (#element-slogan-tagline):**
+   - **Английская версия (EN):**
+     `Stack overflow. Issue overknown — instant engineering solutions & RAG synthesis across 100 GB knowledge base for Cursor & terminal.`
+   - **Русская версия (RU):**
+     `Стек переполнен, разраб преисполнен — поиск готовых инженерных решений и RAG-синтез по 100 ГБ базе знаний для Cursor и терминала.`
+   - В [app.js](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/app.js) в функцию `applyLanguage(lang)` добавлено динамическое переключение содержимого элемента `#element-slogan-tagline` в зависимости от языка пользователя.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+## [2026-11-16] — Уменьшение размера логотипа Errorium в хедере лендинга до 1rem (Milestone 1, Iteration 43)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Размер логотипа в хедере (.landing-header-logo):**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) размер шрифта для `Errorium` в хедере уменьшен с `1.75rem` до аккуратных `1rem` (16px).
+   - Надпись стала минималистичной, пропорциональной и визуально сбалансированной относительно соседних элементов навигации.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+## [2026-11-16] — Синхронизация цвета логотипа Errorium в хедере с кнопками навигации (#94a3b8) (Milestone 1, Iteration 42)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Цвет надписи Errorium в хедере (.landing-header-logo):**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) цвет надписи `Errorium` изменен на `#94a3b8` — в точный цвет неактивных кнопок `MCP` и `About us`.
+   - При наведении курсора надпись плавно переходит в акцентный лазурный `#38bdf8` с деликатным свечением.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+## [2026-11-16] — Расширение слогана «Stack overflow. Issue overknown» ёмким описанием сути проекта (Milestone 1, Iteration 41)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/index.html`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Текст слогана в шоукейсе Element 404:**
+   - В [index.html](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/index.html) строка слогана дополнена емким и точным определением продукта: `Stack overflow. Issue overknown — поиск готовых инженерных решений и RAG-синтез по 100 ГБ базе знаний для Cursor и терминала.`.
+   - Фраза раскрывает смысл игры слов слогана и сразу объясняет назначение платформы.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+## [2026-11-16] — Осветление голубого тона логотипа в хедере и добавление деликатного центрального неонового свечения (Milestone 1, Iteration 40)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Светлый небесно-голубой тон логотипа в тон маскота:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) градиент логотипа `.landing-header-logo` осветлен до тонов маскота: `linear-gradient(135deg, #bae6fd 0%, #7dd3fc 45%, #38bdf8 100%)`.
+   - Добавлен легкий центральный эффект неонового свечения `drop-shadow(0 0 10px rgba(56, 189, 248, 0.35))` со смещением строго `0 0`, создающий мягкий ореол вокруг букв без искажения контуров.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+## [2026-11-16] — Голубой градиент и облегчение начертания логотипа Errorium в хедере лендинга (Milestone 1, Iteration 39)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Стилизация логотипа в хедере (.landing-header-logo):**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) цвет логотипа изменен с чисто белого на фирменный лазурно-голубой градиент (`linear-gradient(135deg, #60a5fa 0%, #38bdf8 50%, #93c5fd 100%)`).
+   - Начертание шрифта облегчено с массивного `font-weight: 800` до более утонченного `font-weight: 600 (Semi-bold)`.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+## [2026-11-16] — Удаление рамки маскота в хедере и его горизонтальный разворот вправо (Milestone 1, Iteration 38)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/index.html`
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Чистый развернутый маскот в хедере лендинга:**
+   - В [index.html](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/index.html) удалена круглая рамка и фон. Маскот теперь представлен чистым элементом `.landing-header-mascot-img`.
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) применен `transform: scaleX(-1)`: маскот зеркально развернут и теперь естественно смотрит вправо (в сторону кнопок навигации и контента).
+   - На ховер добавлен аккуратный микро-зум и фирменная синяя тень (`drop-shadow`).
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+## [2026-11-16] — Установка размера 0.95rem для кнопок навигации в хедере лендинга (Milestone 1, Iteration 37)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Калибровка шрифта кнопок хедера (.landing-anchor-link):**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) для кнопок `MCP` и `About us` размер шрифта установлен в ровно `0.95rem` (~`15.2px`).
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+## [2026-11-16] — Добавление круглого SVG-маскота Errorium в левый край хедера лендинга (Milestone 1, Iteration 36)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/index.html`
+- `services/frontend/static/styles.css`
+- `services/frontend/static/app.js`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Круглый маскот в шапке лендинга (.landing-mascot-circle):**
+   - В [index.html](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/index.html) в левый угол хедера перед якорными ссылками `MCP` и `About us` добавлен круглый интерактивный бейдж с маскотом Errorium.
+   - Бейдж реализован в виде векторного круглого SVG (`<svg class="mascot-round-svg">`) с клиппингом (`clipPath`), мягким фоновым радиальным градиентом `#1e293b -> #0f172a` и тонким лазурным ободком.
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) добавлен микро-ховер: плавное увеличение `scale(1.08)` и мягкое неоновое свечение.
+   - В [app.js](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/app.js) клик по маскоту плавно возвращает пользователя к началу страницы лендинга.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+## [2026-11-16] — Установка точного размера 0.9rem для якорных кнопок хедера лендинга (Milestone 1, Iteration 35)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Калибровка шрифта кнопок хедера (.landing-anchor-link):**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) для кнопок `MCP` и `About us` размер шрифта установлен в ровно `0.9rem` (аккуратный баланс между читаемостью и компактностью).
+   - Отступы скорректированы до `7px 16px`.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+## [2026-11-16] — Увеличение размера шрифта элементов в хедере лендинга (Milestone 1, Iteration 34)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Крупная типографика хедера лендинга:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) для якорных кнопок навигации `.landing-anchor-link` (`MCP`, `About us`) размер шрифта увеличен с `0.88rem` до **`1.05rem`**, внутренние отступы увеличены до `8px 18px`.
+   - Для логотипа `#landing-header-logo` (`Errorium`) в правом углу размер шрифта увеличен с `1.55rem` до **`1.75rem`**, начертание усилено до `font-weight: 800`.
+   - Вся шапка стала солиднее, выразительнее и лучше читается на десктопных и мобильных экранах.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+## [2026-11-16] — Упрощение якорей лендинга до чистых #mcp и #about (Milestone 1, Iteration 33)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/index.html`
+- `services/frontend/static/app.js`
+- `tests/unit/test_frontend_spa.py`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Чистые названия якорей:**
+   - В [index.html](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/index.html) удалён лишний якорь на начало страницы (Overview).
+   - В хедере оставлены ровно 2 аккуратные якорные ссылки: `href="#mcp"` и `href="#about"`.
+   - Сами секции получили лаконичные id: `<section id="mcp">` и `<section id="about">`.
+   - В [app.js](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/app.js) контроллер `switchToLandingView` теперь использует чистые якоря `'mcp'` и `'about'`, а при переходе наверх страницы (по клику на логотип в сайдбаре) просто скроллит страницу к началу без лишних хэшей.
+2. **Верификация и тесты:**
+   - Тест `test_landing_page_structure_and_anchors` актуализирован.
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+## [2026-11-16] — Фиксация единого URL лендинга с якорной навигацией без смены путей страниц (Milestone 1, Iteration 32)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/app.js`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Якорная навигация внутри единой страницы лендинга:**
+   - В [app.js](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/app.js) в функции `switchToLandingView()` путь страницы больше не перезаписывается на отдельные страницы (`/about` или `/mcp`).
+   - Лендинг сохраняет базовый путь страницы (`/landing` или `/overview`) и переключает исключительно хэш-якоря (`#landing-intro`, `#landing-mcp`, `#landing-about`).
+   - Навигация по разделам происходит бесшовно через естественные якори и плавный скролл.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+## [2026-11-16] — Возврат межстрочного интервала 1.8 для вводного описания лендинга (Milestone 1, Iteration 31)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Восстановление межстрочного интервала (.landing-intro-description):**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) значение `line-height` возвращено к комфортному просторному `1.8`.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+## [2026-11-16] — Добавление прямых URL-маршрутов /landing и /overview для лендинга Errorium (Milestone 1, Iteration 30)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/app.js`
+- `tests/unit/test_frontend_spa.py`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **SPA-роутинг для лендинга (/landing и /overview):**
+   - В [app.js](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/app.js) в функцию `renderCurrentRoute()` добавлена поддержка маршрутов `path === '/landing'` и `path === '/overview'`. При переходе по этим URL открывается лендинг с автоматической фокусировкой на вводном Hero-разделе `#landing-intro`.
+   - В функции `switchToLandingView()` обновлена логика синхронизации URL: при переходе к вводному разделу в адресной строке выставляется `/landing` (или сохраняется `/overview`), для MCP — `/mcp`, для About — `/about`.
+2. **Верификация и тесты:**
+   - Обновлен тест `test_landing_page_structure_and_anchors` в `tests/unit/test_frontend_spa.py`.
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+## [2026-11-16] — Уменьшение отступа между заголовком Hello и описанием проекта (Milestone 1, Iteration 29)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Верхний отступ описания (.landing-intro-description):**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) для `.landing-intro-description` задан `margin: -8px 0 0 0`, сокративший промежуток после крупного заголовка `Hello, this is Errorium.`.
+   - Заголовок и вводный абзац теперь визуально воспринимаются как единая цельная текстовая группа.
+2. **Верификация и тесты:**
+   - 24/24 теста пройдены (`python3 -m unittest discover tests/unit`).
+
+## [2026-11-16] — Корректировка межстрочного интервала описания лендинга до 1.6 (Milestone 1, Iteration 28)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Межстрочный интервал (.landing-intro-description):**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) параметр `line-height` уменьшен с `1.8` до деликатного `1.6`.
+   - Текст стал компактнее и сбитнее, сохранив при этом отличную читаемость моноширинных символов.
+2. **Верификация и тесты:**
+   - 24/24 теста пройдены (`python3 -m unittest discover tests/unit`).
+
+## [2026-11-16] — Перемещение описания проекта сразу под заголовок Hello, this is Errorium (Milestone 1, Iteration 27)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/index.html`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Перестановка блоков на первом экране:**
+   - В [index.html](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/index.html) параграф с описанием `.landing-intro-description` (шрифт JetBrains Mono) теперь идёт **сразу же под заголовком `Hello, this is Errorium.`**.
+   - Карточка с хим. элементом `Element 404` перемещена ниже описания — непосредственно перед блоком кнопок запуска.
+   - Логика восприятия стала естественной: приветствие -> суть и назначение системы -> карточка концепта Element 404 -> кнопки перехода к отладке.
+2. **Верификация и тесты:**
+   - 24/24 теста пройдены (`python3 -m unittest discover tests/unit`).
+
+## [2026-11-16] — Увеличение размера шрифта JetBrains Mono для вводного описания лендинга (Milestone 1, Iteration 26)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Увеличение шрифта JetBrains Mono (.landing-intro-description):**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) размер шрифта моноширинного описания увеличен с `0.95rem` до `1.08rem` (~`17.3px`).
+   - Скорректирован межстрочный интервал до `1.8` и максимальная ширина контейнера до `860px` для максимального удобства чтения текста.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+## [2026-11-16] — Увеличение размера и визуального веса главной кнопки «Start debugging with Errorium» (Milestone 1, Iteration 25)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Увеличение кнопки действия (.landing-hero-cta-btn):**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) увеличены внутренние отступы с `12px 24px` до `16px 32px` и радиус скругления до `14px`.
+   - Размер шрифта увеличен с `0.96rem` до `1.08rem`, начертание усилено до `font-weight: 700`.
+   - Добавлена объемная неоновая тень (`box-shadow: 0 8px 28px rgba(37, 87, 232, 0.45), 0 0 20px rgba(56, 189, 248, 0.2)`).
+   - При ховере реализована плавная микротрансформация `scale(1.02)` и динамический сдвиг стрелочки на 3px вправо.
+2. **Верификация и тесты:**
+   - 24/24 теста успешно пройдены (`python3 -m unittest discover tests/unit`).
+
+## [2026-11-16] — Перевод шрифта описания поисковика на JetBrains Mono (Milestone 1, Iteration 24)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Шрифт вступительного описания (.landing-intro-description):**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) для описания задан хакерский моноширинный шрифт `font-family: var(--font-mono)` (`JetBrains Mono`).
+   - Скорректированы параметры верстки: `font-size: 0.95rem`, `line-height: 1.75`, `letter-spacing: -0.015em`, `color: #cbd5e1`.
+   - Текст идеально сочетается с терминальной инженерной тематикой отладки ошибок и аварийных дампов.
+2. **Верификация и тесты:**
+   - Модульные тесты 24/24 пройдены (`python3 -m unittest discover tests/unit`).
+
+## [2026-11-16] — Удаление блока плашек с техническими метриками (Zero third-party, Sub-millisecond, Cursor/Claude) (Milestone 1, Iteration 23)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/index.html`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Разгрузка вступительного Hero-экрана лендинга:**
+   - В [index.html](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/index.html) удалён блок `.landing-hero-pills-row`, содержавший 3 плашки (`Zero third-party search engines`, `Sub-millisecond gRPC search core`, `Cursor & Claude Code integration`).
+   - Страница стала чище и лаконичнее, без избыточного дублирования технических тезисов перед кнопками действий.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены успешно (`python3 -m unittest discover tests/unit`).
+
+## [2026-11-16] — Осветление шоукейса Element 404 и удаление надписи 100 GB (Milestone 1, Iteration 22)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/index.html`
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Удаление подписи «100 GB»:**
+   - В [index.html](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/index.html) удалена строка `<span class="element-mass">100 GB</span>`, плитка элемента стала более чистой и сфокусированной на `404`, `Er` и `Errorium`.
+2. **Осветление и контраст блока:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) фон карточки осветлен с глухого темного `#0d131f` до благородного сланцево-синего `#172033` с рамкой `#2d3b55`.
+   - Плитка элемента получила цвет `#1e293b` с четким контуром `#475569`.
+   - Текст символа `Er` и слогана стал ярче и контрастнее (`#ffffff` и `#f8fafc`), а бейдж `Periodic Table of Engineering` приобрел лазурный акцент (`#38bdf8`).
+3. **Верификация и тесты:**
+   - 24/24 теста пройдены (`python3 -m unittest discover tests/unit`).
+
+## [2026-11-16] — Перевод шоукейса Element 404 в плотный матовый технический стиль (Milestone 1, Iteration 21)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Смена стиля карточки Element 404 (Плотный матовый инжиниринг):**
+   - Убрано прозрачное стекло (`backdrop-filter`) и неоновое свечение.
+   - Задан глубокий матовый фон `#0d131f` со строгой тонкой рамкой `#1e293b`.
+   - Плитка элемента выполнена в виде плотного темного блока `#111827` со строгой окантовкой `#374151` и чётким белым символом `Er` (`#f8fafc`).
+   - Блок теперь выглядит основательно, сдержанно и технично, создавая контраст с более мягкими элементами страницы.
+2. **Верификация и тесты:**
+   - 24/24 теста пройдены (`python3 -m unittest discover tests/unit`).
+
+## [2026-11-16] — Фирменный редизайн слогана в стиле карточки элемента таблицы Менделеева (Milestone 1, Iteration 20)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/index.html`
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Визуализация химического элемента 404 (Element 404 showcase):**
+   - В [index.html](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/index.html) и [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) создан интерактивный шоукейс `.landing-element-showcase`:
+     - Мини-плитка элемента `.element-tile-card` в стиле таблицы Менделеева:
+       - Атомный номер: `404` (акцентный коралловый цвет `#ef4444`);
+       - Символ: крупный градиентный `Er` с неоновым лазурным свечением;
+       - Имя элемента: `Errorium`;
+       - Атомная масса: объем дампа `100 GB`.
+     - Справа от плитки размещен органичный блок слогана:
+       - Неоновый бейдж: `Periodic Table of Engineering`;
+       - Заголовок: `Element 404. Reacts with developers.`;
+       - Подстрочник: `Stack overflow. Issue overknown.` с подсветкой ключевой фразы.
+   - Шоукейс оформлен мягким стеклянным блюром (`backdrop-filter: blur(12px)`) и аккуратным лазурным ховером, идеально вписываясь в стилистику поисковика.
+2. **Верификация и тесты:**
+   - Модульные тесты пройдены: 24/24 OK (`python3 -m unittest discover tests/unit`).
+
+## [2026-11-16] — Переход к чистому премиальному Smooth Float появлению логотипа в хедере (Milestone 1, Iteration 19)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `services/frontend/static/app.js`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Чистый кинематографичный Smooth Float (стиль Apple / Vercel):**
+   - Полностью убран весь визуальный шум: сжатия слова, дырки в тексте, летящие точки, искры и искусственные автоскроллы.
+   - Текст `Hello, this is Errorium.` на странице остаётся чистым, статичным и красивым презентационным заголовком.
+   - При естественном пролистывании страницы, как только блок заголовка скрывается за верхней линией под хедером, в правом углу хедера плавно, мягко и кинематографично проявляется логотип `Errorium` (`translateY(6px) -> translateY(0)`, `blur(4px) -> blur(0)`, `opacity: 0 -> 1` за 0.32s cubic-bezier).
+   - При скролле обратно наверх логотип так же мягко растворяется.
+2. **Верификация и тесты:**
+   - Модульные тесты пройдены: 24/24 OK (`python3 -m unittest discover tests/unit`).
+
+## [2026-11-16] — Эффект Particle Disperse: распад слова Errorium в искры и их сбор в синий огонёк (Milestone 1, Iteration 18)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `services/frontend/static/app.js`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Анимация Particle Disperse:**
+   - Вместо монолитного сжатия слово `Errorium` при начале скролла мгновенно распадается на светящийся рой из 18 неоновых микрочастиц (`.landing-disperse-sparkle`) с мягким размытием исходного текста.
+   - Искры по динамическим сходящимся траекториям слетаются в правую световую точку, за 280мс зажигая яркий синий огонёк.
+   - Огонёк со шлейфом искр летит по диагонали в правый верхний угол хедера и там разрастается в заголовок `Errorium`.
+2. **Верификация и тесты:**
+   - 24/24 модульных теста пройдены (`python3 -m unittest discover tests/unit`).
+
+## [2026-11-16] — Редизайн блока слогана: удаление тяжелой рамки и кода в пользу чистого типографического стиля (Milestone 1, Iteration 17)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Визуальное обновление блока слогана:**
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) полностью удалена рамка, серая подложка и левая синяя полоска (`border: none; background: transparent; padding: 2px 0 6px 0;`).
+   - Убран моноширинный технический вид в пользу чистого, элегантного заголовка продукта (`font-family: inherit; font-size: 1.25rem - 1.6rem; color: #f1f5f9; font-weight: 600`).
+   - Подстрочник `Stack overflow. Issue overknown.` гармонично дополняет слоган мягким матовым оттенком (`#94a3b8`).
+2. **Верификация и тесты:**
+   - 24/24 модульных теста успешно пройдены (`python3 -m unittest discover tests/unit`).
+
+## [2026-11-16] — Плавное исчезновение точки в конце предложения при сжатии слова Errorium (Milestone 1, Iteration 16)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/index.html`
+- `services/frontend/static/styles.css`
+- `services/frontend/static/app.js`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Синхронное угасание точки после слова:**
+   - В [index.html](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/index.html) точка в конце предложения вынесена в отдельный спан `#landing-welcome-dot`.
+   - В [styles.css](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/styles.css) добавлен класс `.welcome-title-dot.fade-out` с плавным переходом `opacity: 0` и `transform: scale(0.4)`.
+   - В [app.js](file:///home/mariam/WebstormProjects/Errorium/services/frontend/static/app.js) при старте сжатия слова точка мягко тает одновременно с превращением слова в огонёк. При возврате наверх точка плавно восстанавливает видимость.
+2. **Верификация и тесты:**
+   - Модульные тесты 24/24 пройдены (`python3 -m unittest discover tests/unit`).
+
+## [2026-11-16] — Плавный автоскролл-доводчик при сжатии слова Errorium (Milestone 1, Iteration 15)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/app.js`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Интеллектуальный доводчик скролла (Auto-scroll closer):**
+   - В момент, когда пользователь инициирует скролл и слово начинает сжиматься в точку, автоматически подключается плавный доводчик: `scrollBody.scrollTo({ top: targetScrollTop, behavior: 'smooth' })`.
+   - Целевая координата рассчитывается так, чтобы заголовок `Hello, this is Errorium` мягко и синхронно уплыл за верхний край хедера в точности во время полёта огонька, благодаря чему пользователь никогда не видит статичной строки без слова.
+2. **Верификация и тесты:**
+   - Модульные тесты пройдены: 24/24 OK (`python3 -m unittest discover tests/unit`).
+
+## [2026-11-16] — Мгновенный запуск сжатия Errorium в точку при самом первом скролле вниз (Milestone 1, Iteration 14)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/app.js`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Мгновенная реакция на скролл:**
+   - В `initLandingLogoScrollAnimation` условие срабатывания переведено на `scrollTop > 8px`. Теперь не нужно ждать, пока блок заголовка доедет до хедера: как только пользователь делает первое движение колесом мыши или тач-скролл вниз, слово `Errorium` в фразе моментально схлопывается вправо в точку, превращается в синий огонёк и начинает свой полет в хедер.
+   - При скролле на самый верх (`scrollTop <= 4px`) слово плавно разворачивается обратно.
+2. **Верификация и тесты:**
+   - 24/24 теста пройдены (`python3 -m unittest discover tests/unit`).
+
+## [2026-11-16] — Синхронная анимация сжатия слова Errorium вправо непосредственно внутри фразы заголовка (Milestone 1, Iteration 13)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/styles.css`
+- `services/frontend/static/app.js`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Сжатие слова Errorium непосредственно в тексте фразы:**
+   - Для элемента `#landing-welcome-brand` в фразе `Hello, this is Errorium.` задан `display: inline-block` и точка трансформации `transform-origin: right center`.
+   - При скролле класс `.in-place-collapsed` запускает плавное аппаратное сжатие самого слова вправо (`scaleX(0.01) scaleY(0.08)`) одновременно со сжатием клона.
+   - Слово схлопывается в точку прямо в строке заголовка, из которой сразу материализуется синий огонёк с искрами и устремляется в хедер.
+   - При пролистывании страницы обратно вверх класс удаляется, и слово плавно восстанавливает свой исходный размер.
+2. **Верификация и тесты:**
+   - Синтаксис проверен (`node --check`).
+   - Модульные тесты 24/24 пройдены (`python3 -m unittest discover tests/unit`).
+
 ## [2026-11-16] — Стилизация летящей точки под синий огонёк Errorium с мерцанием и искрами (Milestone 1, Iteration 12)
 
 ### Затронутые компоненты и спецификации:

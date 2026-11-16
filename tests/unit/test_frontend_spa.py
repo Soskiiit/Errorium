@@ -523,14 +523,13 @@ class TestFrontendSPA(unittest.TestCase):
 
         # 1. Секции лендинга и якоря в HTML
         self.assertIn('id="landing-intro"', html)
-        self.assertIn('id="landing-mcp"', html)
-        self.assertIn('id="landing-about"', html)
-        self.assertIn('href="#landing-intro"', html)
-        self.assertIn('href="#landing-mcp"', html)
-        self.assertIn('href="#landing-about"', html)
+        self.assertIn('id="mcp"', html)
+        self.assertIn('id="about"', html)
+        self.assertIn('href="#mcp"', html)
+        self.assertIn('href="#about"', html)
         self.assertIn("Hello, this is", html)
         self.assertIn("Errorium", html)
-        self.assertIn("Model Context Protocol (MCP)", html)
+        self.assertIn("Set up MCP", html)
         self.assertIn("About Errorium", html)
         self.assertIn("landing-mcp-token", html)
         self.assertIn("landing-mcp-json-snippet", html)
@@ -549,6 +548,8 @@ class TestFrontendSPA(unittest.TestCase):
         self.assertIn("landing-active", js)
         self.assertIn("btnLandingCopyToken", js)
         self.assertIn("btnLandingCopyJson", js)
+        self.assertIn("'/landing'", js)
+        self.assertIn("'/overview'", js)
 
     def test_app_js_syntax(self):
         """Проверка синтаксической валидности services/frontend/static/app.js через node --check."""

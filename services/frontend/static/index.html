@@ -36,10 +36,10 @@
     <link rel="icon" type="image/png" href="/favicon.png">
     <link rel="apple-touch-icon" href="/favicon.png">
 
-    <!-- Fonts: Inter (UI) & JetBrains Mono (Code / Slogan) -->
+    <!-- Fonts: Inter (UI), JetBrains Mono (Code / Slogan) & Plus Jakarta Sans (Editorial) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="/styles.css?v=20261116_21">
     <script>
@@ -540,7 +540,7 @@
                     <div class="modal-icon-badge mcp-badge">
                         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"></path></svg>
                     </div>
-                    <h2 id="mcp-modal-title">Model Context Protocol (MCP)</h2>
+                    <h2 id="mcp-modal-title">Set up MCP</h2>
                     <p class="modal-subtitle">Connect Errorium search engine directly to Cursor, Claude Code, and Windsurf.</p>
                 </div>
 
@@ -853,16 +853,37 @@
 
     <!-- LANDING PAGE VIEW (/mcp and /about) - Standalone Fullscreen Page Outside Main App -->
     <div id="landing-view" class="landing-standalone-page" style="display: none;">
-        <!-- Landing Header with Left Nav Anchors & Right-aligned Errorium Logo -->
+        <!-- Landing Header with Left Mascot & Nav Anchors & Right-aligned Errorium Logo -->
         <header class="landing-header">
             <div class="landing-header-inner">
-                <nav class="landing-nav-anchors" aria-label="Landing sections">
-                    <a href="#landing-intro" class="landing-anchor-link active">Overview</a>
-                    <a href="#landing-mcp" class="landing-anchor-link">MCP</a>
-                    <a href="#landing-about" class="landing-anchor-link">About us</a>
-                </nav>
+                <div class="landing-header-left">
+                    <a href="#landing-intro" class="landing-header-mascot-link" id="landing-mascot-btn" title="Errorium Mascot — To Top" aria-label="Errorium mascot">
+                        <img src="/mascot.png" alt="Errorium mascot" class="landing-header-mascot-img" width="38" height="25">
+                    </a>
 
-                <h1 class="landing-header-logo" id="landing-header-logo" title="Errorium">Errorium</h1>
+                    <nav class="landing-nav-anchors" aria-label="Landing sections">
+                        <a href="#mcp" class="landing-anchor-link">MCP</a>
+                        <a href="#about" class="landing-anchor-link">About us</a>
+                    </nav>
+                </div>
+
+                <div class="landing-header-right">
+                    <!-- Language selector dropdown visible before Errorium appears on scroll -->
+                    <div class="landing-lang-selector" id="landing-lang-selector">
+                        <button type="button" class="landing-lang-btn" id="btn-landing-lang" aria-haspopup="true" aria-expanded="false">
+                            <span class="landing-lang-current" id="landing-lang-current">English</span>
+                            <svg class="landing-lang-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </button>
+                        <div class="landing-lang-dropdown" id="landing-lang-dropdown" style="display: none;">
+                            <button type="button" class="landing-lang-option" data-lang="English">English</button>
+                            <button type="button" class="landing-lang-option" data-lang="Русский">Русский</button>
+                        </div>
+                    </div>
+
+                    <h1 class="landing-header-logo" id="landing-header-logo" title="Errorium">Errorium</h1>
+                </div>
             </div>
         </header>
 
@@ -880,38 +901,18 @@
                     </div>
 
                     <h1 class="landing-welcome-title" id="landing-welcome-title">
-                        Hello, this is <span class="brand-gradient-text" id="landing-welcome-brand">Errorium</span>.
+                        Hello, this is <span class="brand-gradient-text" id="landing-welcome-brand">Errorium</span><span class="welcome-title-dot" id="landing-welcome-dot">.</span>
                     </h1>
 
-                    <!-- Slogan in brand monospace style -->
-                    <div class="landing-welcome-slogan-box">
-                        <p class="landing-slogan-main">
-                            Element<span class="space"> </span><span class="error-code-red">404.</span><span class="space"> </span>Reacts<span class="space"> </span>with<span class="space"> </span>developers
-                        </p>
-                        <p class="landing-slogan-sub">
-                            Stack<span class="space"> </span>overflow.<span class="space"> </span>Issue<span class="space"> </span>overknown.
-                        </p>
+                    <!-- Slogan & Vision Subheading with Discrete Highlight Badges per line -->
+                    <div class="landing-hero-subtitle-box" id="element-slogan-tagline">
+                        <span class="landing-slogan-line">Stack overflow. <strong class="tagline-highlight">Issue overknown</strong> — instant engineering solutions &amp; RAG synthesis</span>
+                        <span class="landing-slogan-line">across 100 GB knowledge base.</span>
                     </div>
 
                     <p class="landing-intro-description">
                         Every cryptic exception, segmentation fault, and runtime panic you encounter in your terminal has already been diagnosed and resolved. Errorium indexes millions of verified software engineering discussions with custom high-precision BM25 ranking, delivering ready-to-run solutions directly to your browser and IDE agent.
                     </p>
-
-                    <!-- Key Hero Metric Pills -->
-                    <div class="landing-hero-pills-row">
-                        <div class="hero-metric-pill">
-                            <span class="metric-dot blue"></span>
-                            <span>Zero third-party search engines</span>
-                        </div>
-                        <div class="hero-metric-pill">
-                            <span class="metric-dot green"></span>
-                            <span>Sub-millisecond gRPC search core</span>
-                        </div>
-                        <div class="hero-metric-pill">
-                            <span class="metric-dot purple"></span>
-                            <span>Cursor & Claude Code integration</span>
-                        </div>
-                    </div>
 
                     <!-- Main Action Trigger -->
                     <div class="landing-hero-actions">
@@ -922,17 +923,11 @@
                                 <polyline points="12 5 19 12 12 19"></polyline>
                             </svg>
                         </button>
-                        <a href="#landing-mcp" class="landing-hero-learn-link">
-                            <span>Explore MCP & Architecture</span>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="6 9 12 15 18 9"></polyline>
-                            </svg>
-                        </a>
                     </div>
                 </section>
 
                 <!-- SECTION: MCP INTEGRATION -->
-                <section id="landing-mcp" class="landing-section">
+                <section id="mcp" class="landing-section">
                     <div class="landing-section-header">
                         <div class="landing-tag">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -940,7 +935,7 @@
                             </svg>
                             <span>AI Integration</span>
                         </div>
-                        <h2 class="landing-title">Model Context Protocol (MCP)</h2>
+                        <h2 class="landing-title">Set up MCP</h2>
                         <p class="landing-subtitle">Connect the Errorium BM25 search engine and Stack Overflow knowledge base directly to Cursor, Claude Code, Windsurf, and custom AI agents.</p>
                     </div>
 
@@ -1023,7 +1018,7 @@
                 </section>
 
                 <!-- SECTION: ABOUT ERRORIUM -->
-                <section id="landing-about" class="landing-section">
+                <section id="about" class="landing-section">
                     <div class="landing-section-header">
                         <div class="landing-tag">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -1037,12 +1032,17 @@
                         <p class="landing-subtitle">An intelligent search and RAG engine engineered from first principles to diagnose complex software exceptions, runtime panics, and stack traces.</p>
                     </div>
 
-                    <!-- Academic Specs Grid -->
+                    <!-- Academic Specs Grid (100 GB -> RAG -> BM25 -> gRPC) -->
                     <div class="landing-specs-grid">
                         <div class="landing-spec-card">
                             <div class="landing-spec-val">100 GB</div>
                             <div class="landing-spec-name">Stack Overflow Dump</div>
                             <div class="landing-spec-desc">Streamed XML parsing with custom SPIMI index construction</div>
+                        </div>
+                        <div class="landing-spec-card">
+                            <div class="landing-spec-val">RAG</div>
+                            <div class="landing-spec-name">Streaming Synthesis</div>
+                            <div class="landing-spec-desc">Top-K document distillation with code snippet extraction and explanations</div>
                         </div>
                         <div class="landing-spec-card">
                             <div class="landing-spec-val">BM25</div>
@@ -1053,11 +1053,6 @@
                             <div class="landing-spec-val">gRPC</div>
                             <div class="landing-spec-name">Sub-millisecond IPC</div>
                             <div class="landing-spec-desc">High-performance protobuf contracts between Gateway and Core (:50051)</div>
-                        </div>
-                        <div class="landing-spec-card">
-                            <div class="landing-spec-val">RAG</div>
-                            <div class="landing-spec-name">Streaming Synthesis</div>
-                            <div class="landing-spec-desc">Top-K document distillation with code snippet extraction and explanations</div>
                         </div>
                     </div>
 
