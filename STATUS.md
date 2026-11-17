@@ -16,10 +16,11 @@
 | **Search Engine Indexer** | Роль 1 | Каркас готов | Реализация потокового парсера XML дампа и токенизатора |
 | **Search Engine Core** | Роль 2 | Специфицирован (gRPC) | Реализация чтения инвертированного индекса и BM25 с нуля |
 | **Gateway & MCP Service** | Роль 3 | Спроектирована БД PostgreSQL 18 (UUIDv7, SSO, сессии, чаты, теги), настроен Garage S3, встроены автомиграции через embed.FS (golang-migrate) | Реализация слоя репозиториев (pgxpool) и интеграция с Garage S3 SDK |
-| **Web Frontend** | Роль 4 | Реализован адаптивный SPA без фреймворков (сайдбар открыт по умолчанию, десктопное сворачивание, строка ввода Liquid Glass) | Интеграция с API Gateway (/api/v1/search) и отрисовка графа D3/Canvas |
+| **Web Frontend** | Роль 4 | Реализован адаптивный SPA без фреймворков; реализованы экраны и модальные окна по макетам (Auth, Register, Reset Password, Profile, Tags popover, Authorized drawer); восстановлен оригинальный дизайн сообщений чата (.user-bubble и .assistant-card RAG Synthesis); разработан изолированный полноэкранный лендинг (/mcp, /about); реализован Star Map (/star-map) — интерактивная карта связей SO-тредов в стиле Obsidian на Vanilla Canvas с собственной force-симуляцией (FR-3, ADR-006): кнопка входа в карточке RAG-ответа, анимированный уход чата и prompt bar, узлы — компактные четырёхлучевые звёзды со свечением своего цвета, мягкой белой мини-звездой внутри и мерцанием (цветовое кодирование FR-3.2), прогрессивные подписи по зуму (сокращённые → полные, crossfade, без рейтинга и галочки), hover-тултип, панель деталей ответа, звёздчатая легенда, плавный zoom кнопками / wheel / pinch / drag, мок-данные по контракту graph.proto (FR-3.5); 38 unit-тестов пройдены успешно (включая 14 новых test_star_map.py), синтаксис JS верифицирован (node --check) | Интеграция с API Gateway (/api/v1/search) и замена мок-данных Star Map на реальный GraphService (gRPC) |
 
 ## 3. Следующий шаг (Next Step)
 - Реализация подключения к PostgreSQL (`pgxpool`) и слоя репозиториев для `users`, `user_sso_accounts`, `user_sessions`, `chats`, `chat_messages`, `tags` в сервисе `gateway`.
 - Реализация S3-клиента для Garage (загрузка и получение аватарок).
 - Подключение сетевых вызовов из Web Frontend к REST эндпоинтам Gateway (`/api/v1/search`).
+- Реализация `GraphService` (gRPC) в `search_engine_core` и замена мок-билдера Star Map на реальные `GetThreadGraph` / `GetThreadDetails` (FR-3.5).
 

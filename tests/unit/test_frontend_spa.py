@@ -1,11 +1,27 @@
 import os
 import re
+import shutil
+import subprocess
 import unittest
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 STATIC_DIR = os.path.join(REPO_ROOT, "services", "frontend", "static")
 
 class TestFrontendSPA(unittest.TestCase):
+
+    def _load_css(self):
+        css_path = os.path.join(STATIC_DIR, "styles.css")
+        with open(css_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        def repl(m):
+            rel = m.group(1).lstrip('./')
+            p = os.path.join(STATIC_DIR, rel)
+            if os.path.isfile(p):
+                with open(p, "r", encoding="utf-8") as cf:
+                    return cf.read()
+            return m.group(0)
+        return re.sub(r"""@import\s+url\(['"]([^'"]+\.css)['"]\);?""", repl, content)
+
     def test_static_files_exist(self):
         """Проверка наличия всех ключевых файлов SPA и ассетов."""
         required_files = [
@@ -16,6 +32,18 @@ class TestFrontendSPA(unittest.TestCase):
             "blue-fire.png",
             "robots.txt",
             "sitemap.xml",
+            "css/base.css",
+            "css/layout.css",
+            "css/sidebar.css",
+            "css/hero.css",
+            "css/landing.css",
+            "css/chat.css",
+            "css/prompt.css",
+            "css/modals.css",
+            "css/responsive.css",
+            "css/profile.css",
+            "css/auth.css",
+            "css/star-map.css",
         ]
         for filename in required_files:
             file_path = os.path.join(STATIC_DIR, filename)
@@ -117,9 +145,7 @@ class TestFrontendSPA(unittest.TestCase):
 
     def test_css_responsive_and_spotlight(self):
         """Проверка стилей: наличие адаптивных медиа-запросов, запрет горизонтального скролла и фона маскота."""
-        css_path = os.path.join(STATIC_DIR, "styles.css")
-        with open(css_path, "r", encoding="utf-8") as f:
-            css = f.read()
+        css = self._load_css()
 
         # Адаптивность через медиа-запросы
         self.assertIn("@media", css)
@@ -136,9 +162,7 @@ class TestFrontendSPA(unittest.TestCase):
 
     def test_short_viewport_height_scaling(self):
         """Проверка адаптивности фона маскота blue-fire на экранах с небольшой высотой (Galaxy Fold, landscape)."""
-        css_path = os.path.join(STATIC_DIR, "styles.css")
-        with open(css_path, "r", encoding="utf-8") as f:
-            css = f.read()
+        css = self._load_css()
 
         # Проверка наличия ограничения по высоте вьюпорта (max-height)
         self.assertIn("max-height", css)
@@ -152,9 +176,7 @@ class TestFrontendSPA(unittest.TestCase):
 
     def test_sidebar_bottom_pinned_to_bottom(self):
         """Проверка фиксации нижней панели сайдбара (MCP, About us, Login) внизу при сворачивании недавних чатов."""
-        css_path = os.path.join(STATIC_DIR, "styles.css")
-        with open(css_path, "r", encoding="utf-8") as f:
-            css = f.read()
+        css = self._load_css()
 
         # Поиск блока .sidebar-bottom
         sidebar_bottom_match = re.search(r"\.sidebar-bottom\s*\{([^}]+)\}", css)
@@ -166,9 +188,7 @@ class TestFrontendSPA(unittest.TestCase):
 
     def test_desktop_sidebar_and_header_rules(self):
         """Проверка правил для широких экранов: постоянный сайдбар, скрытие крестика и скрытие центрального логотипа."""
-        css_path = os.path.join(STATIC_DIR, "styles.css")
-        with open(css_path, "r", encoding="utf-8") as f:
-            css = f.read()
+        css = self._load_css()
 
         # Извлекаем весь блок адаптивного сайдбара с учетом вложенных фигурных скобок
         start_idx = css.find("@media (min-width: 930px)")
@@ -217,8 +237,7 @@ class TestFrontendSPA(unittest.TestCase):
 
         with open(html_path, "r", encoding="utf-8") as f:
             html = f.read()
-        with open(css_path, "r", encoding="utf-8") as f:
-            css = f.read()
+        css = self._load_css()
         with open(js_path, "r", encoding="utf-8") as f:
             js = f.read()
 
@@ -304,6 +323,266 @@ class TestFrontendSPA(unittest.TestCase):
         finally:
             server.shutdown()
             server.server_close()
+
+    def test_reference_modals_structure(self):
+        """Проверка разметки и элементов модальных окон из референсов:
+        Auth-screen.png, Change-password-email-screen.png, Change-password-screen.png, Reset-password-alert.png."""
+        html_path = os.path.join(STATIC_DIR, "index.html")
+        with open(html_path, "r", encoding="utf-8") as f:
+            html = f.read()
+
+        # 1. Auth Reference Modal (Auth-screen.png)
+        self.assertIn("modal-auth-reference", html)
+        self.assertIn("ref-auth-email", html)
+        self.assertIn("ref-auth-password", html)
+        self.assertIn("Remember me", html)
+        self.assertIn("Forgot password?", html)
+        self.assertIn("btn-green-pill", html)
+        self.assertIn("ref-btn-login", html)
+        self.assertIn("Continue with Yandex ID", html)
+        self.assertIn("yandex-red-badge", html)
+        self.assertIn("New here?", html)
+        self.assertIn("Sign up", html)
+
+        # 2. Change Password Email Modal (Change-password-email-screen.png)
+        self.assertIn("modal-change-password-email", html)
+        self.assertIn("Enter your account email", html)
+        self.assertIn("ref-reset-email", html)
+        self.assertIn("ref-btn-send-reset", html)
+        self.assertIn("We've sent you an email.", html)
+        self.assertIn("Don't forget to check your spam folder", html)
+
+        # 3. Change Password Modal (Change-password-screen.png)
+        self.assertIn("modal-change-password", html)
+        self.assertIn("Change password", html)
+        self.assertIn("Enter a new password", html)
+        self.assertIn("Enter it again", html)
+        self.assertIn("ref-new-password", html)
+        self.assertIn("ref-confirm-password", html)
+        self.assertIn("ref-btn-approve-password", html)
+        self.assertIn("Approve", html)
+
+        # 4. Reset Password Alert Modal (Reset-password-alert.png)
+        self.assertIn("modal-reset-password-alert", html)
+        self.assertIn("alert-warning-icon", html)
+        self.assertIn("Keep in mind that changing your password will sign you out of all other devices", html)
+        self.assertIn("btn-amber-pill", html)
+        self.assertIn("ref-btn-alert-send-reset", html)
+
+        # 5. Registration Modal (Registration dialog matching Auth modal style)
+        self.assertIn("modal-register-reference", html)
+        self.assertIn("ref-register-username", html)
+        self.assertIn("ref-register-email", html)
+        self.assertIn("ref-register-password", html)
+        self.assertIn("ref-register-confirm", html)
+        self.assertIn("ref-register-terms", html)
+        self.assertIn("ref-btn-register", html)
+        self.assertIn("Create account", html)
+        self.assertIn("Sign up with Yandex ID", html)
+        self.assertIn("Already have an account?", html)
+        self.assertIn("ref-link-signin", html)
+
+    def test_profile_screen_structure(self):
+        """Проверка разметки экрана профиля пользователя (Profile-screen.png)."""
+        html_path = os.path.join(STATIC_DIR, "index.html")
+        with open(html_path, "r", encoding="utf-8") as f:
+            html = f.read()
+
+        self.assertIn("profile-view", html)
+        self.assertIn("profile-avatar-large", html)
+        self.assertIn("profile-avatar-edit-badge", html)
+        self.assertIn("profile-username", html)
+        self.assertIn("Test_user", html)
+
+        # Секции экрана профиля
+        self.assertIn("Personal information", html)
+        self.assertIn("Test_user@mail.ru", html)
+        self.assertIn("Backend developer", html)
+        self.assertIn("profile-info-gender-row", html)
+        self.assertIn("Male", html)
+
+        self.assertIn("Security", html)
+        self.assertIn("profile-row-security", html)
+
+        self.assertIn("Language", html)
+        self.assertIn("English", html)
+        self.assertIn("profile-info-lang", html)
+
+    def test_tags_popover_structure(self):
+        """Проверка поповера тегов технологий (Chat-screen-with-tags.png)."""
+        html_path = os.path.join(STATIC_DIR, "index.html")
+        with open(html_path, "r", encoding="utf-8") as f:
+            html = f.read()
+
+        self.assertIn("tags-popover", html)
+        self.assertIn("tags-grid", html)
+
+        # 8 референсных тегов
+        tags = ["Go", "Python", "Java", "C#", "C++", "JS", "SQL", "Rust"]
+        for tag in tags:
+            self.assertIn(f'>{tag}<', html, f"Тег {tag} должен присутствовать в tags-popover")
+
+        tag_classes = ["tag-go", "tag-python", "tag-java", "tag-csharp", "tag-cpp", "tag-js", "tag-sql", "tag-rust"]
+        for cls in tag_classes:
+            self.assertIn(cls, html, f"CSS класс {cls} должен присутствовать в разметке тегов")
+
+    def test_authorized_sidebar_and_header_state(self):
+        """Проверка переключения между гостевым и авторизованным состоянием сайдбара и шапки (Chat-screen-menu-authorized.png)."""
+        html_path = os.path.join(STATIC_DIR, "index.html")
+        js_path = os.path.join(STATIC_DIR, "app.js")
+
+        with open(html_path, "r", encoding="utf-8") as f:
+            html = f.read()
+        with open(js_path, "r", encoding="utf-8") as f:
+            js = f.read()
+
+        # Разметка авторизованного футера
+        self.assertIn("sidebar-user-guest", html)
+        self.assertIn("sidebar-user-auth", html)
+        self.assertIn("sidebar-auth-avatar", html)
+        self.assertIn("sidebar-auth-name", html)
+        self.assertIn("sidebar-auth-role", html)
+        self.assertIn("header-avatar-guest", html)
+        self.assertIn("header-avatar-auth", html)
+
+        # Логика в app.js
+        self.assertIn("errorium_auth_user", js)
+        self.assertIn("updateAuthUI", js)
+        self.assertIn("switchToProfileView", js)
+        self.assertIn("sidebarUserAuth?.addEventListener('click'", js)
+        self.assertIn("elements.promptFooter.classList.add('hidden')", js)
+
+    def test_chat_message_appearance_and_layout(self):
+        """Проверка восстановления внешнего вида и структуры сообщений чата (R1, R2):
+        - User сообщения рендерятся в .user-bubble со стилями (#1a233b, моноширинный шрифт) без иконки галочки.
+        - Ответ ассистента рендерит .assistant-card напрямую без приветственного пузыря и без .dialog-assistant-wrapper.
+        - .messages-container содержит строки .message-row.user и .message-row.assistant."""
+        css_path = os.path.join(STATIC_DIR, "styles.css")
+        js_path = os.path.join(STATIC_DIR, "app.js")
+
+        css = self._load_css()
+        with open(js_path, "r", encoding="utf-8") as f:
+            js = f.read()
+
+        # 1. Проверка стилей .user-bubble в styles.css
+        self.assertIn(".user-bubble", css)
+        self.assertIn("#1a233b", css)
+        self.assertIn("rgba(255, 255, 255, 0.12)", css)
+        self.assertIn("18px 18px 4px 18px", css)
+        self.assertIn("12px 18px", css)
+        self.assertIn("#ffffff", css)
+        self.assertIn("var(--font-mono)", css)
+
+        # 2. Проверка стилей .message-row и .assistant-card в styles.css
+        self.assertIn(".message-row.user", css)
+        self.assertIn(".message-row.assistant", css)
+        self.assertIn(".assistant-card", css)
+
+        # 3. Проверка разметки и рендеринга сообщений в app.js
+        self.assertIn('<div class="message-row user">', js)
+        self.assertIn('<div class="user-bubble">${escapeHtml(userText)}</div>', js)
+        self.assertIn('<div class="message-row assistant">', js)
+        self.assertIn('<div class="assistant-card">', js)
+        self.assertIn("Errorium RAG Synthesis (BM25 Core)", js)
+
+        # 4. Проверка отсутствия старых dialog bubble оберток, аватарок и галочек
+        self.assertNotIn("dialog-user-bubble", js)
+        self.assertNotIn("dialog-assistant-wrapper", js)
+        self.assertNotIn("dialog-assistant-bubble", js)
+        self.assertNotIn("dialog-check-icon", js)
+        self.assertNotIn("SyntaxError fixing", js)
+
+        self.assertNotIn("dialog-user-bubble", css)
+        self.assertNotIn("dialog-assistant-wrapper", css)
+        self.assertNotIn("dialog-check-icon", css)
+
+    def test_sources_title_truncation(self):
+        """Проверка усечения длинных заголовков источников Stack Overflow с многоточием (text-overflow: ellipsis)."""
+        css = self._load_css()
+
+        self.assertIn(".source-title", css)
+        self.assertIn("text-overflow: ellipsis", css)
+        self.assertIn("white-space: nowrap", css)
+        self.assertIn("overflow: hidden", css)
+
+    def test_spa_client_routing(self):
+        """Проверка реализации клиентского SPA-роутинга через History API (pushState/popstate)."""
+        js_path = os.path.join(STATIC_DIR, "app.js")
+        with open(js_path, "r", encoding="utf-8") as f:
+            js = f.read()
+
+        self.assertIn("renderCurrentRoute", js)
+        self.assertIn("window.history.pushState", js)
+        self.assertIn("popstate", js)
+        self.assertIn("/profile", js)
+        self.assertIn("/chat", js)
+        self.assertIn("/login", js)
+        self.assertIn("/register", js)
+
+    # Обратная совместимость для селекторов тестов
+    test_conversational_dialog_bubbles = test_chat_message_appearance_and_layout
+
+    def test_landing_page_structure_and_anchors(self):
+        """Проверка наличия лендинга Errorium, якорных секций #landing-mcp и #landing-about, а также стилей."""
+        html_path = os.path.join(STATIC_DIR, "index.html")
+        css_path = os.path.join(STATIC_DIR, "styles.css")
+        js_path = os.path.join(STATIC_DIR, "app.js")
+
+        with open(html_path, "r", encoding="utf-8") as f:
+            html = f.read()
+        css = self._load_css()
+        with open(js_path, "r", encoding="utf-8") as f:
+            js = f.read()
+
+        # 1. Секции лендинга и якоря в HTML
+        self.assertIn('id="landing-intro"', html)
+        self.assertIn('id="mcp"', html)
+        self.assertIn('id="about"', html)
+        self.assertIn('href="#mcp"', html)
+        self.assertIn('href="#about"', html)
+        self.assertIn("Hello, this is", html)
+        self.assertIn("Errorium", html)
+        self.assertIn("Set up MCP", html)
+        self.assertIn("About Errorium", html)
+        self.assertIn("landing-mcp-token", html)
+        self.assertIn("landing-mcp-json-snippet", html)
+        self.assertIn("landing-standalone-page", html)
+        self.assertIn("landing-nav-anchors", html)
+        self.assertIn("btn-landing-hero-start", html)
+
+        # 2. Стили лендинга в styles.css
+        self.assertIn(".landing-content-wrap", css)
+        self.assertIn(".landing-section", css)
+        self.assertIn(".landing-standalone-page", css)
+        self.assertIn(".landing-nav-anchors", css)
+
+        # 3. Интеграция с роутингом и плавным скроллом в app.js
+        self.assertIn("switchToLandingView", js)
+        self.assertIn("landing-active", js)
+        self.assertIn("btnLandingCopyToken", js)
+        self.assertIn("btnLandingCopyJson", js)
+        self.assertIn("'/landing'", js)
+        self.assertIn("'/overview'", js)
+
+    def test_app_js_syntax(self):
+        """Проверка синтаксической валидности services/frontend/static/app.js через node --check."""
+        js_path = os.path.join(STATIC_DIR, "app.js")
+        self.assertTrue(os.path.isfile(js_path), f"Файл {js_path} должен существовать")
+
+        node_bin = shutil.which("node")
+        if node_bin:
+            res = subprocess.run(
+                [node_bin, "--check", js_path],
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(
+                res.returncode,
+                0,
+                f"Синтаксическая ошибка в {js_path}:\nSTDOUT:\n{res.stdout}\nSTDERR:\n{res.stderr}",
+            )
+        else:
+            self.skipTest("Node.js не установлен в текущем окружении для запуска node --check")
 
 if __name__ == "__main__":
     unittest.main()
