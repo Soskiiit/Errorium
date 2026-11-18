@@ -6,6 +6,7 @@
 .
 ├── Makefile                          # Точка входа для сборки, тестов, protoc и запуска
 ├── docker-compose.yml                # Описание мультиконтейнерного стека
+├── docker-compose.indexer.yml        # Офлайн-задача индексатора (make index-sample / index-corpus)
 ├── AGENTS.md                         # Инструкции и ограничения для AI-ассистентов
 ├── STATUS.md                         # Текущий статус готовности и ближайший шаг
 ├── CHANGE_HISTORY.md                 # Журнал изменений архитектуры и реализации
@@ -25,7 +26,7 @@
 │   ├── search_engine_indexer/        # [Роль 1] Потоковый парсинг 100 ГБ, токенизатор, инвертированный индекс
 │   │   ├── Dockerfile
 │   │   ├── README.md
-│   │   └── src/
+│   │   └── src/indexer/              # tokenizer, sampler, spimi, index_format, graph_db, pipeline, sources, config, __main__
 │   │
 │   ├── search_engine_core/           # [Роль 2] BM25 с нуля, MMap индекс, gRPC-сервер (:50051)
 │   │   ├── Dockerfile

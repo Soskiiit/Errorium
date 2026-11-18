@@ -45,7 +45,6 @@ LOG_LEVEL=INFO
 RAW_DATA_PATH=/app/data/raw
 INDEX_OUTPUT_PATH=/app/data/index
 SO_DUMP_ARCHIVE=/dump/stackoverflow.com.7z   # читается потоком, не распаковывается на диск
-INDEX_MODE=sample                            # sample (КТ2) | full (КТ3)
 SAMPLE_DENOM=100
 SAMPLE_MIN_SCORE=1
 
