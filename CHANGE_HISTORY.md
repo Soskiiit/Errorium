@@ -1,5 +1,23 @@
 # CHANGE_HISTORY.md — История изменений проекта Errorium
 
+## [2026-11-18] — Реализация токенизатора и потокового сэмплера корпуса (Роль 1)
+
+### Затронутые компоненты и спецификации:
+- `services/search_engine_indexer/src/indexer/__init__.py` (новый)
+- `services/search_engine_indexer/src/indexer/tokenizer.py` (новый; `docs/Tech/03-data.md`, п. 5)
+- `services/search_engine_indexer/src/indexer/sampler.py` (новый; `docs/Tech/03-data.md`, п. 4)
+- `STATUS.md`
+
+### Суть изменений:
+1. **`tokenizer.py`:** `tokenize`, `clean_html`, `TOKENIZER_VERSION = "1"`. Целые токены (`NullPointerException`, `C++`, `C#`, `.NET`, `fmt.Println`, `os.path.join`, `pip3`, `docker-compose`) + подтокены по границам camelCase/`_`/`.`/`-`, без стемминга и стоп-слов, URL вырезаются, токены > 64 символов и односимвольные отбрасываются.
+2. **`sampler.py`:** мультипликативный хеш Кнута и `in_sample`; `iter_lines` (BOM/CRLF); `parse_row`, `parse_link_row`, `parse_tags`; `select_rows` (вопрос по `Id`, ответ по `ParentId`, разбор только начала строки); `build_neighbor_set` (расширение соседями с лимитом на узел); `build_threads` (вопрос + принятый ответ, фильтр `Score`); `build_edges` (типы связей 1 и 3).
+3. Только стандартная библиотека, запрещённых поисковых библиотек нет (ADR-001, ADR-008).
+
+### Результаты тестов/бенчмарка:
+- `python3 -m unittest discover -s tests/unit`: 95 тестов, все пройдены (включая новые `test_tokenizer.py` и `test_sampler.py`).
+- Проверка на реальном потоке (`7zz x -so ... Posts.xml`, первый 1 ГБ, `SAMPLE_DENOM=100`): `ParentId` у всех 378 619 ответов найден в начале строки; выбрано 0.99% строк; отбор ≈ 1.4 с на ГБ без учёта распаковки. На префиксе валидных тредов мало (48 из 3136 вопросов) — ожидаемо: принятые ответы лежат по всему файлу, полный проход заполнит их (п. 4.1 спецификации).
+- Бенчмарк `benchmark/evaluate.py` не запускался: индекс и BM25 ещё не реализованы.
+
 ## [2026-11-18] — Unit-тесты токенизатора и сэмплера корпуса, уточнение спецификации очистки текста (Роль 1)
 
 ### Затронутые компоненты и спецификации:
