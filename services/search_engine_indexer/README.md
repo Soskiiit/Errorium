@@ -11,8 +11,8 @@
 
 ### Основные задачи:
 1. **Потоковый парсинг архива XML:**
-   - Чтение `Posts.xml`, `Tags.xml`, `PostLinks.xml` из каталога `data/raw/` без загрузки всего файла в RAM (лимит памяти $\le 4$ ГБ, SAX/итераторы).
-   - Выделение вопросов (`PostTypeId=1`) и ответов (`PostTypeId=2`), привязка принятого/лучшего ответа по `AcceptedAnswerId` или максимальному `Score`.
+   - Чтение `Posts.xml`, `Tags.xml`, `PostLinks.xml` потоком (из архива через `7zz x -so` либо из каталога `data/raw/`) без загрузки всего файла в RAM (лимит памяти $\le 4$ ГБ, построчный разбор записей `<row .../>`).
+   - Выделение вопросов (`PostTypeId=1`) и ответов (`PostTypeId=2`), привязка принятого ответа по `AcceptedAnswerId` (треды без принятого ответа в корпус не входят).
 2. **Специализированная токенизация кода и ошибок:**
    - Сохранение неделимыми идентификаторов исключений (`NullPointerException`, `IndexOutOfBoundsException`).
    - Сохранение языковых конструкций и библиотек (`C++`, `C#`, `.NET`, `fmt.Println`, `os.path.join`).
@@ -28,7 +28,7 @@
 
 ## 1.1. Стек
 
-Python 3 + стандартная библиотека (ADR-008 в `docs/Service/decisions.md`). Правила токенизации и эталонные примеры — `docs/Tech/03-data.md`, раздел 5; код и тесты: `src/` и `tests/unit/test_tokenizer.py`, `tests/unit/test_sampler.py`.
+Python 3 + стандартная библиотека (ADR-008 в `docs/Service/decisions.md`). Правила токенизации и эталонные примеры — `docs/Tech/03-data.md`, раздел 5; код — `src/indexer/`, тесты — `tests/unit/` (`test_tokenizer`, `test_sampler`, `test_index_format`, `test_spimi`, `test_graph_db`, `test_pipeline`, `test_indexer_docker`, `test_benchmark_corpus`) и `tests/integration/`.
 
 ---
 
