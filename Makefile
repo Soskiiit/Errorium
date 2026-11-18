@@ -75,6 +75,6 @@ index-corpus:
 	@mkdir -p data/index-benchmark data/dump
 	$(INDEXER_RUN) -e INDEX_OUTPUT_PATH=/app/data/index-benchmark indexer corpus
 
-# Бенчмарк (НИРС: Recall@k, MRR)
-benchmark:
+# Бенчмарк (НИРС: Recall@k, MRR): сначала собирается индекс корпуса benchmark (секунды), затем метрики
+benchmark: index-corpus
 	docker compose run --rm search_engine_core python benchmark/evaluate.py

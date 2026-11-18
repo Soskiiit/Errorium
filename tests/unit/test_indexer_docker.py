@@ -75,6 +75,9 @@ class TestMakefileTargets(unittest.TestCase):
         self.assertIn("-e INDEX_OUTPUT_PATH=/app/data/index-benchmark", block)
         self.assertIn("indexer corpus", block)
 
+    def test_benchmark_builds_corpus_index_first(self):
+        self.assertRegex(self.text, r"(?m)^benchmark:\s*index-corpus\s*$")
+
     def test_help_mentions_targets(self):
         self.assertIn("make index-sample", self.text)
         self.assertIn("make index-corpus", self.text)
