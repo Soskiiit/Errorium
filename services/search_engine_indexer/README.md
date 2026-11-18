@@ -57,7 +57,9 @@ Python 3 + стандартная библиотека (ADR-008 в `docs/Service
 RAW_DATA_PATH=/app/data/raw          # Путь к сырым XML-дампам (и к sample/)
 INDEX_OUTPUT_PATH=/app/data/index    # Путь для сохранения готовых индексов
 SO_DUMP_ARCHIVE=/dump/stackoverflow.com.7z   # Архив дампа (монтируется :ro), читается потоком
-INDEX_MODE=sample                    # sample (КТ2) | full (КТ3)
+INDEX_MODE=sample                    # sample (КТ2) | full (КТ3) | corpus (benchmark, секунды)
+CORPUS_PATH=benchmark/corpus/documents.jsonl   # только для INDEX_MODE=corpus
+SPIMI_BLOCK_POSTINGS=2000000         # размер блока SPIMI в постингах
 SAMPLE_DENOM=100                     # доля выборки 1/DENOM тредов
 SAMPLE_RESIDUE=0
 SAMPLE_MIN_SCORE=1
