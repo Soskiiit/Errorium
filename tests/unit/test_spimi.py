@@ -222,6 +222,51 @@ class TestEdgeCases(IndexTestCase):
             build_index([(0, ["a"])], self.out(), timestamp=0)
 
 
+class TestExtraFiles(IndexTestCase):
+    """Дополнительные артефакты (graph.db, манифест) публикуются вместе с индексом, до маркера."""
+
+    def make_extra(self, name="graph.src", content=b"graph-bytes"):
+        path = os.path.join(self.root, name)
+        with open(path, "wb") as f:
+            f.write(content)
+        return path
+
+    def test_extra_file_moved_into_index_dir(self):
+        src = self.make_extra()
+        d = self.out()
+        build_index(DOCS, d, timestamp=0, extra_files={"graph.db": src})
+        self.assertEqual(read_bytes(d, "graph.db"), b"graph-bytes")
+        self.assertFalse(os.path.exists(src))
+        self.assertIn("metadata.json", os.listdir(d))
+
+    def test_failed_build_does_not_touch_extra_or_index_dir(self):
+        src = self.make_extra()
+        d = self.out()
+
+        def docs():
+            yield 1, ["a"]
+            raise RuntimeError("boom")
+
+        with self.assertRaises(RuntimeError):
+            build_index(docs(), d, timestamp=0, extra_files={"graph.db": src})
+        self.assertTrue(os.path.exists(src))
+        self.assertFalse(os.path.exists(os.path.join(d, "graph.db")))
+
+    def test_extra_file_name_must_be_plain(self):
+        src = self.make_extra()
+        for bad in ("../evil.bin", "sub/dir.db", "metadata.json", "lexicon.bin"):
+            with self.subTest(name=bad):
+                with self.assertRaises(ValueError):
+                    build_index(DOCS, self.out(), timestamp=0, extra_files={bad: src})
+        self.assertTrue(os.path.exists(src))
+
+    def test_old_extra_file_replaced(self):
+        d = self.out()
+        build_index(DOCS, d, timestamp=0, extra_files={"graph.db": self.make_extra(content=b"old")})
+        build_index(DOCS, d, timestamp=0, extra_files={"graph.db": self.make_extra("g2", b"new")})
+        self.assertEqual(read_bytes(d, "graph.db"), b"new")
+
+
 class TestAtomicity(IndexTestCase):
     def test_failed_build_leaves_no_marker_and_no_temp(self):
         d = self.out()
