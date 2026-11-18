@@ -1,0 +1,150 @@
+/* ==========================================================================
+   Main Viewport
+   ========================================================================== */
+
+.main-viewport {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    max-width: 100%;
+    position: relative;
+    overflow-x: hidden;
+    overflow-y: hidden;
+}
+
+/* Header (Chat-screen.png) */
+.app-header {
+    height: var(--header-height);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    padding-top: env(safe-area-inset-top, 0px);
+    z-index: 20;
+    flex-shrink: 0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.icon-btn {
+    background: transparent;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: opacity 0.15s, background-color 0.15s;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.header-menu-btn,
+.header-sidebar-toggle-btn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    padding: 4px;
+}
+
+.hamburger-bar {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background-color: #ffffff;
+    border-radius: 2px;
+}
+
+.header-logo {
+    font-size: 1.55rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #ffffff;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.header-profile-btn {
+    width: 36px;
+    height: 36px;
+    color: #ffffff;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.header-profile-btn:hover {
+    opacity: 0.85;
+}
+
+/* Hide header profile button when mobile sidebar drawer is open */
+.sidebar-drawer.open ~ .main-viewport .header-profile-btn {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
+/* ==========================================================================
+   View Content: Hero Screen & Chat Screen
+   ========================================================================== */
+
+.view-content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 100%;
+    margin-bottom: -116px;
+    padding-bottom: 116px;
+    mask-image: linear-gradient(
+        to bottom,
+        #000 0%,
+        #000 calc(100% - 310px),
+        rgba(0, 0, 0, 0.55) calc(100% - 200px),
+        rgba(0, 0, 0, 0.15) calc(100% - 110px),
+        transparent 100%
+    );
+    -webkit-mask-image: linear-gradient(
+        to bottom,
+        #000 0%,
+        #000 calc(100% - 310px),
+        rgba(0, 0, 0, 0.55) calc(100% - 200px),
+        rgba(0, 0, 0, 0.15) calc(100% - 110px),
+        transparent 100%
+    );
+}
+
+/* HERO SCREEN (Chat-screen.png) */
+.hero-screen {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 16px 16px 60px;
+    text-align: center;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.hero-center-card {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+

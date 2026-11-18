@@ -11,8 +11,8 @@
 
 ### Основные задачи:
 1. **Потоковый парсинг архива XML:**
-   - Чтение `Posts.xml`, `Tags.xml`, `PostLinks.xml` из каталога `data/raw/` без загрузки всего файла в RAM (лимит памяти $\le 4$ ГБ, SAX/итераторы).
-   - Выделение вопросов (`PostTypeId=1`) и ответов (`PostTypeId=2`), привязка принятого/лучшего ответа по `AcceptedAnswerId` или максимальному `Score`.
+   - Чтение `Posts.xml`, `Tags.xml`, `PostLinks.xml` потоком (из архива через `7zz x -so` либо из каталога `data/raw/`) без загрузки всего файла в RAM (лимит памяти $\le 4$ ГБ, построчный разбор записей `<row .../>`).
+   - Выделение вопросов (`PostTypeId=1`) и ответов (`PostTypeId=2`), привязка принятого ответа по `AcceptedAnswerId` (треды без принятого ответа в корпус не входят).
 2. **Специализированная токенизация кода и ошибок:**
    - Сохранение неделимыми идентификаторов исключений (`NullPointerException`, `IndexOutOfBoundsException`).
    - Сохранение языковых конструкций и библиотек (`C++`, `C#`, `.NET`, `fmt.Println`, `os.path.join`).
@@ -26,12 +26,21 @@
 
 ---
 
+## 1.1. Стек
+
+Python 3 + стандартная библиотека (ADR-008 в `docs/Service/decisions.md`). Правила токенизации и эталонные примеры — `docs/Tech/03-data.md`, раздел 5; код — `src/indexer/`, тесты — `tests/unit/` (`test_tokenizer`, `test_sampler`, `test_index_format`, `test_spimi`, `test_graph_db`, `test_pipeline`, `test_indexer_docker`, `test_benchmark_corpus`) и `tests/integration/`.
+
+---
+
 ## 2. Входные и выходные данные
 
-### Входные данные (`data/raw/`):
-- `Posts.xml` — все посты (вопросы и ответы).
+### Входные данные:
+Основной источник — архив `stackoverflow.com.7z` (64 ГиБ, несолидный), который читается **потоком** (`7zz x -so`), без распаковки на диск. Альтернатива — уже распакованные файлы в `data/raw/`.
+- `Posts.xml` — все посты (105.6 ГБ; вопросы и ответы перемешаны, порядок не по `Id`).
 - `Tags.xml` — словарь тегов.
 - `PostLinks.xml` — связи между постами (дубликаты `LinkTypeId=3`, связанные темы `LinkTypeId=1`).
+
+Корпус формируется **хеш-выборкой тредов** (`python -m indexer sample`, КТ2) либо по шардам (подкоманда `full`, КТ3). Префиксный срез «первые N ГБ» не используется: в нём почти нет принятых ответов. Полная спецификация — `docs/Tech/03-data.md`, раздел 4; обоснование — ADR-007 в `docs/Service/decisions.md`.
 
 ### Выходные артефакты (`data/index/`):
 - `lexicon.bin` — бинарный словарь уникальных терминов с оффсетами и $DF(t)$.
@@ -45,9 +54,35 @@
 ## 3. Конфигурация и переменные окружения
 
 ```bash
-RAW_DATA_PATH=/app/data/raw          # Путь к сырым XML-дампам
+RAW_DATA_PATH=/app/data/raw          # Путь к сырым XML-дампам (и к sample/)
 INDEX_OUTPUT_PATH=/app/data/index    # Путь для сохранения готовых индексов
+SO_DUMP_ARCHIVE=/dump/stackoverflow.com.7z   # Архив дампа (монтируется :ro), читается потоком
+CORPUS_PATH=benchmark/corpus/documents.jsonl   # только для `corpus`
+SPIMI_BLOCK_POSTINGS=2000000         # размер блока SPIMI в постингах
+SAMPLE_DENOM=100                     # доля выборки 1/DENOM тредов
+SAMPLE_RESIDUE=0
+SAMPLE_MIN_SCORE=1
+GRAPH_MAX_NEIGHBORS=20
+SHARD_COUNT=64                       # зарезервировано для КТ3 (режим full)
 ```
+
+Описание переменных и критериев приёмки — `docs/Tech/03-data.md`, п. 4.7–4.8.
+
+---
+
+## 3.1. Запуск
+
+На хосте нужны только Docker, Docker Compose и Make. Индексатор — офлайн-задача, у него отдельный compose-файл `docker-compose.indexer.yml` (основной `docker-compose.yml` не затрагивается).
+
+```bash
+# Выборка из дампа Stack Overflow (КТ2). Архив монтируется в контейнер только на чтение.
+SO_DUMP_DIR=/путь/к/каталогу/с/архивом make index-sample
+
+# Индекс малого корпуса benchmark из benchmark/corpus/documents.jsonl (секунды)
+make index-corpus
+```
+
+Результат `index-sample`: `data/index/` (`lexicon.bin`, `postings.bin`, `doc_lengths.bin`, `metadata.json`, `graph.db`, `sample_manifest.json`) и промежуточная выборка `data/raw/sample/` (`Posts.sample.xml`, `Tags.xml`). Результат `index-corpus`: `data/index-benchmark/`. Параметры выборки (`SAMPLE_DENOM` и др.) задаются в `.env` (см. `.env.example`). Тесты индексатора: `make test-unit`, `tests/integration/test_indexer_e2e.py`.
 
 ---
 

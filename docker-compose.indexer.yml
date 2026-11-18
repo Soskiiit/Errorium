@@ -1,0 +1,24 @@
+# Офлайн-задача индексации (Роль 1). Не входит в основной docker-compose.yml:
+# индексатор запускается по требованию через `make index-sample` / `make index-corpus`.
+services:
+  indexer:
+    image: errorium-indexer:dev
+    build:
+      context: ./services/search_engine_indexer
+      dockerfile: Dockerfile
+    mem_limit: 4g   # бюджет индексатора из docs/Tech/03-data.md, п. 4.8
+    volumes:
+      - ./data:/app/data
+      - ./benchmark:/app/benchmark:ro
+      # Каталог с архивом дампа; монтируется только на чтение, архив не распаковывается на диск.
+      - ${SO_DUMP_DIR:-./data/dump}:/dump:ro
+    environment:
+      - RAW_DATA_PATH=/app/data/raw
+      - INDEX_OUTPUT_PATH=/app/data/index
+      - CORPUS_PATH=/app/benchmark/corpus/documents.jsonl
+      - SO_DUMP_ARCHIVE=/dump/${SO_DUMP_FILE:-stackoverflow.com.7z}
+      - SAMPLE_DENOM=${SAMPLE_DENOM:-100}
+      - SAMPLE_RESIDUE=${SAMPLE_RESIDUE:-0}
+      - SAMPLE_MIN_SCORE=${SAMPLE_MIN_SCORE:-1}
+      - GRAPH_MAX_NEIGHBORS=${GRAPH_MAX_NEIGHBORS:-20}
+      - SPIMI_BLOCK_POSTINGS=${SPIMI_BLOCK_POSTINGS:-2000000}

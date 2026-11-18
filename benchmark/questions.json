@@ -1,0 +1,150 @@
+{
+  "version": 1,
+  "questions": [
+    {
+      "id": "Q01",
+      "type": "answerable",
+      "question": "My Python program crashes when it reads an element at a position that does not exist in a list or a string. What are the usual reasons for this and how can I avoid it?",
+      "relevant_docs": [
+        "D01",
+        "D11",
+        "D21"
+      ],
+      "reference_answer": "Ошибка IndexError возникает при обращении к элементу по индексу за пределами длины последовательности. Типичные причины: пустой список (например, re.findall ничего не нашёл, а код берёт [0]) — перед обращением нужно проверять len(); удаление элементов списка во время итерации по range(len(...)) — вместо этого использовать list.remove(); выход на единицу за границу (random.randint включает правую границу) — использовать len-1 или random.choice."
+    },
+    {
+      "id": "Q02",
+      "type": "answerable",
+      "question": "In Java I get a NullPointerException in code that looks fine and has no obvious null variable. What hidden causes exist, and how can I find the failing line when the log shows no stack trace?",
+      "relevant_docs": [
+        "D02",
+        "D12",
+        "D22"
+      ],
+      "reference_answer": "Скрытые причины NullPointerException: конструктор родительского класса вызывает переопределяемый метод, а поле дочернего класса ещё не инициализировано (сначала выполняется super(), потом инициализаторы полей); тернарный оператор с автобоксингом: при условии `cond ? getNumber() : 0` null из Integer распаковывается в int и приводит к NPE. Если в логе нет stack trace, HotSpot JVM оптимизирует часто повторяющиеся исключения — нужно запустить JVM с опцией -XX:-OmitStackTraceInFastThrow."
+    },
+    {
+      "id": "Q03",
+      "type": "answerable",
+      "question": "Running docker commands fails because my user is not allowed to talk to the Docker daemon socket. How can I use docker without sudo?",
+      "relevant_docs": [
+        "D03",
+        "D13",
+        "D23"
+      ],
+      "reference_answer": "Пользователь не состоит в группе docker. Нужно создать группу (sudo groupadd docker), добавить пользователя (sudo usermod -aG docker $USER), затем перелогиниться или выполнить newgrp docker (при необходимости перезагрузиться) и проверить docker run hello-world. Для Jenkins в группу docker добавляют пользователя jenkins и перезапускают Jenkins. Группа docker даёт права, эквивалентные root."
+    },
+    {
+      "id": "Q04",
+      "type": "answerable",
+      "question": "I pushed a commit to the shared remote branch by mistake. How can I roll the repository back to the previous state both locally and on the server?",
+      "relevant_docs": [
+        "D04",
+        "D14",
+        "D24"
+      ],
+      "reference_answer": "Локально откатить коммит: git reset --hard HEAD~1 (или --soft / --mixed, чтобы сохранить изменения; HEAD~2 для двух коммитов), затем перезаписать историю на сервере: git push -f origin <ветка>. Если принудительный push запрещён (например, GitHub не принимает его), вместо этого выполнить git revert HEAD и обычный git push: появится новый коммит, отменяющий изменения."
+    },
+    {
+      "id": "Q05",
+      "type": "answerable",
+      "question": "MySQL rejects my root login with error 1045 and I no longer remember the password. How can I get access again?",
+      "relevant_docs": [
+        "D05",
+        "D15",
+        "D25"
+      ],
+      "reference_answer": "Ошибка 1045 означает отказ в доступе для root. Пароль root можно сбросить: остановить сервер MySQL, запустить его с опцией --skip-grant-tables, подключиться без пароля, обновить пароль в таблице mysql.user и перезапустить сервер. Работать с root без пароля небезопасно. Если установлено два экземпляра MySQL с разными паролями, нужно остановить лишний сервис и удалить его файлы или переустановить MySQL."
+    },
+    {
+      "id": "Q06",
+      "type": "answerable",
+      "question": "I installed a Python package with pip, but importing it still fails because the module cannot be found. Why does this happen and how do I make the import work?",
+      "relevant_docs": [
+        "D06",
+        "D16",
+        "D26"
+      ],
+      "reference_answer": "Пакет установлен не в то окружение, из которого запускается код. Нужно ставить пакет интерпретатором проекта: <путь к venv>/python.exe -m pip install <пакет>; при использовании Spyder или Anaconda — ставить в нужное окружение либо создать виртуальное окружение; в Google Colab пакеты, которых нет в предустановленных, ставят в ячейке командой %pip install до импорта."
+    },
+    {
+      "id": "Q07",
+      "type": "answerable",
+      "question": "My Java application stops with an out-of-memory error after working for a while. What does it mean and how can I deal with it?",
+      "relevant_docs": [
+        "D07",
+        "D17",
+        "D27"
+      ],
+      "reference_answer": "OutOfMemoryError: Java heap space означает, что куча исчерпана: можно увеличить её опциями -Xms/-Xmx и профилировать приложение (например, VisualVM), чтобы найти, где создаётся много объектов. Ошибка «GC overhead limit exceeded» значит, что сборщик мусора тратит почти всё время и освобождает очень мало памяти (обычно из-за множества временных объектов). Если память съедает обработка большого файла, его нужно читать и кодировать порциями, а не целиком."
+    },
+    {
+      "id": "Q08",
+      "type": "answerable",
+      "question": "My front-end JavaScript request to an API on another domain is blocked by the browser, while the same request works in Postman. Why is that, and how can the server allow it?",
+      "relevant_docs": [
+        "D08",
+        "D18",
+        "D28"
+      ],
+      "reference_answer": "Браузер применяет политику одного источника (Same-Origin Policy): запрос на другой origin блокируется, если сервер не вернул заголовок Access-Control-Allow-Origin; Postman этому ограничению не подчиняется. Origin совпадает только при одинаковых схеме, домене и порте (http и https, example.com и www.example.com, порты 80 и 443 — разные). Исправление на стороне сервера — добавить заголовок Access-Control-Allow-Origin (в PHP через header(), либо в настройках Apache/.htaccess); значение `*` отключает защиту, поэтому лучше разрешать конкретные источники."
+    },
+    {
+      "id": "Q09",
+      "type": "answerable",
+      "question": "My C++ build fails at link time with an undefined reference to the vtable or typeinfo of a class. What causes this and how do I fix it?",
+      "relevant_docs": [
+        "D09",
+        "D19",
+        "D29"
+      ],
+      "reference_answer": "Частая причина — виртуальная функция объявлена, но нигде не определена: линкер ищет определение в других единицах трансляции, поэтому все виртуальные функции нужно определить. В Qt отсутствие vtable обычно значит, что результат moc не попал в сборку: нужно запустить moc и подключить результат, а при смене класса на Q_OBJECT перезапустить qmake. Для чисто виртуальных функций на встроенных платформах без стандартных библиотек требуется собственный обработчик __cxa_pure_virtual."
+    },
+    {
+      "id": "Q10",
+      "type": "answerable",
+      "question": "Why does my C# program hang forever when I call an asynchronous method and wait for its result, and what should I do instead?",
+      "relevant_docs": [
+        "D10",
+        "D20",
+        "D30"
+      ],
+      "reference_answer": "Это взаимоблокировка: код блокирует поток (UI или ASP.NET) через .Result или Task.Wait(), а продолжение после await должно выполниться в том же контексте синхронизации. Нужно не блокировать асинхронный код («async all the way») и использовать await; также можно вызывать ConfigureAwait(false), чтобы продолжение не возвращалось в исходный контекст."
+    },
+    {
+      "id": "Q11",
+      "type": "trap",
+      "question": "How do I fix the Rust compiler error that says I cannot borrow a variable as mutable more than once at a time?",
+      "relevant_docs": [],
+      "reference_answer": "В документах нет этой информации."
+    },
+    {
+      "id": "Q12",
+      "type": "trap",
+      "question": "My Kubernetes pod keeps restarting in CrashLoopBackOff state. How can I find out what is going wrong?",
+      "relevant_docs": [],
+      "reference_answer": "В документах нет этой информации."
+    },
+    {
+      "id": "Q13",
+      "type": "trap",
+      "question": "My Android project fails to build with a Gradle error about duplicate classes. How do I resolve it?",
+      "relevant_docs": [],
+      "reference_answer": "В документах нет этой информации."
+    },
+    {
+      "id": "Q14",
+      "type": "trap",
+      "question": "How can I speed up a slow PostgreSQL query by reading the EXPLAIN ANALYZE output and adding an index?",
+      "relevant_docs": [],
+      "reference_answer": "В документах нет этой информации."
+    },
+    {
+      "id": "Q15",
+      "type": "trap",
+      "question": "Why does my React component re-render in an endless loop when I update state inside a useEffect hook?",
+      "relevant_docs": [],
+      "reference_answer": "В документах нет этой информации."
+    }
+  ]
+}

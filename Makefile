@@ -1,4 +1,4 @@
-.PHONY: help up down build proto test-unit test-integration test benchmark dev dev-docker dev-down
+.PHONY: help up down build proto test-unit test-integration test benchmark index-sample index-corpus dev dev-docker dev-down
 
 # По умолчанию выводим справку
 help:
@@ -15,6 +15,8 @@ help:
 	@echo "  make test-integration  - Запустить интеграционные тесты"
 	@echo "  make test              - Запустить все тесты (unit + integration)"
 	@echo "  make benchmark         - Запустить расчёт метрик Recall@k и MRR (НИРС)"
+	@echo "  make index-sample      - Индексатор: выборка из дампа SO (SO_DUMP_DIR, см. .env.example)"
+	@echo "  make index-corpus      - Индексатор: индекс малого корпуса benchmark (секунды)"
 	@echo "==========================================================="
 
 # Локальная разработка (Dev-сервер)
@@ -57,10 +59,22 @@ test-unit:
 	python3 -m unittest discover -s tests/unit -p "test_*.py"
 
 test-integration:
-	@echo "Интеграционные тесты пока не сконфигурированы"
+	@echo "Запуск интеграционных тестов (Python)..."
+	python3 -m unittest discover -s tests/integration -p "test_*.py"
 
 test: test-unit
 
-# Бенчмарк (НИРС: Recall@k, MRR)
-benchmark:
+# Индексатор (Роль 1): офлайн-задачи в контейнере, отдельный compose-файл
+INDEXER_RUN = docker compose -f docker-compose.indexer.yml run --rm
+
+index-sample:
+	@mkdir -p data/raw data/index data/dump
+	$(INDEXER_RUN) indexer sample
+
+index-corpus:
+	@mkdir -p data/index-benchmark data/dump
+	$(INDEXER_RUN) -e INDEX_OUTPUT_PATH=/app/data/index-benchmark indexer corpus
+
+# Бенчмарк (НИРС: Recall@k, MRR): сначала собирается индекс корпуса benchmark (секунды), затем метрики
+benchmark: index-corpus
 	docker compose run --rm search_engine_core python benchmark/evaluate.py

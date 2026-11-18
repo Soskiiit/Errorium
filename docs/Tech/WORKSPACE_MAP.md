@@ -6,6 +6,7 @@
 .
 ├── Makefile                          # Точка входа для сборки, тестов, protoc и запуска
 ├── docker-compose.yml                # Описание мультиконтейнерного стека
+├── docker-compose.indexer.yml        # Офлайн-задача индексатора (make index-sample / index-corpus)
 ├── AGENTS.md                         # Инструкции и ограничения для AI-ассистентов
 ├── STATUS.md                         # Текущий статус готовности и ближайший шаг
 ├── CHANGE_HISTORY.md                 # Журнал изменений архитектуры и реализации
@@ -25,7 +26,7 @@
 │   ├── search_engine_indexer/        # [Роль 1] Потоковый парсинг 100 ГБ, токенизатор, инвертированный индекс
 │   │   ├── Dockerfile
 │   │   ├── README.md
-│   │   └── src/
+│   │   └── src/indexer/              # tokenizer, sampler, spimi, index_format, graph_db, pipeline, sources, config, __main__
 │   │
 │   ├── search_engine_core/           # [Роль 2] BM25 с нуля, MMap индекс, gRPC-сервер (:50051)
 │   │   ├── Dockerfile
@@ -63,4 +64,4 @@
 | **`services/search_engine_indexer/`** | Роль 1 | Парсер Stack Overflow, токенизатор кода, построение инвертированного индекса, построение связей тредов. |
 | **`services/search_engine_core/`** | Роль 2 | Реализация формулы BM25, хранение posting lists в mmap, Top-K выборка, реализация gRPC сервисов `SearchService` и `GraphService`. |
 | **`services/gateway/`** | Роль 3 | REST API (:8000), SSO авторизация (OAuth2/OIDC), JWT, Remote MCP Server (:8000/sse), RAG-оркестрация с LLM. |
-| **`services/frontend/`** | Роль 4 | Пользовательский Web UI (:3000), визуализация графа связанных тредов, интерфейс админ-панели. |
+| **`services/frontend/`** | Роль 4 | Пользовательский Web UI (:3000), Star Map — визуализация графа связанных тредов на Canvas (`/star-map`, мок-данные), интерфейс админ-панели. |
