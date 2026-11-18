@@ -85,7 +85,8 @@ def build_index(docs: Iterable[Tuple[int, Sequence[str]]], out_dir: str, *,
                 block_postings: int = DEFAULT_BLOCK_POSTINGS,
                 timestamp: Optional[int] = None,
                 source: Optional[dict] = None,
-                stats: Optional[dict] = None) -> dict:
+                stats: Optional[dict] = None,
+                extra_files: Optional[Dict[str, str]] = None) -> dict:
     """Строит индекс из потока ``(doc_id, токены)`` и записывает его в ``out_dir``.
 
     Документы могут идти в любом порядке. Каталог ``out_dir`` может быть точкой
@@ -93,16 +94,23 @@ def build_index(docs: Iterable[Tuple[int, Sequence[str]]], out_dir: str, *,
     ``os.replace``, а ``metadata.json`` записывается последним — он служит маркером
     готовности индекса. При ошибке прежний индекс (если был) остаётся нетронутым.
 
-    Возвращает содержимое ``metadata.json``. ``stats`` (если передан) получает
-    ``{"blocks": число сброшенных блоков}``.
+    ``extra_files`` — ``{имя: путь}`` дополнительных артефактов (``graph.db``,
+    ``sample_manifest.json``): они переносятся в ``out_dir`` тем же шагом, до маркера, и
+    не затрагиваются, если сборка упала. Возвращает содержимое ``metadata.json``;
+    ``stats`` (если передан) получает ``{"blocks": число сброшенных блоков}``.
     """
+    extra_files = dict(extra_files or {})
+    for name in extra_files:
+        if (os.path.basename(name) != name or name in INDEX_FILES or name == METADATA_FILE
+                or name.startswith(".")):
+            raise ValueError(f"недопустимое имя дополнительного файла: {name!r}")
     building = os.path.join(out_dir, BUILDING_DIR)
     if os.path.isdir(building):
         shutil.rmtree(building)
     os.makedirs(building)
     try:
         meta = _build(docs, building, index_mode, block_postings, timestamp, source, stats)
-        _publish(building, out_dir, meta)
+        _publish(building, out_dir, meta, extra_files)
         return meta
     finally:
         shutil.rmtree(building, ignore_errors=True)
@@ -185,7 +193,7 @@ def _write_doc_lengths(lengths: Dict[int, int], building: str) -> None:
             f.write(struct.pack("<II", doc_id, lengths[doc_id]))
 
 
-def _publish(building: str, out_dir: str, meta: dict) -> None:
+def _publish(building: str, out_dir: str, meta: dict, extra_files: Dict[str, str]) -> None:
     """Переносит файлы на место; ``metadata.json`` — последним (маркер готовности)."""
     meta_tmp = os.path.join(building, METADATA_FILE)
     with open(meta_tmp, "w", encoding="utf-8") as f:
@@ -195,4 +203,6 @@ def _publish(building: str, out_dir: str, meta: dict) -> None:
         os.remove(old_marker)  # пока идёт замена файлов, индекс считается неполным
     for name in INDEX_FILES:
         os.replace(os.path.join(building, name), os.path.join(out_dir, name))
+    for name, src in extra_files.items():
+        shutil.move(src, os.path.join(out_dir, name))
     os.replace(meta_tmp, old_marker)
