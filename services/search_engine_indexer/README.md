@@ -26,6 +26,12 @@
 
 ---
 
+## 1.1. Стек
+
+Python 3 + стандартная библиотека (ADR-008 в `docs/Service/decisions.md`). Правила токенизации и эталонные примеры — `docs/Tech/03-data.md`, раздел 5; код и тесты: `src/` и `tests/unit/test_tokenizer.py`, `tests/unit/test_sampler.py`.
+
+---
+
 ## 2. Входные и выходные данные
 
 ### Входные данные:
