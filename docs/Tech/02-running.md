@@ -11,6 +11,7 @@
   - CPU: $\ge 4$ ядра
   - RAM: $\ge 8$ ГБ (для работы с демонстрационным индексом), $\ge 16$ ГБ (для полной индексации 100 ГБ дампа)
   - Диск: SSD со свободным местом от 20 ГБ (мини-выборка) до 250 ГБ (полный архив и индекс).
+    - Для индексатора в режиме `sample` (КТ2) сырой дамп **не распаковывается**: архив `stackoverflow.com.7z` (≈ 64 ГиБ) читается потоком, дополнительно нужно ≈ 3 ГиБ под `data/raw/sample/` и `data/index/`. Подробности и бюджет режима `full` — `docs/Tech/03-data.md`, раздел 4.
 
 ---
 
@@ -43,6 +44,10 @@ LOG_LEVEL=INFO
 # === Search Engine Indexer (Роль 1) ===
 RAW_DATA_PATH=/app/data/raw
 INDEX_OUTPUT_PATH=/app/data/index
+SO_DUMP_ARCHIVE=/dump/stackoverflow.com.7z   # читается потоком, не распаковывается на диск
+INDEX_MODE=sample                            # sample (КТ2) | full (КТ3)
+SAMPLE_DENOM=100
+SAMPLE_MIN_SCORE=1
 
 # === Search Engine Core (Роль 2) ===
 SEARCH_GRPC_PORT=50051
