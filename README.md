@@ -163,6 +163,19 @@ make test-integration
 make test
 ```
 
+### Индексатор и корпус benchmark
+Индексатор — офлайн-задача со своим compose-файлом (`docker-compose.indexer.yml`), подробности — `services/search_engine_indexer/README.md`:
+
+```bash
+# Индекс малого корпуса benchmark (30 документов, секунды) → data/index-benchmark/
+make index-corpus
+
+# Выборка из дампа Stack Overflow → data/index/ (архив монтируется только на чтение)
+SO_DUMP_DIR=/путь/к/каталогу/с/архивом make index-sample
+```
+
+Корпус и вопросы лежат в `benchmark/` (описание — `docs/Tech/05-verification.md`, раздел 3).
+
 ### Оценка качества поиска (Бенчмарк НИРС)
 Проверка метрик качества ранжирования ($Recall@k$ и $MRR$):
 
