@@ -19,6 +19,8 @@ if INDEXER_SRC not in sys.path:
     sys.path.insert(0, INDEXER_SRC)
 
 import grpc
+import graph_pb2
+import graph_pb2_grpc
 import search_pb2
 import search_pb2_grpc
 
@@ -240,9 +242,18 @@ class TestCoreGRPC(unittest.TestCase):
         self.assertEqual(s_resp.total_hits, 3)
 
     def test_smoke_script(self):
+        import io
+        from contextlib import redirect_stdout
+
         addr = f"127.0.0.1:{self.server_port}"
-        ok = run_smoke(addr)
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            ok = run_smoke(addr)
         self.assertTrue(ok)
+        out = buf.getvalue()
+        self.assertIn("--> 4. GetThreadGraph...", out)
+        self.assertIn("Nodes returned:", out)
+        self.assertIn("Smoke test passed successfully!", out)
 
 
 if __name__ == "__main__":

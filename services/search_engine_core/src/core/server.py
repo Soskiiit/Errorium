@@ -13,6 +13,7 @@ import search_pb2_grpc
 
 from .config import CoreConfig
 from .engine import Engine
+from .graph_servicer import GraphServicer
 from .search_servicer import SearchServicer
 
 logging.basicConfig(
@@ -22,15 +23,11 @@ logging.basicConfig(
 logger = logging.getLogger("search_engine_core.server")
 
 
-class _UnimplementedGraphServicer(graph_pb2_grpc.GraphServiceServicer):
-    """Stub implementation of GraphService raising UNIMPLEMENTED until task A3."""
-    pass
-
-
 def create_server(
     config: Optional[CoreConfig] = None,
     engine: Optional[Engine] = None,
     servicer: Optional[SearchServicer] = None,
+    graph_servicer: Optional[GraphServicer] = None,
     max_workers: int = 10,
 ) -> Tuple[grpc.Server, SearchServicer]:
     """Create and configure gRPC server with registered SearchService and GraphService."""
@@ -49,9 +46,12 @@ def create_server(
                 engine = None
         servicer = SearchServicer(engine=engine, index_dir=cfg.index_dir, config=cfg)
 
+    if graph_servicer is None:
+        graph_servicer = GraphServicer(search_servicer=servicer)
+
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=max_workers))
     search_pb2_grpc.add_SearchServiceServicer_to_server(servicer, server)
-    graph_pb2_grpc.add_GraphServiceServicer_to_server(_UnimplementedGraphServicer(), server)
+    graph_pb2_grpc.add_GraphServiceServicer_to_server(graph_servicer, server)
 
     return server, servicer
 

@@ -3,6 +3,8 @@ import os
 import sys
 
 import grpc
+import graph_pb2
+import graph_pb2_grpc
 import search_pb2
 import search_pb2_grpc
 
@@ -44,6 +46,20 @@ def run_smoke(addr: str) -> bool:
             print(f"    Index size bytes: {stats.index_size_bytes}")
             print(f"    Is ready: {stats.is_ready}")
             print(f"    Build timestamp: {stats.build_timestamp}")
+
+            # 4. GetThreadGraph
+            print("--> 4. GetThreadGraph...")
+            graph_stub = graph_pb2_grpc.GraphServiceStub(channel)
+            graph_doc_ids = [search_res.hits[0].doc_id] if search_res.hits else [1]
+            print(f"    Requesting graph for doc_ids={graph_doc_ids}...")
+            graph_res = graph_stub.GetThreadGraph(
+                graph_pb2.ThreadGraphRequest(doc_ids=graph_doc_ids),
+                timeout=5.0,
+            )
+            print(f"    Nodes returned: {len(graph_res.nodes)}, Edges returned: {len(graph_res.edges)}")
+            for idx, node in enumerate(graph_res.nodes[:3]):
+                cat_name = graph_pb2.NodeCategory.Name(node.category)
+                print(f"    Node [{idx + 1}]: doc_id={node.doc_id}, category={cat_name}, title={node.title!r}")
 
             print("==> Smoke test passed successfully!")
             return True
