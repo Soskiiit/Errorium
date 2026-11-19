@@ -1,4 +1,12 @@
-.PHONY: help up down build proto test-unit test-integration test benchmark index-sample index-corpus dev dev-docker dev-down
+-include .env
+
+.PHONY: help up down build proto test-unit test-integration test benchmark index-sample index-corpus dev dev-docker dev-down ghcr-build-push ghcr-deploy
+
+GHCR_OWNER ?= soskiiit
+IMAGE_TAG ?= develop
+SERVER_USER ?= root
+SERVER_HOST ?=
+SERVER_DIR ?= ~/Errorium
 
 # По умолчанию выводим справку
 help:
@@ -17,6 +25,8 @@ help:
 	@echo "  make benchmark         - Запустить расчёт метрик Recall@k и MRR (НИРС)"
 	@echo "  make index-sample      - Индексатор: выборка из дампа SO (SO_DUMP_DIR, см. .env.example)"
 	@echo "  make index-corpus      - Индексатор: индекс малого корпуса benchmark (секунды)"
+	@echo "  make ghcr-build-push   - Собрать образы на хосте и отправить в GHCR (ghcr.io)"
+	@echo "  make ghcr-deploy       - Полный цикл: сборка -> push в GHCR -> деплой на сервер"
 	@echo "==========================================================="
 
 # Локальная разработка (Dev-сервер)
@@ -78,3 +88,24 @@ index-corpus:
 # Бенчмарк (НИРС: Recall@k, MRR): сначала собирается индекс корпуса benchmark (секунды), затем метрики
 benchmark: index-corpus
 	docker compose run --rm search_engine_core python benchmark/evaluate.py
+
+# Сборка образов на хосте под linux/amd64 и отправка в GitHub Container Registry (GHCR)
+ghcr-build-push:
+	@echo "==> Сборка и отправка образов в GHCR (owner: $(GHCR_OWNER), tag: $(IMAGE_TAG))..."
+	docker buildx build --platform linux/amd64 -t ghcr.io/$(GHCR_OWNER)/errorium-gateway:$(IMAGE_TAG) ./services/gateway --push
+	docker buildx build --platform linux/amd64 -t ghcr.io/$(GHCR_OWNER)/errorium-frontend:$(IMAGE_TAG) ./services/frontend --push
+	@echo "==> Образы успешно собраны и отправлены в GHCR!"
+
+# Полный цикл: локальная сборка -> отправка в GHCR -> обновление и запуск на сервере по SSH
+ghcr-deploy: ghcr-build-push
+	@if [ -z "$(SERVER_HOST)" ]; then \
+		echo "Ошибка: Не указан адрес сервера (SERVER_HOST)."; \
+		echo "Задайте в .env или передайте аргументом: make ghcr-deploy SERVER_HOST=x.x.x.x [SERVER_USER=root]"; \
+		exit 1; \
+	fi
+	@echo "==> Синхронизация конфигурации и перезапуск сервисов на $(SERVER_HOST)..."
+	ssh $(SERVER_USER)@$(SERVER_HOST) "mkdir -p $(SERVER_DIR) && if [ -d $(SERVER_DIR)/deploy/garage/garage.toml ]; then rm -rf $(SERVER_DIR)/deploy/garage/garage.toml; fi"
+	scp docker-compose.yml $(SERVER_USER)@$(SERVER_HOST):$(SERVER_DIR)/docker-compose.yml
+	scp -r deploy $(SERVER_USER)@$(SERVER_HOST):$(SERVER_DIR)/
+	ssh $(SERVER_USER)@$(SERVER_HOST) "cd $(SERVER_DIR) && docker compose pull && docker compose up -d --remove-orphans"
+	@echo "==> Деплой на $(SERVER_HOST) успешно завершён!"
