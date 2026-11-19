@@ -20,6 +20,9 @@ type User struct {
 	AvatarURL    *string    `json:"avatar_url,omitempty" db:"avatar_url"`
 	PasswordHash *string    `json:"-" db:"password_hash"`
 	Role         Role       `json:"role" db:"role"`
+	Profession   string     `json:"profession" db:"profession"`
+	Gender       string     `json:"gender" db:"gender"`
+	Language     string     `json:"language" db:"language"`
 	IsActive     bool       `json:"is_active" db:"is_active"`
 	CreatedAt    time.Time  `json:"created_at" db:"created_at"`
 	UpdatedAt    time.Time  `json:"updated_at" db:"updated_at"`

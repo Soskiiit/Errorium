@@ -151,9 +151,12 @@ erDiagram
         uuid id PK "UUIDv7"
         text email UK "Уникальный email (CHECK <= 255)"
         text username "Отображаемое имя (CHECK <= 100)"
-        text avatar_url "URL аватара в Garage S3"
-        text password_hash "Хэш пароля (NULL для чистого SSO)"
-        text role "user | admin (CHECK)"
+        text avatar_url "Прокси-путь /api/v1/users/{id}/avatar (ADR-010)"
+        text password_hash "Хэш пароля bcrypt (NULL для чистого SSO)"
+        text role "user | admin (CHECK, RBAC)"
+        text profession "Профессиональная роль из UI (<= 100)"
+        text gender "Male | Female | Not specified (CHECK)"
+        text language "English | Русский (CHECK)"
         boolean is_active "Флаг активности"
         timestamptz created_at "Время создания"
         timestamptz updated_at "Время обновления"
@@ -197,8 +200,10 @@ erDiagram
         uuid chat_id FK "Ссылка на chats(id)"
         text sender_role "user | assistant | system (CHECK)"
         text message_type "text | error_report | rag_solution (CHECK)"
+        text content "Текст: запрос user / решение assistant (000002)"
+        text code "Блок кода решения assistant (000002)"
         jsonb error_context "Контекст ошибки (язык, стектрейс, ошибка)"
-        jsonb rag_sources "Источники SO (doc_id, score, title, url)"
+        jsonb rag_sources "Источники SO (doc_id, question_score, bm25_score, title, url)"
         jsonb token_usage "Статистика токенов"
         timestamptz created_at "Время отправки сообщения"
     }
@@ -230,9 +235,12 @@ erDiagram
    - `id`: UUID (UUIDv7, PK).
    - `email`: TEXT NOT NULL UNIQUE CHECK (length(email) <= 255).
    - `username`: TEXT NOT NULL CHECK (length(username) <= 100).
-   - `avatar_url`: TEXT NULL — ссылка на объект в S3/Garage хранилище.
-   - `password_hash`: TEXT NULL CHECK (password_hash IS NULL OR length(password_hash) <= 255) — хэш пароля. Для SSO-пользователей `NULL`.
-   - `role`: TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin')).
+   - `avatar_url`: TEXT NULL — прокси-путь `/api/v1/users/{id}/avatar` (ADR-010; объект лежит в Garage, наружу не публикуется).
+   - `password_hash`: TEXT NULL CHECK (password_hash IS NULL OR length(password_hash) <= 255) — bcrypt-хэш (cost 12); legacy `salt:sha256` принимается при входе и перехэшируется. Для SSO-пользователей `NULL`.
+   - `role`: TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin')) — RBAC, клиенту недоступен для изменения.
+   - `profession`: TEXT NOT NULL DEFAULT 'Backend developer' CHECK (length(profession) <= 100) — профессиональная «роль» из профиля UI (миграция `000002`).
+   - `gender`: TEXT NOT NULL DEFAULT 'Not specified' CHECK (gender IN ('Male', 'Female', 'Not specified')) — дропдаун профиля (миграция `000002`).
+   - `language`: TEXT NOT NULL DEFAULT 'English' CHECK (language IN ('English', 'Русский')) — язык интерфейса (миграция `000002`).
    - `is_active`: BOOLEAN NOT NULL DEFAULT TRUE.
    - `created_at`, `updated_at`: TIMESTAMPTZ NOT NULL DEFAULT NOW().
    - `last_login_at`: TIMESTAMPTZ NULL.
@@ -263,8 +271,10 @@ erDiagram
 5. **`chat_messages`:** Сообщения в диалоге (запросы пользователей и ответы RAG).
    - `sender_role`: TEXT NOT NULL CHECK (sender_role IN ('user', 'assistant', 'system')).
    - `message_type`: TEXT NOT NULL DEFAULT 'error_report' CHECK (message_type IN ('text', 'error_report', 'rag_solution')).
-   - `error_context`: JSONB NULL (тип ошибки, стектрейс, язык, исходный ввод).
-   - `rag_sources`: JSONB NULL (массив объектов `[{doc_id, title, score, url, snippet}]`).
+   - `content`: TEXT NULL — текст сообщения: исходный запрос для `user`, синтезированное решение для `assistant` (миграция `000002`, ADR-010).
+   - `code`: TEXT NULL — блок исправленного кода решения, только `assistant` (миграция `000002`).
+   - `error_context`: JSONB NULL (тип ошибки, стектрейс, язык, исходный ввод `raw_query` со скобками тегов).
+   - `rag_sources`: JSONB NULL (массив `[{doc_id, title, url, snippet, tags, question_score, bm25_score, is_accepted}]`; `question_score` — голоса SO, `bm25_score` — релевантность).
    - `token_usage`: JSONB NULL (`{prompt_tokens, completion_tokens, total_tokens}`).
    - Ограничения: `FOREIGN KEY (chat_id) REFERENCES chats(id) ON DELETE CASCADE`.
    - Индексы: `idx_messages_chat_created` (`(chat_id, created_at ASC)`).
@@ -279,10 +289,12 @@ erDiagram
 
 ### 3.3. Объектное хранилище аватарок (Garage / S3)
 
-Для хранения загружаемых аватарок пользователей используется совместимое с Amazon S3 объектное хранилище **Garage**:
-- **Бакет:** `errorium-avatars` (публичный доступ на чтение по CDN/HTTP URL).
-- **Путь к объекту:** `avatars/{user_id}/{hash}.webp` (изображения пережимаются в формат WebP на стороне Gateway).
-- **Ссылка в БД:** В поле `users.avatar_url` сохраняется постоянный HTTP-адрес объекта (например, `https://errorium.ru/storage/avatars/{user_id}/{hash}.webp` или `http://localhost:3900/...`).
+Для хранения загружаемых аватарок пользователей используется совместимое с Amazon S3 объектное хранилище **Garage** (решение ADR-010 заменяет прежнюю схему «публичный WebP-URL»):
+- **Бакет:** `errorium-avatars` (приватный; публичный доступ к бакету не открывается).
+- **Путь к объекту:** `avatars/{user_id}` — один объект на пользователя, перезапись при каждой загрузке; Content-Type сохраняется в метаданных объекта.
+- **Формат:** оригинал PNG/JPEG/WebP/GIF ≤ 5 МиБ, тип определяется сниффингом содержимого. Конвертация в WebP на стороне Gateway **не выполняется** (в Go нет stdlib-энкодера WebP, cgo-библиотеки неоправданно тяжёлые).
+- **Выдача:** публичный прокси-эндпоинт `GET /api/v1/users/{id}/avatar` — Gateway стримит объект из S3 с его Content-Type, `Cache-Control` и `ETag`. Причина: тег `<img>` во фронтенде не может передать Bearer-токен.
+- **Ссылка в БД:** в поле `users.avatar_url` сохраняется относительный прокси-путь `/api/v1/users/{id}/avatar` (nginx фронтенда проксирует `/api/` на gateway).
 
 ### 3.4. Политика авторизации для MCP (Model Context Protocol)
 
@@ -294,6 +306,7 @@ erDiagram
 Миграции схемы БД встроены непосредственно в исполняемый файл Gateway с помощью механизма Go **`embed.FS`** (`services/gateway/migrations/migrations.go`).
 - **Автоматический накат при старте:** При запуске Gateway считывает `AUTO_MIGRATE=true` (по умолчанию включено), подключается к PostgreSQL и атомарно накатывает ожидающие `.up.sql` миграции через драйвер `golang-migrate/v4/source/iofs`.
 - **Изоляция инфраструктуры:** Контейнер `postgres` в `docker-compose` остается полностью чистым от скриптов инициализации (устранен антипаттерн разового монтирования в `/docker-entrypoint-initdb.d/`), а версионирование схемы (`schema_migrations`) ведется стандартными средствами мигратора.
+- **Миграция `000002_profile_and_message_content`** (итерация «Ядро + стабы», ADR-010): добавляет `users.profession`, `users.gender`, `users.language` и `chat_messages.content`, `chat_messages.code`. Таблицы `mcp_tokens` / `password_reset_tokens` намеренно НЕ добавляются: политика MCP не урегулирована (§3.4), сброс пароля — planned; схемы будут добавлены вместе с реализацией.
 
 ---
 
