@@ -6,9 +6,11 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/soskiiit/errorium/services/gateway/internal/graph"
 	"github.com/soskiiit/errorium/services/gateway/internal/handler"
 	"github.com/soskiiit/errorium/services/gateway/internal/middleware"
 	"github.com/soskiiit/errorium/services/gateway/internal/repository"
+	"github.com/soskiiit/errorium/services/gateway/internal/search"
 	"github.com/soskiiit/errorium/services/gateway/pkg/config"
 	"github.com/soskiiit/errorium/services/gateway/pkg/db"
 	jwtpkg "github.com/soskiiit/errorium/services/gateway/pkg/jwt"
@@ -26,8 +28,16 @@ func New(cfg *config.Config) *App {
 	healthHandler := handler.NewHealthHandler()
 	healthHandler.RegisterRoutes(mux)
 
-	searchHandler := handler.NewSearchHandler()
+	searchStub := search.NewStub()
+	graphStub := graph.NewStub()
+	searchHandler := handler.NewSearchHandler(searchStub, graphStub)
 	searchHandler.RegisterRoutes(mux)
+
+	tagsHandler := handler.NewTagsHandler()
+	tagsHandler.RegisterRoutes(mux)
+
+	statusHandler := handler.NewStatusHandler(cfg.SearchEngineAddr)
+	statusHandler.RegisterRoutes(mux)
 
 	var database *db.DB
 	if cfg.DB.Host != "" {

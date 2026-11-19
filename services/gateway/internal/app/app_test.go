@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -62,6 +63,36 @@ func TestApp_NoDB_Health200_Chats404(t *testing.T) {
 
 		if rec.Code != http.StatusNotFound {
 			t.Errorf("expected %s %s to return 404 when DB is unconfigured, got %d", up.method, up.path, rec.Code)
+		}
+	}
+
+	// 3. Public routes must be accessible even when DB is unconfigured
+	publicRoutes := []struct {
+		method string
+		path   string
+		body   string
+	}{
+		{http.MethodGet, "/api/v1/tags", ""},
+		{http.MethodGet, "/api/v1/status", ""},
+		{http.MethodPost, "/api/v1/search", `{"query":"syntax"}`},
+		{http.MethodPost, "/api/v1/search/rag", `{"query":"syntax"}`},
+		{http.MethodGet, "/api/v1/graph/threads?doc_ids=27539308", ""},
+		{http.MethodGet, "/api/v1/graph/threads/27539308", ""},
+	}
+
+	for _, pr := range publicRoutes {
+		var req *http.Request
+		if pr.body != "" {
+			req = httptest.NewRequest(pr.method, pr.path, strings.NewReader(pr.body))
+			req.Header.Set("Content-Type", "application/json")
+		} else {
+			req = httptest.NewRequest(pr.method, pr.path, nil)
+		}
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, req)
+
+		if rec.Code != http.StatusOK {
+			t.Errorf("expected public route %s %s to return 200 without DB, got %d, body: %s", pr.method, pr.path, rec.Code, rec.Body.String())
 		}
 	}
 }
