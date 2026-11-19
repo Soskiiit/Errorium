@@ -18,6 +18,7 @@ type UserStore interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*domain.User, error)
 	GetByEmail(ctx context.Context, email string) (*domain.User, error)
 	UpdateProfile(ctx context.Context, u *domain.User) error
+	UpdatePasswordHash(ctx context.Context, id uuid.UUID, hash string) error
 	UpdateLastLogin(ctx context.Context, id uuid.UUID, t time.Time) error
 }
 

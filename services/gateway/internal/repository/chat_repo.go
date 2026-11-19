@@ -128,11 +128,12 @@ func (r *ChatRepository) Delete(ctx context.Context, id uuid.UUID) error {
 func (r *ChatRepository) AddMessage(ctx context.Context, m *domain.ChatMessage) error {
 	const q = `
 		INSERT INTO chat_messages
-			(id, chat_id, sender_role, message_type, error_context, rag_sources, token_usage, created_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+			(id, chat_id, sender_role, message_type, content, code, error_context, rag_sources, token_usage, created_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
 
 	_, err := r.db.ExecContext(ctx, q,
 		m.ID, m.ChatID, string(m.SenderRole), string(m.MessageType),
+		m.Content, m.Code,
 		m.ErrorContext, m.RAGSources, m.TokenUsage, m.CreatedAt,
 	)
 	if err != nil {
@@ -144,7 +145,7 @@ func (r *ChatRepository) AddMessage(ctx context.Context, m *domain.ChatMessage) 
 // GetMessages returns all messages for the given chat ordered by creation time ascending.
 func (r *ChatRepository) GetMessages(ctx context.Context, chatID uuid.UUID) ([]*domain.ChatMessage, error) {
 	const q = `
-		SELECT id, chat_id, sender_role, message_type, error_context, rag_sources, token_usage, created_at
+		SELECT id, chat_id, sender_role, message_type, content, code, error_context, rag_sources, token_usage, created_at
 		FROM chat_messages
 		WHERE chat_id = $1
 		ORDER BY created_at ASC`
@@ -161,6 +162,7 @@ func (r *ChatRepository) GetMessages(ctx context.Context, chatID uuid.UUID) ([]*
 		var senderRole, messageType string
 		if err := rows.Scan(
 			&m.ID, &m.ChatID, &senderRole, &messageType,
+			&m.Content, &m.Code,
 			&m.ErrorContext, &m.RAGSources, &m.TokenUsage, &m.CreatedAt,
 		); err != nil {
 			return nil, fmt.Errorf("chat_repo.GetMessages scan: %w", err)
