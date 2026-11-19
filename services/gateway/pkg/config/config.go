@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"strconv"
 )
 
 type DBConfig struct {
@@ -30,12 +31,20 @@ type S3Config struct {
 
 type MinIOConfig = S3Config
 
+type JWTConfig struct {
+	SecretKey              string
+	AccessTokenExpireMin   int
+	RefreshTokenExpireDays int
+}
+
 type Config struct {
-	Port        string
-	DB          DBConfig
-	S3          S3Config
-	MinIO       S3Config
-	AutoMigrate bool
+	Port             string
+	SearchEngineAddr string
+	DB               DBConfig
+	S3               S3Config
+	MinIO            S3Config
+	JWT              JWTConfig
+	AutoMigrate      bool
 }
 
 func getEnv(key, defaultVal string) string {
@@ -55,9 +64,32 @@ func Load() *Config {
 		UseSSL:     getEnv("S3_USE_SSL", getEnv("GARAGE_USE_SSL", getEnv("MINIO_USE_SSL", "false"))) == "true",
 	}
 
+	accessExpMin := 60
+	if v := getEnv("ACCESS_TOKEN_EXPIRE_MINUTES", ""); v != "" {
+		if n, err := strconv.Atoi(v); err == nil {
+			accessExpMin = n
+		}
+	}
+	refreshExpDays := 30
+	if v := getEnv("REFRESH_TOKEN_EXPIRE_DAYS", ""); v != "" {
+		if n, err := strconv.Atoi(v); err == nil {
+			refreshExpDays = n
+		}
+	}
+
+	searchHost := getEnv("SEARCH_ENGINE_HOST", "search_engine_core")
+	searchPort := getEnv("SEARCH_ENGINE_PORT", "50051")
+	searchEngineAddr := getEnv("SEARCH_ENGINE_ADDR", searchHost+":"+searchPort)
+
 	return &Config{
-		Port:        getEnv("GATEWAY_PORT", "8000"),
-		AutoMigrate: getEnv("AUTO_MIGRATE", "true") == "true",
+		Port:             getEnv("GATEWAY_PORT", "8000"),
+		SearchEngineAddr: searchEngineAddr,
+		AutoMigrate:      getEnv("AUTO_MIGRATE", "true") == "true",
+		JWT: JWTConfig{
+			SecretKey:              getEnv("JWT_SECRET_KEY", "change-this-in-production"),
+			AccessTokenExpireMin:   accessExpMin,
+			RefreshTokenExpireDays: refreshExpDays,
+		},
 		DB: DBConfig{
 			Host:     getEnv("DB_HOST", "localhost"),
 			Port:     getEnv("DB_PORT", "5432"),
