@@ -14,6 +14,7 @@ import (
 	"github.com/soskiiit/errorium/services/gateway/pkg/config"
 	"github.com/soskiiit/errorium/services/gateway/pkg/db"
 	jwtpkg "github.com/soskiiit/errorium/services/gateway/pkg/jwt"
+	"github.com/soskiiit/errorium/services/gateway/pkg/storage"
 )
 
 type App struct {
@@ -60,7 +61,20 @@ func New(cfg *config.Config) *App {
 			chatHandler := handler.NewChatHandler(chatRepo, tagRepo, searchStub)
 			chatHandler.RegisterRoutes(mux, authMW)
 
-			userHandler := handler.NewUserHandler(userRepo)
+			var avatarStore storage.AvatarStore
+			if cfg.S3.Endpoint != "" {
+				s3Store, err := storage.NewS3Storage(cfg.S3)
+				if err != nil {
+					log.Printf("Failed to initialize S3 storage: %v", err)
+					avatarStore = storage.NewMemoryStore()
+				} else {
+					avatarStore = s3Store
+				}
+			} else {
+				avatarStore = storage.NewMemoryStore()
+			}
+
+			userHandler := handler.NewUserHandler(userRepo, avatarStore)
 			userHandler.RegisterRoutes(mux, authMW)
 		}
 	}

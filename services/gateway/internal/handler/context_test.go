@@ -15,6 +15,7 @@ import (
 	"github.com/soskiiit/errorium/services/gateway/internal/search"
 	"github.com/soskiiit/errorium/services/gateway/pkg/config"
 	jwtpkg "github.com/soskiiit/errorium/services/gateway/pkg/jwt"
+	"github.com/soskiiit/errorium/services/gateway/pkg/storage"
 )
 
 type fakeChatStore struct {
@@ -95,6 +96,13 @@ func (f *fakeUserStore) GetByID(ctx context.Context, id uuid.UUID) (*domain.User
 		CreatedAt: time.Now().UTC(),
 		UpdatedAt: time.Now().UTC(),
 	}, nil
+}
+
+func (f *fakeUserStore) GetByEmail(ctx context.Context, email string) (*domain.User, error) {
+	if f.user != nil && f.user.Email == email {
+		return f.user, nil
+	}
+	return nil, nil
 }
 
 func (f *fakeUserStore) UpdateProfile(ctx context.Context, u *domain.User) error {
@@ -200,7 +208,7 @@ func TestAuthContext_UserHandler(t *testing.T) {
 	}
 
 	fakeUsers := &fakeUserStore{user: expectedUser}
-	userHandler := handler.NewUserHandler(fakeUsers)
+	userHandler := handler.NewUserHandler(fakeUsers, storage.NewMemoryStore())
 
 	mux := http.NewServeMux()
 	userHandler.RegisterRoutes(mux, authMW)
