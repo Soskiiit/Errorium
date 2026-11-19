@@ -44,7 +44,7 @@ func New(cfg *config.Config) *App {
 			jwtMgr := jwtpkg.NewManager(cfg.JWT)
 			authMW := middleware.Auth(jwtMgr)
 
-			authHandler := handler.NewAuthHandler(userRepo, sessionRepo, jwtMgr)
+			authHandler := handler.NewAuthHandler(userRepo, sessionRepo, jwtMgr, cfg.JWT.RefreshTokenExpireDays)
 			authHandler.RegisterRoutes(mux)
 
 			chatHandler := handler.NewChatHandler(chatRepo, tagRepo)

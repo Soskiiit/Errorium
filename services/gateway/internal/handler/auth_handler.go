@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"regexp"
 	"strings"
@@ -16,11 +17,26 @@ import (
 
 var emailRE = regexp.MustCompile(`^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`)
 
+// LoginRequest defines credentials for logging in.
+type LoginRequest struct {
+	Email      string `json:"email"`
+	Password   string `json:"password"`
+	RememberMe bool   `json:"remember_me"`
+}
+
+// RegisterRequest defines the payload for user registration.
+type RegisterRequest struct {
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
 // AuthHandler implements the Auth API endpoints.
 type AuthHandler struct {
-	users    repository.UserStore
-	sessions repository.SessionStore
-	jwt      *jwtpkg.Manager
+	users          repository.UserStore
+	sessions       repository.SessionStore
+	jwt            *jwtpkg.Manager
+	refreshExpDays int
 }
 
 // NewAuthHandler constructs an AuthHandler.
@@ -28,8 +44,14 @@ func NewAuthHandler(
 	users repository.UserStore,
 	sessions repository.SessionStore,
 	jwt *jwtpkg.Manager,
+	refreshExpDays int,
 ) *AuthHandler {
-	return &AuthHandler{users: users, sessions: sessions, jwt: jwt}
+	return &AuthHandler{
+		users:          users,
+		sessions:       sessions,
+		jwt:            jwt,
+		refreshExpDays: refreshExpDays,
+	}
 }
 
 // RegisterRoutes wires all /api/v1/auth/... routes into mux.
@@ -61,7 +83,7 @@ type tokenPair struct {
 	User         *domain.User `json:"user"`
 }
 
-func (h *AuthHandler) issueTokenPair(w http.ResponseWriter, r *http.Request, user *domain.User, status int) {
+func (h *AuthHandler) issueTokenPair(w http.ResponseWriter, r *http.Request, user *domain.User, status int, rememberMe bool) {
 	access, err := h.jwt.GenerateAccess(user)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to generate access token")
@@ -73,13 +95,22 @@ func (h *AuthHandler) issueTokenPair(w http.ResponseWriter, r *http.Request, use
 		return
 	}
 
+	ttl := 24 * time.Hour
+	if rememberMe {
+		days := h.refreshExpDays
+		if days <= 0 {
+			days = 30
+		}
+		ttl = time.Duration(days) * 24 * time.Hour
+	}
+
 	ua := r.UserAgent()
 	sess := &domain.UserSession{
 		ID:               uuid.New(),
 		UserID:           user.ID,
 		RefreshTokenHash: h.jwt.RefreshTokenHash(refresh),
 		IsRevoked:        false,
-		ExpiresAt:        time.Now().Add(30 * 24 * time.Hour),
+		ExpiresAt:        time.Now().Add(ttl),
 		CreatedAt:        time.Now(),
 		LastUsedAt:       time.Now(),
 	}
@@ -101,11 +132,7 @@ func (h *AuthHandler) issueTokenPair(w http.ResponseWriter, r *http.Request, use
 // ── POST /api/v1/auth/register ────────────────────────────────────────────────
 
 func (h *AuthHandler) register(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		Username string `json:"username"`
-		Email    string `json:"email"`
-		Password string `json:"password"`
-	}
+	var req RegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid JSON body")
 		return
@@ -114,7 +141,15 @@ func (h *AuthHandler) register(w http.ResponseWriter, r *http.Request) {
 	req.Email = strings.TrimSpace(strings.ToLower(req.Email))
 	req.Username = strings.TrimSpace(req.Username)
 
-	if !emailRE.MatchString(req.Email) {
+	if req.Username == "" {
+		writeError(w, http.StatusBadRequest, "username is required")
+		return
+	}
+	if len(req.Username) > 100 {
+		writeError(w, http.StatusBadRequest, "username must not exceed 100 characters")
+		return
+	}
+	if !emailRE.MatchString(req.Email) || len(req.Email) > 255 {
 		writeError(w, http.StatusBadRequest, "invalid email format")
 		return
 	}
@@ -122,8 +157,8 @@ func (h *AuthHandler) register(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "password must be at least 8 characters")
 		return
 	}
-	if req.Username == "" {
-		writeError(w, http.StatusBadRequest, "username is required")
+	if len(req.Password) > 128 {
+		writeError(w, http.StatusBadRequest, "password must not exceed 128 characters")
 		return
 	}
 
@@ -140,6 +175,9 @@ func (h *AuthHandler) register(w http.ResponseWriter, r *http.Request) {
 		Username:     req.Username,
 		PasswordHash: &hash,
 		Role:         domain.RoleUser,
+		Profession:   "Backend developer",
+		Gender:       "Not specified",
+		Language:     "English",
 		IsActive:     true,
 		CreatedAt:    now,
 		UpdatedAt:    now,
@@ -153,16 +191,13 @@ func (h *AuthHandler) register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.issueTokenPair(w, r, user, http.StatusCreated)
+	h.issueTokenPair(w, r, user, http.StatusCreated, false)
 }
 
 // ── POST /api/v1/auth/login ───────────────────────────────────────────────────
 
 func (h *AuthHandler) login(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
-	}
+	var req LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid JSON body")
 		return
@@ -172,6 +207,7 @@ func (h *AuthHandler) login(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.users.GetByEmail(r.Context(), req.Email)
 	if err != nil || user == nil {
+		dummyPasswordCheck(req.Password)
 		writeError(w, http.StatusUnauthorized, "invalid credentials")
 		return
 	}
@@ -184,11 +220,21 @@ func (h *AuthHandler) login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if needsRehash(*user.PasswordHash) {
+		newHash, err := hashPassword(req.Password)
+		if err == nil {
+			if err := h.users.UpdatePasswordHash(r.Context(), user.ID, newHash); err != nil {
+				log.Printf("failed to update rehashed password: %v", err)
+			}
+			user.PasswordHash = &newHash
+		}
+	}
+
 	now := time.Now()
 	_ = h.users.UpdateLastLogin(r.Context(), user.ID, now)
 	user.LastLoginAt = &now
 
-	h.issueTokenPair(w, r, user, http.StatusOK)
+	h.issueTokenPair(w, r, user, http.StatusOK, req.RememberMe)
 }
 
 // ── POST /api/v1/auth/refresh ─────────────────────────────────────────────────
@@ -228,8 +274,19 @@ func (h *AuthHandler) refresh(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusUnauthorized, "user not found")
 		return
 	}
+	if !user.IsActive {
+		writeError(w, http.StatusForbidden, "account is disabled")
+		return
+	}
 
-	h.issueTokenPair(w, r, user, http.StatusOK)
+	rememberMe := false
+	if !sess.CreatedAt.IsZero() {
+		rememberMe = sess.ExpiresAt.Sub(sess.CreatedAt) > 25*time.Hour
+	} else if sess.ExpiresAt.Sub(time.Now()) > 25*time.Hour {
+		rememberMe = true
+	}
+
+	h.issueTokenPair(w, r, user, http.StatusOK, rememberMe)
 }
 
 // ── POST /api/v1/auth/logout ──────────────────────────────────────────────────
