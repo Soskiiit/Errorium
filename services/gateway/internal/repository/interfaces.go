@@ -29,3 +29,22 @@ type SessionStore interface {
 	RevokeByTokenHash(ctx context.Context, hash string) error
 	CleanupExpired(ctx context.Context) error
 }
+
+// ChatStore abstracts persistence for Chat and ChatMessage entities.
+type ChatStore interface {
+	Create(ctx context.Context, c *domain.Chat) error
+	ListByUser(ctx context.Context, userID uuid.UUID, limit, offset int, search string) ([]*domain.Chat, int, error)
+	GetByID(ctx context.Context, id uuid.UUID) (*domain.Chat, error)
+	GetByIDForUser(ctx context.Context, id, userID uuid.UUID) (*domain.Chat, error)
+	Update(ctx context.Context, c *domain.Chat) error
+	Delete(ctx context.Context, id uuid.UUID) error
+	AddMessage(ctx context.Context, msg *domain.ChatMessage) error
+	GetMessages(ctx context.Context, chatID uuid.UUID) ([]*domain.ChatMessage, error)
+}
+
+// TagStore abstracts persistence for Tag entities.
+type TagStore interface {
+	GetOrCreate(ctx context.Context, name string) (*domain.Tag, error)
+	AttachToMessage(ctx context.Context, chatMessageID uuid.UUID, tagNames []string) error
+	GetByMessage(ctx context.Context, chatMessageID uuid.UUID) ([]*domain.Tag, error)
+}

@@ -187,6 +187,11 @@ func NewStub() *Stub {
 	}
 }
 
+// NewStubClient creates a new SearchClient backed by Stub with default fixtures.
+func NewStubClient() SearchClient {
+	return NewStub()
+}
+
 // Tokenize splits a query into lowercase alphanumeric words.
 func Tokenize(s string) []string {
 	var tokens []string

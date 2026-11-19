@@ -57,7 +57,7 @@ func New(cfg *config.Config) *App {
 			authHandler := handler.NewAuthHandler(userRepo, sessionRepo, jwtMgr, cfg.JWT.RefreshTokenExpireDays)
 			authHandler.RegisterRoutes(mux)
 
-			chatHandler := handler.NewChatHandler(chatRepo, tagRepo)
+			chatHandler := handler.NewChatHandler(chatRepo, tagRepo, searchStub)
 			chatHandler.RegisterRoutes(mux, authMW)
 
 			userHandler := handler.NewUserHandler(userRepo)

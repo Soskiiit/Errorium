@@ -12,6 +12,7 @@ import (
 	"github.com/soskiiit/errorium/services/gateway/domain"
 	"github.com/soskiiit/errorium/services/gateway/internal/handler"
 	"github.com/soskiiit/errorium/services/gateway/internal/middleware"
+	"github.com/soskiiit/errorium/services/gateway/internal/search"
 	"github.com/soskiiit/errorium/services/gateway/pkg/config"
 	jwtpkg "github.com/soskiiit/errorium/services/gateway/pkg/jwt"
 )
@@ -40,6 +41,10 @@ func (f *fakeChatStore) ListByUser(ctx context.Context, userID uuid.UUID, limit,
 
 func (f *fakeChatStore) GetByID(ctx context.Context, id uuid.UUID) (*domain.Chat, error) {
 	return &domain.Chat{ID: id, UserID: f.lastUserID, Title: "Test Chat"}, nil
+}
+
+func (f *fakeChatStore) GetByIDForUser(ctx context.Context, id, userID uuid.UUID) (*domain.Chat, error) {
+	return &domain.Chat{ID: id, UserID: userID, Title: "Test Chat"}, nil
 }
 
 func (f *fakeChatStore) Update(ctx context.Context, c *domain.Chat) error {
@@ -113,7 +118,7 @@ func TestAuthContext_ChatHandler(t *testing.T) {
 
 	fakeChats := &fakeChatStore{}
 	fakeTags := &fakeTagStore{}
-	chatHandler := handler.NewChatHandler(fakeChats, fakeTags)
+	chatHandler := handler.NewChatHandler(fakeChats, fakeTags, search.NewStub())
 
 	mux := http.NewServeMux()
 	chatHandler.RegisterRoutes(mux, authMW)

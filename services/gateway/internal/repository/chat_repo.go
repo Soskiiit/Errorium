@@ -99,6 +99,24 @@ func (r *ChatRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.Cha
 	return c, nil
 }
 
+// GetByIDForUser fetches a single chat by its primary key and user ID.
+// If the chat does not exist or does not belong to the user, an error (wrapping sql.ErrNoRows) is returned.
+func (r *ChatRepository) GetByIDForUser(ctx context.Context, id, userID uuid.UUID) (*domain.Chat, error) {
+	const q = `
+		SELECT id, user_id, title, is_pinned, created_at, updated_at
+		FROM chats
+		WHERE id = $1 AND user_id = $2`
+
+	c := &domain.Chat{}
+	err := r.db.QueryRowContext(ctx, q, id, userID).Scan(
+		&c.ID, &c.UserID, &c.Title, &c.IsPinned, &c.CreatedAt, &c.UpdatedAt,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("chat_repo.GetByIDForUser: %w", err)
+	}
+	return c, nil
+}
+
 // Update modifies title, is_pinned, and updated_at of an existing chat.
 func (r *ChatRepository) Update(ctx context.Context, c *domain.Chat) error {
 	const q = `
