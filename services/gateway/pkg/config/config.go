@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"strconv"
 )
 
 type DBConfig struct {
@@ -20,22 +21,33 @@ func (c DBConfig) DSN() string {
 }
 
 type S3Config struct {
-	Endpoint   string
-	AccessKey  string
-	SecretKey  string
-	BucketName string
-	Region     string
-	UseSSL     bool
+	Endpoint        string
+	AccessKey       string
+	SecretKey       string
+	BucketName      string
+	Region          string
+	UseSSL          bool
+	AccessKeyID     string
+	SecretAccessKey string
+	Bucket          string
 }
 
 type MinIOConfig = S3Config
 
+type JWTConfig struct {
+	SecretKey              string
+	AccessTokenExpireMin   int
+	RefreshTokenExpireDays int
+}
+
 type Config struct {
-	Port        string
-	DB          DBConfig
-	S3          S3Config
-	MinIO       S3Config
-	AutoMigrate bool
+	Port             string
+	SearchEngineAddr string
+	DB               DBConfig
+	S3               S3Config
+	MinIO            S3Config
+	JWT              JWTConfig
+	AutoMigrate      bool
 }
 
 func getEnv(key, defaultVal string) string {
@@ -46,18 +58,48 @@ func getEnv(key, defaultVal string) string {
 }
 
 func Load() *Config {
+	accessKey := getEnv("S3_ACCESS_KEY", getEnv("GARAGE_ACCESS_KEY", getEnv("MINIO_ACCESS_KEY", "garageadmin")))
+	secretKey := getEnv("S3_SECRET_KEY", getEnv("GARAGE_SECRET_KEY", getEnv("MINIO_SECRET_KEY", "garageadminpassword")))
+	bucket := getEnv("S3_BUCKET_NAME", getEnv("GARAGE_BUCKET_NAME", getEnv("MINIO_BUCKET_NAME", "errorium-avatars")))
+
 	s3Cfg := S3Config{
-		Endpoint:   getEnv("S3_ENDPOINT", getEnv("GARAGE_ENDPOINT", getEnv("MINIO_ENDPOINT", "localhost:3900"))),
-		AccessKey:  getEnv("S3_ACCESS_KEY", getEnv("GARAGE_ACCESS_KEY", getEnv("MINIO_ACCESS_KEY", "garageadmin"))),
-		SecretKey:  getEnv("S3_SECRET_KEY", getEnv("GARAGE_SECRET_KEY", getEnv("MINIO_SECRET_KEY", "garageadminpassword"))),
-		BucketName: getEnv("S3_BUCKET_NAME", getEnv("GARAGE_BUCKET_NAME", getEnv("MINIO_BUCKET_NAME", "errorium-avatars"))),
-		Region:     getEnv("S3_REGION", getEnv("GARAGE_REGION", "garage")),
-		UseSSL:     getEnv("S3_USE_SSL", getEnv("GARAGE_USE_SSL", getEnv("MINIO_USE_SSL", "false"))) == "true",
+		Endpoint:        getEnv("S3_ENDPOINT", getEnv("GARAGE_ENDPOINT", getEnv("MINIO_ENDPOINT", "localhost:3900"))),
+		AccessKey:       accessKey,
+		SecretKey:       secretKey,
+		BucketName:      bucket,
+		Region:          getEnv("S3_REGION", getEnv("GARAGE_REGION", "garage")),
+		UseSSL:          getEnv("S3_USE_SSL", getEnv("GARAGE_USE_SSL", getEnv("MINIO_USE_SSL", "false"))) == "true",
+		AccessKeyID:     accessKey,
+		SecretAccessKey: secretKey,
+		Bucket:          bucket,
 	}
 
+	accessExpMin := 60
+	if v := getEnv("ACCESS_TOKEN_EXPIRE_MINUTES", ""); v != "" {
+		if n, err := strconv.Atoi(v); err == nil {
+			accessExpMin = n
+		}
+	}
+	refreshExpDays := 30
+	if v := getEnv("REFRESH_TOKEN_EXPIRE_DAYS", ""); v != "" {
+		if n, err := strconv.Atoi(v); err == nil {
+			refreshExpDays = n
+		}
+	}
+
+	searchHost := getEnv("SEARCH_ENGINE_HOST", "search_engine_core")
+	searchPort := getEnv("SEARCH_ENGINE_PORT", "50051")
+	searchEngineAddr := getEnv("SEARCH_ENGINE_ADDR", searchHost+":"+searchPort)
+
 	return &Config{
-		Port:        getEnv("GATEWAY_PORT", "8000"),
-		AutoMigrate: getEnv("AUTO_MIGRATE", "true") == "true",
+		Port:             getEnv("GATEWAY_PORT", "8000"),
+		SearchEngineAddr: searchEngineAddr,
+		AutoMigrate:      getEnv("AUTO_MIGRATE", "true") == "true",
+		JWT: JWTConfig{
+			SecretKey:              getEnv("JWT_SECRET_KEY", "change-this-in-production"),
+			AccessTokenExpireMin:   accessExpMin,
+			RefreshTokenExpireDays: refreshExpDays,
+		},
 		DB: DBConfig{
 			Host:     getEnv("DB_HOST", "localhost"),
 			Port:     getEnv("DB_PORT", "5432"),

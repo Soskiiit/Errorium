@@ -60,6 +60,8 @@ type ChatMessage struct {
 	ChatID       uuid.UUID        `json:"chat_id" db:"chat_id"`
 	SenderRole   SenderRole       `json:"sender_role" db:"sender_role"`
 	MessageType  MessageType      `json:"message_type" db:"message_type"`
+	Content      *string          `json:"content" db:"content"`
+	Code         *string          `json:"code" db:"code"`
 	ErrorContext *json.RawMessage `json:"error_context,omitempty" db:"error_context"`
 	RAGSources   *json.RawMessage `json:"rag_sources,omitempty" db:"rag_sources"`
 	TokenUsage   *json.RawMessage `json:"token_usage,omitempty" db:"token_usage"`

@@ -1,0 +1,1307 @@
+openapi: 3.0.3
+info:
+  title: Errorium Gateway API
+  version: 1.0.0
+  description: |
+    REST-контракт шлюза Errorium (Роль 3), составленный по фактическому поведению
+    Web Frontend (`services/frontend/static/app.js`, `index.html`) и спецификациям
+    `docs/Tech/04-api-and-access.md`, `docs/Product/03-requirements.md`.
+
+    **Статусы операций (`x-status`):**
+    - `core` — реализуется в текущем пакете задач (итерация «Ядро + стабы»).
+      Поиск и граф возвращают детерминированные стаб-данные до готовности
+      `search_engine_core` (gRPC); граница стаба — интерфейс клиента, замена
+      на gRPC не должна менять этот контракт.
+    - `planned` — контракт зафиксирован для фронтенда и будущих итераций,
+      в текущий пакет задач НЕ входит (SSO, сброс пароля, MCP-токены, SSE, admin).
+
+    **Общие правила:**
+    - Все ошибки — JSON `{"error": "<сообщение>"}` с соответствующим HTTP-статусом.
+    - Аутентификация — `Authorization: Bearer <access_token>` (JWT HS256).
+    - Публичные эндпоинты: health, docs, auth (register/login/refresh), search,
+      graph, tags, status, GET аватара. Остальные требуют Bearer.
+    - Чужие ресурсы не раскрываются: доступ к чату не-владельца → `404`.
+    - Даты — RFC 3339 (`2026-11-19T12:00:00Z`), идентификаторы — UUID.
+    - Роль `role` (`user|admin`) — RBAC, клиенту недоступна для изменения.
+      «Роль» в профиле UI (Backend developer и т.п.) — поле `profession`.
+servers:
+  - url: http://localhost:8000
+    description: Локальный dev-стек
+  - url: https://errorium.ru
+    description: Прод (nginx фронтенда проксирует /api/ на gateway)
+
+tags:
+  - name: auth
+    description: Регистрация, вход, JWT-сессии
+  - name: users
+    description: Профиль и аватар
+  - name: chats
+    description: Диалоги и сообщения (Recent chats, RAG-карточки)
+  - name: search
+    description: BM25-поиск и RAG-синтез (стабы до готовности ядра)
+  - name: graph
+    description: Star Map — граф связанных SO-тредов (стаб до GraphService)
+  - name: tags
+    description: Каталог тегов для поповера фронтенда
+  - name: status
+    description: Статус сервисов для модалки настроек
+  - name: docs
+    description: Swagger UI и сама спецификация
+  - name: mcp
+    description: Remote MCP и персональные токены (planned)
+  - name: admin
+    description: Панель администратора (planned)
+
+paths:
+  /health:
+    get:
+      tags: [docs]
+      operationId: health
+      x-status: core
+      summary: Liveness-проба шлюза
+      security: []
+      responses:
+        '200':
+          description: Шлюз жив
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: ok }
+
+  /docs:
+    get:
+      tags: [docs]
+      operationId: swaggerUI
+      x-status: core
+      summary: Swagger UI (HTML-страница, читает /openapi.yaml)
+      security: []
+      responses:
+        '200':
+          description: HTML-страница Swagger UI
+          content:
+            text/html:
+              schema: { type: string }
+
+  /openapi.yaml:
+    get:
+      tags: [docs]
+      operationId: openapiSpec
+      x-status: core
+      summary: Эта спецификация (встроена в бинарь через go:embed)
+      security: []
+      responses:
+        '200':
+          description: OpenAPI 3.0.3 YAML
+          content:
+            application/yaml:
+              schema: { type: string }
+
+  /api/v1/auth/register:
+    post:
+      tags: [auth]
+      operationId: register
+      x-status: core
+      summary: Регистрация по email и паролю
+      description: |
+        Форма регистрации фронтенда: username, email, password, confirm, terms.
+        Confirm и terms проверяются на фронтенде; бэкенд валидирует username,
+        email и длину пароля (>= 8). Пароль хэшируется bcrypt (cost 12).
+        Сразу выдаёт пару токенов и создаёт сессию.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RegisterRequest' }
+      responses:
+        '201':
+          description: Пользователь создан, токены выданы
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TokenPair' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '409':
+          description: Email уже зарегистрирован
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /api/v1/auth/login:
+    post:
+      tags: [auth]
+      operationId: login
+      x-status: core
+      summary: Вход по email и паролю
+      description: |
+        `remember_me=true` (чекбокс «Запомнить меня») — refresh-сессия на
+        `REFRESH_TOKEN_EXPIRE_DAYS` (30 дней); `false` — 24 часа.
+        Legacy-хэши паролей (salt:sha256) принимаются и прозрачно
+        перехэшируются в bcrypt при успешном входе.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginRequest' }
+      responses:
+        '200':
+          description: Токены выданы
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TokenPair' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401':
+          description: Неверный email или пароль
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '403':
+          description: Аккаунт заблокирован (is_active=false)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /api/v1/auth/refresh:
+    post:
+      tags: [auth]
+      operationId: refresh
+      x-status: core
+      summary: Ротация refresh-токена
+      description: Старая сессия отзывается, выдаётся новая пара токенов.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refresh_token]
+              properties:
+                refresh_token: { type: string }
+      responses:
+        '200':
+          description: Новая пара токенов
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TokenPair' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401':
+          description: Токен не найден, отозван или истёк
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /api/v1/auth/logout:
+    post:
+      tags: [auth]
+      operationId: logout
+      x-status: core
+      summary: Отзыв текущей сессии
+      description: Требует Bearer. Если передан refresh_token — отзывается и он.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh_token: { type: string }
+      responses:
+        '204': { description: Сессия отозвана }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/v1/auth/me:
+    get:
+      tags: [auth]
+      operationId: authMe
+      x-status: core
+      summary: Профиль текущего пользователя по Bearer-токену
+      responses:
+        '200':
+          description: Пользователь
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/v1/auth/sso/login/{provider}:
+    get:
+      tags: [auth]
+      operationId: ssoLogin
+      x-status: planned
+      summary: Инициация OAuth2/OIDC входа (редирект на провайдера)
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/SsoProvider'
+      responses:
+        '302': { description: Редирект на страницу авторизации провайдера }
+        '400':
+          description: Неизвестный провайдер
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /api/v1/auth/sso/callback/{provider}:
+    get:
+      tags: [auth]
+      operationId: ssoCallback
+      x-status: planned
+      summary: Callback провайдера, выпуск пары JWT
+      description: |
+        После обмена code на токены провайдера — редирект на
+        `{FRONTEND_URL}/auth/callback#access_token=...&refresh_token=...`
+        (фрагмент, не query: токены не попадают в логи сервера).
+        Новый пользователь создаётся автоматически (password_hash=NULL).
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/SsoProvider'
+        - name: code
+          in: query
+          required: true
+          schema: { type: string }
+        - name: state
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        '302': { description: Редирект на фронтенд с токенами во фрагменте }
+        '401':
+          description: Обмен кода не удался / state не совпал
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /api/v1/auth/password/forgot:
+    post:
+      tags: [auth]
+      operationId: passwordForgot
+      x-status: planned
+      summary: Запрос письма для сброса пароля
+      description: |
+        Всегда 202 (не раскрывает существование email). Письмо содержит ссылку
+        `{FRONTEND_URL}/reset-password?token=...`; токен одноразовый, TTL 1 час,
+        в БД хранится SHA-256 хэш.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email: { type: string, format: email }
+      responses:
+        '202': { description: Письмо отправлено (если аккаунт существует) }
+
+  /api/v1/auth/password/reset:
+    post:
+      tags: [auth]
+      operationId: passwordReset
+      x-status: planned
+      summary: Установка нового пароля по токену из письма
+      description: Все сессии пользователя отзываются.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, new_password]
+              properties:
+                token: { type: string }
+                new_password: { type: string, minLength: 8 }
+      responses:
+        '204': { description: Пароль обновлён, сессии отозваны }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401':
+          description: Токен недействителен, использован или истёк
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /api/v1/auth/password/change:
+    post:
+      tags: [auth]
+      operationId: passwordChange
+      x-status: planned
+      summary: Смена пароля из профиля (по текущему паролю)
+      description: |
+        Все сессии, кроме текущей, отзываются («смена пароля завершит сеансы
+        на всех остальных устройствах» — UI).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [current_password, new_password]
+              properties:
+                current_password: { type: string }
+                new_password: { type: string, minLength: 8 }
+      responses:
+        '204': { description: Пароль обновлён }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401':
+          description: Текущий пароль неверен
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /api/v1/users/me:
+    get:
+      tags: [users]
+      operationId: getMe
+      x-status: core
+      summary: Профиль текущего пользователя
+      responses:
+        '200':
+          description: Пользователь
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    patch:
+      tags: [users]
+      operationId: updateMe
+      x-status: core
+      summary: Обновление профиля
+      description: |
+        Поля экрана Profile: username, email, gender, language, profession.
+        Все поля опциональны (передаются только изменённые).
+        RBAC-поле `role` через этот эндпоинт НЕ меняется (только admin API).
+        Смена email проверяет формат и уникальность (409).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateMeRequest' }
+      responses:
+        '200':
+          description: Обновлённый пользователь
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '409':
+          description: Email занят
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /api/v1/users/avatar:
+    post:
+      tags: [users]
+      operationId: uploadAvatar
+      x-status: core
+      summary: Загрузка аватара (multipart, поле avatar)
+      description: |
+        Допустимые типы: image/png, image/jpeg, image/webp, image/gif;
+        максимум 5 МиБ; тип определяется сниффингом содержимого, а не
+        заголовком. Конвертация в WebP НЕ выполняется (решение ADR-010).
+        Объект кладётся в Garage S3 с ключом `avatars/{user_id}` (перезапись),
+        в `users.avatar_url` сохраняется прокси-путь `/api/v1/users/{id}/avatar`.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [avatar]
+              properties:
+                avatar:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Аватар сохранён
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  avatar_url:
+                    type: string
+                    example: /api/v1/users/0192f3a4-6b7c-7def-8a1b-2c3d4e5f6a7b/avatar
+        '400':
+          description: Не изображение, превышен размер или нет поля avatar
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '502':
+          description: Хранилище S3 недоступно
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /api/v1/users/{id}/avatar:
+    get:
+      tags: [users]
+      operationId: getAvatar
+      x-status: core
+      summary: Публичная выдача аватара из S3 (прокси)
+      description: |
+        Без авторизации: тег <img> не умеет слать Bearer. Gateway стримит
+        объект из Garage, отдаёт его Content-Type, Cache-Control и ETag.
+        404, если аватар не загружен.
+      security: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Изображение
+          content:
+            image/png: { schema: { type: string, format: binary } }
+            image/jpeg: { schema: { type: string, format: binary } }
+            image/webp: { schema: { type: string, format: binary } }
+            image/gif: { schema: { type: string, format: binary } }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '502':
+          description: Хранилище S3 недоступно
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /api/v1/chats:
+    get:
+      tags: [chats]
+      operationId: listChats
+      x-status: core
+      summary: Recent chats — список диалогов пользователя
+      description: |
+        Сортировка: закреплённые выше, затем по updated_at DESC.
+        Поиск по заголовку (ILIKE, триграммный индекс).
+      parameters:
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+        - name: offset
+          in: query
+          schema: { type: integer, minimum: 0, default: 0 }
+        - name: search
+          in: query
+          schema: { type: string }
+      responses:
+        '200':
+          description: Страница диалогов
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/Chat' }
+                  total: { type: integer }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    post:
+      tags: [chats]
+      operationId: createChat
+      x-status: core
+      summary: Создание диалога
+      description: |
+        Пустой title → «Новый чат». При первом сообщении заголовок
+        автоматически заменяется первыми 80 символами запроса (см. SendMessage).
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string, maxLength: 255 }
+      responses:
+        '201':
+          description: Диалог создан
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Chat' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/v1/chats/{id}:
+    parameters:
+      - $ref: '#/components/parameters/ChatId'
+    get:
+      tags: [chats]
+      operationId: getChat
+      x-status: core
+      summary: Диалог с полной историей сообщений
+      description: Чужой или несуществующий id → 404 (без раскрытия существования).
+      responses:
+        '200':
+          description: Диалог и сообщения (created_at ASC)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  chat: { $ref: '#/components/schemas/Chat' }
+                  messages:
+                    type: array
+                    items: { $ref: '#/components/schemas/ChatMessage' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [chats]
+      operationId: updateChat
+      x-status: core
+      summary: Переименование и закрепление (меню «три точки» в сайдбаре)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string, minLength: 1, maxLength: 255 }
+                is_pinned: { type: boolean }
+      responses:
+        '200':
+          description: Обновлённый диалог
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Chat' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      tags: [chats]
+      operationId: deleteChat
+      x-status: core
+      summary: Удаление диалога (CASCADE на сообщения)
+      responses:
+        '204': { description: Удалён }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/v1/chats/{id}/messages:
+    post:
+      tags: [chats]
+      operationId: sendMessage
+      x-status: core
+      summary: Отправка ошибки → поиск + RAG-ответ
+      description: |
+        Основной сценарий чат-экрана. Gateway:
+        1. Извлекает теги в квадратных скобках (`[Python]`, `[C++]`) из query,
+           объединяет с полем `tags`, нормализует в lowercase, дедуплицирует;
+           скобки вырезаются из текста запроса для поиска.
+        2. Сохраняет user-сообщение (`error_report`, error_context.raw_query —
+           исходный текст со скобками) и привязывает теги.
+        3. Вызывает поиск и RAG (стаб до готовности ядра/LLM), сохраняет
+           assistant-сообщение (`rag_solution`) с content (текст решения),
+           code (блок кода) и rag_sources.
+        4. Если заголовок чата — «Новый чат», заменяет его первыми 80
+           символами очищенного запроса; обновляет chats.updated_at.
+        SSE-стриминг (`Accept: text/event-stream`) — planned, следующая итерация.
+      parameters:
+        - $ref: '#/components/parameters/ChatId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SendMessageRequest' }
+      responses:
+        '201':
+          description: Оба сообщения сохранены
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user_message: { $ref: '#/components/schemas/ChatMessage' }
+                  assistant_message: { $ref: '#/components/schemas/ChatMessage' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/v1/search:
+    post:
+      tags: [search]
+      operationId: search
+      x-status: core
+      summary: Лексический BM25-поиск (публичный)
+      description: |
+        До готовности search_engine_core возвращает детерминированные
+        стаб-данные через интерфейс SearchClient. Контракт совпадает с
+        будущим gRPC-ответом (protos/search.proto, SearchHit).
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SearchRequest' }
+      responses:
+        '200':
+          description: Результаты, отсортированные по bm25_score DESC
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SearchResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /api/v1/search/rag:
+    post:
+      tags: [search]
+      operationId: searchRag
+      x-status: core
+      summary: RAG-синтез решения (публичный)
+      description: |
+        Стаб: synthesis/code из фикстур, sources — те же, что у /search.
+        Структура ответа повторяет карточку `.assistant-card` фронтенда:
+        текст решения + блок кода + источники SO.
+        SSE-стриминг и реальная LLM — planned.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SearchRequest' }
+      responses:
+        '200':
+          description: Синтезированное решение
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RagResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /api/v1/graph/threads:
+    get:
+      tags: [graph]
+      operationId: getThreadGraph
+      x-status: core
+      summary: Подграф связанных тредов для Star Map
+      description: |
+        Ядро графа — doc_ids результатов поиска. Первый id — PRIMARY_RESULT,
+        остальные — OTHER_RESULT; связанные треды — DUPLICATE / LINKED.
+        Стаб строит граф из фикстур, повторяя структуру мока фронтенда
+        (buildStarMapGraph) и контракт protos/graph.proto.
+        REST-узел дополнительно содержит best_answer_body и original_url
+        (обогащение относительно proto ThreadNode — чтобы фронтенду не нужен
+        был отдельный запрос на каждую звезду).
+      security: []
+      parameters:
+        - name: doc_ids
+          in: query
+          required: true
+          description: ID вопросов SO через запятую (1..20 штук)
+          schema: { type: string, example: '27539308,15478423' }
+      responses:
+        '200':
+          description: Узлы и рёбра
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ThreadGraph' }
+        '400':
+          description: Пустой/невалидный doc_ids или больше 20 id
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /api/v1/graph/threads/{doc_id}:
+    get:
+      tags: [graph]
+      operationId: getThreadDetails
+      x-status: core
+      summary: Детали треда (панель по клику на звезду)
+      security: []
+      parameters:
+        - name: doc_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200':
+          description: Детали треда
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ThreadDetails' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/v1/tags:
+    get:
+      tags: [tags]
+      operationId: listTags
+      x-status: core
+      summary: Каталог тегов для поповера фронтенда
+      description: |
+        Курируемый список, совпадающий с пилюлями в index.html
+        (Go, Python, Java, C#, C++, JS, SQL, Rust, TypeScript, Docker, Linux,
+        Kubernetes, PostgreSQL, Redis, GraphQL, React, Vue, Swift, Kotlin,
+        PHP, Git, Nginx, gRPC). Источник — константа в коде gateway.
+      security: []
+      responses:
+        '200':
+          description: Список тегов
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name: { type: string, example: Python }
+
+  /api/v1/status:
+    get:
+      tags: [status]
+      operationId: status
+      x-status: core
+      summary: Статус сервисов (модалка «Параметры и настройки»)
+      description: |
+        search_core.connected=false, пока gRPC-клиент не подключён;
+        address — из конфига SEARCH_ENGINE_ADDR.
+      security: []
+      responses:
+        '200':
+          description: Статус
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/StatusResponse' }
+
+  /api/v1/mcp/token:
+    get:
+      tags: [mcp]
+      operationId: getMcpToken
+      x-status: planned
+      summary: Персональный MCP Bearer-токен пользователя
+      description: |
+        Модалка MCP фронтенда показывает токен вида `err_live_...` и JSON-конфиг
+        для IDE. ВНИМАНИЕ: политика авторизации MCP не урегулирована
+        (docs/Tech/03-data.md §3.4 — открытый доступ; FR-4.4 — персональные
+        токены). Реализация только после решения владельца продукта.
+      responses:
+        '200':
+          description: Токен и конфиг
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/McpTokenResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/v1/mcp/token/regenerate:
+    post:
+      tags: [mcp]
+      operationId: regenerateMcpToken
+      x-status: planned
+      summary: Перевыпуск MCP-токена (старый отзывается)
+      responses:
+        '200':
+          description: Новый токен
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/McpTokenResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /sse:
+    get:
+      tags: [mcp]
+      operationId: mcpSse
+      x-status: planned
+      summary: Remote MCP — SSE-транспорт (JSON-RPC 2.0)
+      description: |
+        Инструменты: errorium_search_solution(query, tags?, limit=5),
+        errorium_explain_error(error_message, stack_trace?),
+        errorium_get_related_errors(error_name).
+        Политика авторизации — см. примечание в /api/v1/mcp/token.
+      security: []
+      responses:
+        '200':
+          description: SSE-поток событий MCP
+          content:
+            text/event-stream:
+              schema: { type: string }
+
+  /api/v1/admin/stats:
+    get:
+      tags: [admin]
+      operationId: adminStats
+      x-status: planned
+      summary: Метрики поискового ядра (N, avgdl, память, задержки P50/P95/P99)
+      description: Требуется роль admin. Проксирует SearchService.GetStats.
+      responses:
+        '200':
+          description: Статистика
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminStats' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /api/v1/admin/index/reload:
+    post:
+      tags: [admin]
+      operationId: adminIndexReload
+      x-status: planned
+      summary: Горячая перезагрузка индекса ядра
+      responses:
+        '202': { description: Сигнал отправлен }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /api/v1/admin/users:
+    get:
+      tags: [admin]
+      operationId: adminListUsers
+      x-status: planned
+      summary: Список пользователей (пагинация, поиск)
+      parameters:
+        - name: limit
+          in: query
+          schema: { type: integer, default: 20 }
+        - name: offset
+          in: query
+          schema: { type: integer, default: 0 }
+        - name: search
+          in: query
+          schema: { type: string }
+      responses:
+        '200':
+          description: Страница пользователей
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/User' }
+                  total: { type: integer }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /api/v1/admin/users/{id}:
+    patch:
+      tags: [admin]
+      operationId: adminPatchUser
+      x-status: planned
+      summary: Смена роли и блокировка пользователя
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role: { type: string, enum: [user, admin] }
+                is_active: { type: boolean }
+      responses:
+        '200':
+          description: Обновлённый пользователь
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/v1/admin/rag/config:
+    get:
+      tags: [admin]
+      operationId: adminGetRagConfig
+      x-status: planned
+      summary: Текущие параметры RAG/LLM
+      responses:
+        '200':
+          description: Конфигурация
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RagConfig' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    put:
+      tags: [admin]
+      operationId: adminPutRagConfig
+      x-status: planned
+      summary: Изменение системного промпта, модели и параметров генерации
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RagConfig' }
+      responses:
+        '200':
+          description: Обновлённая конфигурация
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RagConfig' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Access-токен HS256, срок жизни ACCESS_TOKEN_EXPIRE_MINUTES (60 мин)
+
+  parameters:
+    ChatId:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    SsoProvider:
+      name: provider
+      in: path
+      required: true
+      schema: { type: string, enum: [github, google, yandex] }
+
+  responses:
+    BadRequest:
+      description: Невалидный запрос
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Unauthorized:
+      description: Нет/невалиден Bearer-токен
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Forbidden:
+      description: Недостаточно прав (например, не admin)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NotFound:
+      description: Ресурс не найден или принадлежит другому пользователю
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error: { type: string, example: invalid credentials }
+
+    User:
+      type: object
+      description: |
+        Пользователь. `role` — RBAC (user|admin), readOnly для клиента.
+        `profession` — «роль» из профиля UI (Backend developer, QA engineer...).
+        gender/language — значения из дропдаунов профиля фронтенда.
+      required: [id, email, username, role, profession, gender, language, is_active, created_at, updated_at]
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string, format: email }
+        username: { type: string, maxLength: 100 }
+        avatar_url:
+          type: string
+          nullable: true
+          description: Прокси-путь /api/v1/users/{id}/avatar или null
+        role: { type: string, enum: [user, admin], readOnly: true }
+        profession:
+          type: string
+          maxLength: 100
+          default: Backend developer
+          example: Backend developer
+        gender:
+          type: string
+          enum: [Male, Female, 'Not specified']
+          default: Not specified
+        language:
+          type: string
+          enum: [English, Русский]
+          default: English
+        is_active: { type: boolean }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+        last_login_at: { type: string, format: date-time, nullable: true }
+
+    RegisterRequest:
+      type: object
+      required: [username, email, password]
+      properties:
+        username: { type: string, minLength: 1, maxLength: 100 }
+        email: { type: string, format: email, maxLength: 255 }
+        password: { type: string, minLength: 8, maxLength: 128 }
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string }
+        remember_me: { type: boolean, default: false }
+
+    TokenPair:
+      type: object
+      required: [access_token, refresh_token, user]
+      properties:
+        access_token: { type: string, description: JWT HS256 }
+        refresh_token: { type: string, description: Непрозрачный токен, в БД хранится SHA-256 }
+        user: { $ref: '#/components/schemas/User' }
+
+    UpdateMeRequest:
+      type: object
+      minProperties: 1
+      properties:
+        username: { type: string, minLength: 1, maxLength: 100 }
+        email: { type: string, format: email, maxLength: 255 }
+        gender: { type: string, enum: [Male, Female, 'Not specified'] }
+        language: { type: string, enum: [English, Русский] }
+        profession: { type: string, minLength: 1, maxLength: 100 }
+
+    Chat:
+      type: object
+      required: [id, user_id, title, is_pinned, created_at, updated_at]
+      properties:
+        id: { type: string, format: uuid }
+        user_id: { type: string, format: uuid }
+        title: { type: string, maxLength: 255 }
+        is_pinned: { type: boolean }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    ChatMessage:
+      type: object
+      required: [id, chat_id, sender_role, message_type, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        chat_id: { type: string, format: uuid }
+        sender_role: { type: string, enum: [user, assistant, system] }
+        message_type: { type: string, enum: [text, error_report, rag_solution] }
+        content:
+          type: string
+          nullable: true
+          description: |
+            Текст сообщения: для user — исходный запрос, для assistant —
+            синтезированное решение (карточка .card-solution-text).
+        code:
+          type: string
+          nullable: true
+          description: Блок кода решения (.code-block-wrapper), только assistant
+        error_context:
+          type: object
+          nullable: true
+          description: Только user-сообщения
+          properties:
+            language: { type: string }
+            stack_trace: { type: string }
+            error_type: { type: string }
+            raw_query: { type: string, description: Исходный ввод со скобками тегов }
+            tags:
+              type: array
+              items: { type: string }
+        rag_sources:
+          type: array
+          nullable: true
+          description: Только assistant-сообщения (rag_solution)
+          items: { $ref: '#/components/schemas/Source' }
+        token_usage:
+          type: object
+          nullable: true
+          properties:
+            prompt_tokens: { type: integer }
+            completion_tokens: { type: integer }
+            total_tokens: { type: integer }
+        tags:
+          type: array
+          description: Теги user-сообщения (из chat_message_tags)
+          items: { $ref: '#/components/schemas/Tag' }
+        created_at: { type: string, format: date-time }
+
+    Tag:
+      type: object
+      required: [name]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string, maxLength: 50, example: python }
+
+    Source:
+      type: object
+      description: |
+        Источник Stack Overflow. ВАЖНО: question_score — голоса вопроса SO
+        (целое, «▲ 4180» в UI и размер звезды), bm25_score — релевантность
+        ранжирования (дробное). Это разные величины.
+      required: [doc_id, title, url, question_score, bm25_score, is_accepted]
+      properties:
+        doc_id: { type: integer, format: int64, description: ID вопроса SO }
+        title: { type: string }
+        url: { type: string, format: uri }
+        snippet: { type: string }
+        tags:
+          type: array
+          items: { type: string }
+        question_score: { type: integer, description: Голоса вопроса на SO }
+        bm25_score: { type: number, format: double }
+        is_accepted: { type: boolean, description: Есть принятый ответ }
+
+    SendMessageRequest:
+      type: object
+      required: [query]
+      properties:
+        query:
+          type: string
+          minLength: 1
+          maxLength: 8000
+          description: Текст ошибки/стектрейс; может содержать теги в скобках [Python]
+        tags:
+          type: array
+          items: { type: string, maxLength: 50 }
+          description: Явные теги (объединяются с извлечёнными из скобок)
+        top_k: { type: integer, minimum: 1, maximum: 20, default: 5 }
+
+    SearchRequest:
+      type: object
+      required: [query]
+      properties:
+        query: { type: string, minLength: 1, maxLength: 8000 }
+        top_k: { type: integer, minimum: 1, maximum: 50, default: 10 }
+        tags:
+          type: array
+          items: { type: string }
+        language: { type: string, description: Язык программирования (опционально) }
+
+    SearchResponse:
+      type: object
+      required: [query, results, total_hits, took_ms]
+      properties:
+        query: { type: string }
+        results:
+          type: array
+          items: { $ref: '#/components/schemas/Source' }
+        total_hits: { type: integer, format: int64 }
+        took_ms: { type: integer, format: int64 }
+
+    RagResponse:
+      type: object
+      required: [query, synthesis, sources, took_ms]
+      properties:
+        query: { type: string }
+        synthesis: { type: string, description: Текст решения (первопричина, фикс, профилактика) }
+        code: { type: string, nullable: true, description: Готовый блок исправленного кода }
+        sources:
+          type: array
+          items: { $ref: '#/components/schemas/Source' }
+        took_ms: { type: integer, format: int64 }
+
+    ThreadNode:
+      type: object
+      description: Узел Star Map (protos/graph.proto ThreadNode + обогащение для REST)
+      required: [doc_id, category, score, title, has_accepted_answer, original_url]
+      properties:
+        doc_id: { type: integer, format: int64 }
+        category:
+          type: string
+          enum: [PRIMARY_RESULT, OTHER_RESULT, DUPLICATE, LINKED]
+        score:
+          type: number
+          format: double
+          description: Голоса вопроса SO (размер узла ~ sqrt(score)); как в моке фронтенда
+        title: { type: string }
+        snippet: { type: string }
+        has_accepted_answer: { type: boolean }
+        tags:
+          type: array
+          items: { type: string }
+        best_answer_score: { type: integer }
+        best_answer_body: { type: string, description: Текст лучшего/принятого ответа }
+        original_url: { type: string, format: uri }
+
+    ThreadEdge:
+      type: object
+      required: [source_doc_id, target_doc_id, type]
+      properties:
+        source_doc_id: { type: integer, format: int64 }
+        target_doc_id: { type: integer, format: int64 }
+        type: { type: string, enum: [DUPLICATE_OF, LINKED_IN_ANSWER] }
+
+    ThreadGraph:
+      type: object
+      required: [nodes, edges]
+      properties:
+        nodes:
+          type: array
+          items: { $ref: '#/components/schemas/ThreadNode' }
+        edges:
+          type: array
+          items: { $ref: '#/components/schemas/ThreadEdge' }
+
+    ThreadDetails:
+      type: object
+      required: [doc_id, title, best_answer_body, original_url]
+      properties:
+        doc_id: { type: integer, format: int64 }
+        title: { type: string }
+        best_answer_body: { type: string }
+        original_url: { type: string, format: uri }
+        tags:
+          type: array
+          items: { type: string }
+        question_score: { type: integer }
+        has_accepted_answer: { type: boolean }
+
+    StatusResponse:
+      type: object
+      properties:
+        gateway:
+          type: object
+          properties:
+            status: { type: string, example: ok }
+            version: { type: string, example: 1.0.0 }
+        search_core:
+          type: object
+          properties:
+            connected: { type: boolean }
+            address: { type: string, example: 'search_engine_core:50051' }
+        rag:
+          type: object
+          properties:
+            enabled: { type: boolean }
+            provider: { type: string, example: stub }
+
+    McpTokenResponse:
+      type: object
+      properties:
+        token: { type: string, example: err_live_8f39a0c791b402e6e3c }
+        sse_url: { type: string, example: https://errorium.ru/sse }
+        config_json:
+          type: object
+          description: Готовый JSON-конфиг для Cursor/Claude Code (mcpServers)
+
+    AdminStats:
+      type: object
+      properties:
+        total_documents: { type: integer, format: int64 }
+        avg_doc_length: { type: number }
+        vocabulary_size: { type: integer, format: int64 }
+        index_size_bytes: { type: integer, format: int64 }
+        is_ready: { type: boolean }
+        latency_ms:
+          type: object
+          properties:
+            p50: { type: number }
+            p95: { type: number }
+            p99: { type: number }
+        queries_total: { type: integer, format: int64 }
+
+    RagConfig:
+      type: object
+      properties:
+        provider: { type: string, enum: [openai, anthropic, local] }
+        model: { type: string, example: gpt-4o-mini }
+        system_prompt: { type: string }
+        temperature: { type: number, minimum: 0, maximum: 2 }
+        max_tokens: { type: integer, minimum: 1 }
+
+security:
+  - bearerAuth: []

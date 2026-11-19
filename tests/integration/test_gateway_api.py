@@ -1,0 +1,296 @@
+"""Integration tests for Errorium Gateway REST API.
+
+Standard library only (unittest, urllib.request, urllib.error, json, uuid, os, time).
+"""
+
+import json
+import os
+import time
+import unittest
+import urllib.error
+import urllib.request
+import uuid
+
+
+class TestGatewayAPI(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.base_url = os.environ.get("GATEWAY_URL", "http://localhost:8000").rstrip("/")
+        try:
+            req = urllib.request.Request(f"{cls.base_url}/health")
+            with urllib.request.urlopen(req, timeout=3) as resp:
+                if resp.status != 200:
+                    raise unittest.SkipTest(f"Gateway service unhealthy at {cls.base_url} (status {resp.status})")
+        except unittest.SkipTest:
+            raise
+        except Exception as e:
+            raise unittest.SkipTest(f"Gateway service unreachable at {cls.base_url}: {e}")
+
+    def make_request(self, method, path, data=None, token=None):
+        url = f"{self.base_url}{path}"
+        headers = {}
+        body = None
+        if data is not None:
+            headers["Content-Type"] = "application/json"
+            body = json.dumps(data).encode("utf-8")
+        if token:
+            headers["Authorization"] = f"Bearer {token}"
+        req = urllib.request.Request(url, data=body, headers=headers, method=method)
+        try:
+            with urllib.request.urlopen(req, timeout=5) as resp:
+                status = resp.status
+                headers_dict = dict(resp.headers)
+                content = resp.read()
+                return status, headers_dict, content
+        except urllib.error.HTTPError as e:
+            status = e.code
+            headers_dict = dict(e.headers)
+            content = e.read()
+            return status, headers_dict, content
+
+    def create_user_and_login(self):
+        uid = uuid.uuid4().hex[:8]
+        username = f"test_{uid}"
+        email = f"test_{uid}@example.com"
+        password = "Password123!"
+
+        status, _, content = self.make_request(
+            "POST",
+            "/api/v1/auth/register",
+            {"username": username, "email": email, "password": password},
+        )
+        self.assertEqual(status, 201, f"Register failed: {content.decode('utf-8')}")
+
+        data = json.loads(content.decode("utf-8"))
+        access_token = data["access_token"]
+        refresh_token = data["refresh_token"]
+        return access_token, refresh_token, data["user"], email, password
+
+    def test_health(self):
+        status, _, content = self.make_request("GET", "/health")
+        self.assertEqual(status, 200)
+        data = json.loads(content.decode("utf-8"))
+        self.assertEqual(data.get("status"), "ok")
+
+    def test_openapi_and_docs(self):
+        # 1. GET /openapi.yaml
+        status, headers, content = self.make_request("GET", "/openapi.yaml")
+        self.assertEqual(status, 200)
+        ct = headers.get("Content-Type", "")
+        self.assertTrue("yaml" in ct, f"Expected yaml in Content-Type, got {ct}")
+        yaml_text = content.decode("utf-8")
+        self.assertIn("openapi: 3.0.3", yaml_text)
+
+        # 2. GET /docs
+        status, headers, content = self.make_request("GET", "/docs")
+        self.assertEqual(status, 200)
+        ct = headers.get("Content-Type", "")
+        self.assertTrue("text/html" in ct, f"Expected text/html in Content-Type, got {ct}")
+        html_text = content.decode("utf-8")
+        self.assertIn("swagger-ui-dist@5.35.0", html_text)
+        self.assertIn("/openapi.yaml", html_text)
+
+    def test_auth_lifecycle(self):
+        uid = uuid.uuid4().hex[:8]
+        username = f"auth_{uid}"
+        email = f"auth_{uid}@example.com"
+        password = "Password123!"
+
+        # Register
+        status, _, content = self.make_request(
+            "POST",
+            "/api/v1/auth/register",
+            {"username": username, "email": email, "password": password},
+        )
+        self.assertEqual(status, 201)
+        reg_data = json.loads(content.decode("utf-8"))
+        self.assertIn("access_token", reg_data)
+        self.assertIn("refresh_token", reg_data)
+        self.assertEqual(reg_data["user"]["email"], email.lower())
+
+        # Login
+        status, _, content = self.make_request(
+            "POST",
+            "/api/v1/auth/login",
+            {"email": email, "password": password},
+        )
+        self.assertEqual(status, 200)
+        login_data = json.loads(content.decode("utf-8"))
+        access_token = login_data["access_token"]
+        self.assertTrue(bool(access_token))
+
+        # Get Me
+        status, _, content = self.make_request("GET", "/api/v1/auth/me", token=access_token)
+        self.assertEqual(status, 200)
+        me_data = json.loads(content.decode("utf-8"))
+        self.assertEqual(me_data["email"], email.lower())
+        self.assertEqual(me_data["username"], username)
+
+    def test_chats_crud_and_messages(self):
+        access_token, _, _, _, _ = self.create_user_and_login()
+
+        # Create chat
+        status, _, content = self.make_request(
+            "POST",
+            "/api/v1/chats",
+            {"title": "Новый чат"},
+            token=access_token,
+        )
+        self.assertEqual(status, 201)
+        chat = json.loads(content.decode("utf-8"))
+        chat_id = chat["id"]
+        self.assertTrue(bool(chat_id))
+
+        # Send message with [Python] tag
+        query = "[Python] TypeError: unsupported operand"
+        status, _, content = self.make_request(
+            "POST",
+            f"/api/v1/chats/{chat_id}/messages",
+            {"query": query},
+            token=access_token,
+        )
+        self.assertEqual(status, 201)
+        msg_resp = json.loads(content.decode("utf-8"))
+        user_msg = msg_resp.get("user_message")
+        asst_msg = msg_resp.get("assistant_message")
+        self.assertIsNotNone(user_msg)
+        self.assertIsNotNone(asst_msg)
+        self.assertEqual(user_msg.get("sender_role"), "user")
+        self.assertEqual(user_msg.get("content"), query)
+
+        # Verify extracted bracketed tag
+        tag_names = [t["name"] for t in user_msg.get("tags", [])]
+        self.assertIn("python", tag_names)
+
+        self.assertEqual(asst_msg.get("sender_role"), "assistant")
+        self.assertTrue(bool(asst_msg.get("content")))
+        self.assertIn("code", asst_msg)
+        self.assertIn("rag_sources", asst_msg)
+
+        # Get chat: verify auto-generated title and messages
+        status, _, content = self.make_request(
+            "GET",
+            f"/api/v1/chats/{chat_id}",
+            token=access_token,
+        )
+        self.assertEqual(status, 200)
+        chat_details = json.loads(content.decode("utf-8"))
+        self.assertEqual(chat_details["chat"]["title"], "TypeError: unsupported operand")
+        self.assertGreaterEqual(len(chat_details["messages"]), 2)
+
+        # Patch chat (pin + rename)
+        status, _, content = self.make_request(
+            "PATCH",
+            f"/api/v1/chats/{chat_id}",
+            {"title": "Renamed Test Chat", "is_pinned": True},
+            token=access_token,
+        )
+        self.assertEqual(status, 200)
+        patched_chat = json.loads(content.decode("utf-8"))
+        self.assertEqual(patched_chat["title"], "Renamed Test Chat")
+        self.assertTrue(patched_chat["is_pinned"])
+
+        # Delete chat
+        status, _, _ = self.make_request(
+            "DELETE",
+            f"/api/v1/chats/{chat_id}",
+            token=access_token,
+        )
+        self.assertEqual(status, 204)
+
+        # Subsequent GET -> 404
+        status, _, _ = self.make_request(
+            "GET",
+            f"/api/v1/chats/{chat_id}",
+            token=access_token,
+        )
+        self.assertEqual(status, 404)
+
+    def test_search_determinism(self):
+        query_payload = {"query": "SyntaxError invalid syntax in Python"}
+        status1, _, content1 = self.make_request("POST", "/api/v1/search", query_payload)
+        status2, _, content2 = self.make_request("POST", "/api/v1/search", query_payload)
+
+        self.assertEqual(status1, 200)
+        self.assertEqual(status2, 200)
+
+        data1 = json.loads(content1.decode("utf-8"))
+        data2 = json.loads(content2.decode("utf-8"))
+
+        self.assertEqual(data1["total_hits"], data2["total_hits"])
+        self.assertEqual(len(data1["results"]), len(data2["results"]))
+
+        for item1, item2 in zip(data1["results"], data2["results"]):
+            self.assertEqual(item1["doc_id"], item2["doc_id"])
+            self.assertEqual(item1["title"], item2["title"])
+            self.assertEqual(item1["url"], item2["url"])
+            self.assertEqual(item1["snippet"], item2["snippet"])
+            self.assertAlmostEqual(item1["bm25_score"], item2["bm25_score"], places=4)
+
+    def test_graph_threads(self):
+        status, _, content = self.make_request(
+            "GET",
+            "/api/v1/graph/threads?doc_ids=27539308,15478423",
+        )
+        self.assertEqual(status, 200)
+        data = json.loads(content.decode("utf-8"))
+        self.assertIn("nodes", data)
+        self.assertIn("edges", data)
+        self.assertGreater(len(data["nodes"]), 0)
+        self.assertGreater(len(data["edges"]), 0)
+
+        categories = {n["category"] for n in data["nodes"]}
+        self.assertIn("PRIMARY_RESULT", categories)
+
+        for edge in data["edges"]:
+            self.assertIn("source_doc_id", edge)
+            self.assertIn("target_doc_id", edge)
+            self.assertIn("type", edge)
+
+    def test_graph_thread_details(self):
+        # 1. Existing fixture
+        status, _, content = self.make_request("GET", "/api/v1/graph/threads/27539308")
+        self.assertEqual(status, 200)
+        data = json.loads(content.decode("utf-8"))
+        self.assertEqual(data["doc_id"], 27539308)
+        self.assertTrue(bool(data.get("title")))
+        self.assertTrue(bool(data.get("best_answer_body")))
+
+        # 2. Non-existent fixture -> 404
+        status, _, _ = self.make_request("GET", "/api/v1/graph/threads/999999999")
+        self.assertEqual(status, 404)
+
+    def test_tags_catalog(self):
+        status, _, content = self.make_request("GET", "/api/v1/tags")
+        self.assertEqual(status, 200)
+        data = json.loads(content.decode("utf-8"))
+        self.assertIn("items", data)
+
+        names = [item["name"] for item in data["items"]]
+        expected_tags = [
+            "Go", "Python", "Java", "C#", "C++", "JS", "SQL", "Rust",
+            "TypeScript", "Docker", "Linux", "Kubernetes", "PostgreSQL",
+            "Redis", "GraphQL", "React", "Vue", "Swift", "Kotlin",
+            "PHP", "Git", "Nginx", "gRPC",
+        ]
+        self.assertEqual(names, expected_tags)
+
+    def test_system_status(self):
+        status, _, content = self.make_request("GET", "/api/v1/status")
+        self.assertEqual(status, 200)
+        data = json.loads(content.decode("utf-8"))
+
+        self.assertIn("gateway", data)
+        self.assertIn("search_core", data)
+        self.assertIn("rag", data)
+
+        self.assertEqual(data["gateway"]["status"], "ok")
+        self.assertEqual(data["gateway"]["version"], "1.0.0")
+        self.assertIn("connected", data["search_core"])
+        self.assertIn("address", data["search_core"])
+        self.assertIn("enabled", data["rag"])
+        self.assertEqual(data["rag"]["provider"], "stub")
+
+
+if __name__ == "__main__":
+    unittest.main()

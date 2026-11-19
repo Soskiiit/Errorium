@@ -13,49 +13,44 @@
 
 ## 2. Внешний REST API (Gateway :8000)
 
-Интерактивная спецификация OpenAPI (Swagger) доступна по адресу `http://localhost:8000/docs`.
+**Машиночитаемый контракт (источник истины):** [`services/gateway/api/openapi.yaml`](../../services/gateway/api/openapi.yaml) — OpenAPI 3.0.3, составлен по фактическому поведению фронтенда (`static/app.js`, `index.html`). Gateway встраивает файл через `go:embed` и отдаёт:
+- `GET /openapi.yaml` — спека;
+- `GET /docs` — Swagger UI (HTML-страница, читает `/openapi.yaml`).
 
-### 2.1. Аутентификация и SSO (`/api/v1/auth`)
-- `GET /api/v1/auth/sso/login/{provider}` — Инициация OAuth2 авторизации (`google`, `yandex`, `github`).
-- `GET /api/v1/auth/sso/callback/{provider}` — Обработка callback с кодом авторизации, выпуск пары JWT токенов (`access_token`, `refresh_token`).
-- `POST /api/v1/auth/login` — Локальная аутентификация по логину и паролю.
-- `POST /api/v1/auth/refresh` — Обновление access-токена по refresh-токену с ротацией.
-- `POST /api/v1/auth/logout` — Отзыв текущей сессии (`is_revoked = true`).
-- `GET /api/v1/auth/me` — Получение данных профиля текущего пользователя и его роли (`user` | `admin`).
+Каждая операция помечена `x-status`:
+- **`core`** — итерация «Ядро + стабы» (текущий пакет задач, см. `handoff/gateway-backend/`): auth (register/login/refresh/logout/me), профиль и аватар, чаты CRUD + сообщения, search/RAG/graph/tags/status как детерминированные стабы, Swagger UI.
+- **`planned`** — контракт зафиксирован, реализация в следующих итерациях: SSO, сброс/смена пароля, MCP-токены и `/sse`, SSE-стриминг, Admin API.
 
-### 2.2. Пользователи и медиа (`/api/v1/users`)
-- `POST /api/v1/users/avatar` — Загрузка и конвертация аватара пользователя в формат WebP с сохранением в Garage S3 (`errorium-avatars`).
+### 2.1. Ключевые решения контракта (ADR-010)
+1. **Ошибки** — единый JSON `{"error": "<сообщение>"}`; коды: 400 валидация, 401 нет/невалиден токен, 403 нет прав/аккаунт заблокирован, 404 не найдено **или чужой ресурс** (существование не раскрывается), 409 конфликт (email занят).
+2. **`role` ≠ «роль» в UI.** `role` (`user|admin`) — RBAC, клиенту недоступен для изменения (убран из `PATCH /api/v1/users/me`). Профессиональная «роль» из профиля UI (Backend developer, QA engineer…) — отдельное поле `profession`. Поля профиля `gender` (`Male|Female|Not specified`) и `language` (`English|Русский`) — значения дропдаунов фронтенда.
+3. **Сообщения чата.** В `chat_messages` добавлены `content` (текст: запрос пользователя / решение ассистента) и `code` (блок кода решения) — миграция `000002`. Карточка `.assistant-card` фронтенда = `content` + `code` + `rag_sources`.
+4. **Два score у источника.** `question_score` — голоса вопроса SO (целое, «▲ 4180» в UI, размер звезды Star Map); `bm25_score` — релевантность ранжирования (дробное). Поля не смешивать.
+5. **Теги в запросе.** Фронтенд вставляет теги пилюлями как `[Python]` в текст запроса. Gateway извлекает скобки, объединяет с явным полем `tags`, нормализует в lowercase, вырезает скобки из текста для поиска; исходный ввод сохраняется в `error_context.raw_query`.
+6. **Аватар.** Конвертация в WebP отменена (ADR-010): оригинал PNG/JPEG/WebP/GIF ≤ 5 МиБ кладётся в Garage с ключом `avatars/{user_id}`, выдаётся публичным прокси-эндпоинтом `GET /api/v1/users/{id}/avatar` (тег `<img>` не умеет слать Bearer); `users.avatar_url` = прокси-путь.
+7. **Стабы поиска/графа.** До готовности `search_engine_core` (Роль 2) gateway отвечает детерминированными фикстурами через интерфейсы `SearchClient` / `GraphClient`. Замена на gRPC (`protos/search.proto`, `protos/graph.proto`) не меняет REST-контракт. REST-узел графа обогащён `best_answer_body` / `original_url` относительно proto `ThreadNode`.
+8. **Пароли.** bcrypt (cost 12) для новых паролей; legacy-формат `salt:sha256` принимается при входе и прозрачно перехэшируется. `remember_me=true` → refresh-сессия 30 дней, иначе 24 часа.
 
-### 2.3. Чаты и сообщения (`/api/v1/chats`)
-- `GET /api/v1/chats` — Получение списка последних диалогов пользователя (`Recent chats`) с пагинацией и поиском по заголовку.
-- `POST /api/v1/chats` — Создание нового диалога.
-- `GET /api/v1/chats/{id}` — Получение истории сообщений диалога, привязанных тегов и RAG-ответов.
-- `PATCH /api/v1/chats/{id}` — Переименование диалога, закрепление (`is_pinned`).
-- `DELETE /api/v1/chats/{id}` — Удаление диалога со всеми сообщениями (CASCADE).
-- `POST /api/v1/chats/{id}/messages` — Отправка сообщения с ошибкой, запуск BM25-поиска и RAG-генерации (поддерживает SSE-стриминг).
+### 2.2. Карта эндпоинтов (полные схемы — в openapi.yaml)
 
-### 2.4. Поиск и RAG (`/api/v1/search`)
-- `POST /api/v1/search` — Выполнение поиска по BM25:
-  ```json
-  {
-    "query": "NullPointerException Spring Boot autowired service is null",
-    "top_k": 10,
-    "tags": ["java", "spring-boot"]
-  }
-  ```
-- `POST /api/v1/search/rag` — Запуск RAG-пайплайна с синтезом решения (поддерживает SSE-стриминг `Accept: text/event-stream`).
+| Группа | Эндпоинты | Статус |
+| :--- | :--- | :--- |
+| Auth | `POST /api/v1/auth/register`, `login`, `refresh`, `logout`; `GET /api/v1/auth/me` | core |
+| SSO | `GET /api/v1/auth/sso/login/{provider}`, `callback/{provider}` (`github\|google\|yandex`) | planned |
+| Пароль | `POST /api/v1/auth/password/forgot`, `reset`, `change` | planned |
+| Профиль | `GET/PATCH /api/v1/users/me`; `POST /api/v1/users/avatar`; `GET /api/v1/users/{id}/avatar` (публичный) | core |
+| Чаты | `GET/POST /api/v1/chats`; `GET/PATCH/DELETE /api/v1/chats/{id}`; `POST /api/v1/chats/{id}/messages` | core |
+| Поиск | `POST /api/v1/search`, `POST /api/v1/search/rag` (публичные; стаб) | core |
+| Граф | `GET /api/v1/graph/threads?doc_ids=…`, `GET /api/v1/graph/threads/{doc_id}` (публичные; стаб) | core |
+| Теги | `GET /api/v1/tags` — курируемый список пилюль фронтенда | core |
+| Статус | `GET /api/v1/status` — состояние ядра/RAG для модалки настроек | core |
+| MCP | `GET /api/v1/mcp/token`, `POST /api/v1/mcp/token/regenerate`, `GET /sse` | planned |
+| Admin | `GET /api/v1/admin/stats`, `POST /api/v1/admin/index/reload`, `GET /api/v1/admin/users`, `PATCH /api/v1/admin/users/{id}`, `GET/PUT /api/v1/admin/rag/config` | planned |
+| Служебные | `GET /health`, `GET /docs`, `GET /openapi.yaml` | core |
 
-### 2.5. Граф связей тредов (`/api/v1/graph`)
-- `GET /api/v1/graph/threads` — Получение данных подграфа тредов (дубликаты, связанные ответы) для визуализации во фронтенде.
+> **Режим моков (FR-3.5):** до интеграции с `GraphService` (gRPC) экран Star Map (`/star-map`) во фронтенде строит граф из мок-данных: источники RAG-ответа становятся узлами `PRIMARY_RESULT` / `OTHER_RESULT`, пул связанных тредов — узлами `DUPLICATE` / `LINKED`. Структура узлов и ребер повторяет контракты `ThreadGraphResponse` / `ThreadDetailsResponse` из `protos/graph.proto`, поэтому переход на реальный API не требует изменения слоя визуализации. REST-стаб gateway повторяет ту же структуру.
 
-> **Режим моков (FR-3.5):** до интеграции с `GraphService` (gRPC) экран Star Map (`/star-map`) во фронтенде строит граф из мок-данных: источники RAG-ответа становятся узлами `PRIMARY_RESULT` / `OTHER_RESULT`, пул связанных тредов — узлами `DUPLICATE` / `LINKED`. Структура узлов и ребер повторяет контракты `ThreadGraphResponse` / `ThreadDetailsResponse` из `protos/graph.proto`, поэтому переход на реальный API не требует изменения слоя визуализации.
-
-### 2.6. Панель управления (Admin API, `/api/v1/admin`)
-*(Требуется заголовок `Authorization: Bearer <TOKEN>` пользователя с ролью `admin`)*
-- `GET /api/v1/admin/stats` — Метрики поискового ядра: $N$, $avgdl$, объем памяти, количество запросов.
-- `POST /api/v1/admin/index/reload` — Сигнал ядру поиска на горячую перезагрузку файлов индекса.
-- `GET /api/v1/admin/users` — Список пользователей, изменение ролей (`user` $\leftrightarrow$ `admin`), блокировка.
-- `GET /api/v1/admin/rag/config` / `PUT /api/v1/admin/rag/config` — Настройка системного промпта, выбора LLM-модели и параметров генерации.
+> **SSE-стриминг** (`Accept: text/event-stream` для `/search/rag` и `/chats/{id}/messages`) — planned: в текущей итерации ответы синхронные JSON.
 
 ---
 
@@ -63,6 +58,8 @@
 
 Сервис Gateway реализует спецификацию **Model Context Protocol (MCP)** по протоколу HTTP Server-Sent Events (SSE).
 **Авторизация для Remote MCP не требуется** — подключение открыто для всех локальных AI-агентов (Cursor, Claude Code, Windsurf) без передачи API-токенов.
+
+> **Нерешённое противоречие (planned):** FR-4.4 и модалка MCP во фронтенде предполагают персональные Bearer-токены (`err_live_…`), а `docs/Tech/03-data.md` §3.4 фиксирует открытый доступ без таблицы `mcp_tokens`. Эндпоинты `/api/v1/mcp/token*` описаны в openapi.yaml как `planned`; реализация — только после решения владельца продукта.
 
 ### Инструменты MCP (Tools):
 1. **`errorium_search_solution`**: Поиск релевантных тем и кода решений по описанию ошибки или стектрейсу.

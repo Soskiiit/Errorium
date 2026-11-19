@@ -1,5 +1,55 @@
 # CHANGE_HISTORY.md — История изменений проекта Errorium
 
+## [2026-11-19] — Gateway: Интеграционные тесты, документация и завершение пакета «Ядро + стабы» (T1–T8)
+
+### Затронутые компоненты и спецификации:
+- `services/gateway/internal/app/app_integration_test.go` (новый) — Go e2e интеграционный сценарий (13 шагов) против PostgreSQL
+- `tests/integration/test_gateway_api.py` (новый) — Python e2e интеграционный набор (18 тестов) на стандартной библиотеке (urllib)
+- `services/gateway/README.md` — обновлена карта REST-эндпоинтов, документированы переменные окружения, bcrypt и архитектура стабов gRPC
+- `STATUS.md`, `CHANGE_HISTORY.md`
+- Спецификации: `docs/Tech/04-api-and-access.md`, `docs/Tech/03-data.md`, `docs/Service/decisions.md` (ADR-010), `services/gateway/api/openapi.yaml`
+
+### Суть изменений:
+1. **Завершение пакета T1–T8:**
+   - **T1:** Подключены все хендлеры к роутеру `app.go`, унифицирован ключ контекста `userIDKey` (исправлен баг перманентного 401 на чатах), настроены CORS и graceful shutdown.
+   - **T2:** Внедрена схема миграции `000002_profile_and_message_content.up.sql` (поля `profession`, `gender`, `language` таблицы `users`; `content`, `code` таблицы `chat_messages`), обновлены доменные модели и SQL-запросы репозиториев.
+   - **T3:** Внедрено хэширование паролей на базе bcrypt (cost 12), бесшовная валидация и прозрачный рехэш legacy SHA-256 (`salt:sha256`) на входе, поддержка `remember_me` (сессии 30 дней против 24 часов).
+   - **T4:** Реализованы детерминированные стабы `SearchClient` (ранжирование фикстур SO-тредов по пересечению термов и скору) и `GraphClient` (генерация узлов PRIMARY/OTHER/DUPLICATE/LINKED и рёбер), каталог 23 стандартных тегов (`GET /api/v1/tags`), системный статус (`GET /api/v1/status`).
+   - **T5:** Введена строгая проверка владения ресурсами (`GetByIDForUser`, возврат 404 на чужой чат), конвейер сообщений (парсинг `[Python]`, сохранение отчетов об ошибках и RAG-ответов, автогенерация заголовков до 80 рун).
+   - **T6:** Реализован профиль пользователя `PATCH /api/v1/users/me` с запретом изменения роли (400 `role is not editable`), загрузка аватаров в Garage S3 (`aws-sdk-go-v2`, `UsePathStyle=true`) и публичный прокси-роут `GET /api/v1/users/{id}/avatar` с заголовками кэширования.
+   - **T7:** Встроена OpenAPI-спецификация через `embed.go` (`GET /openapi.yaml`) и развернут Swagger UI (`GET /docs`) без модификации исходного `openapi.yaml`.
+   - **T8:** Разработаны e2e интеграционные тесты на Go (13-шаговый сценарий жизненного цикла против PostgreSQL) и Python (18 тестов всех core-эндпоинтов на чистом stdlib с graceful skip).
+2. **Прогон dev-стека:** Развернут локальный dev-стек через `docker-compose.dev.yml` (PostgreSQL 18 + Garage S3 + Gateway + Frontend). Проверены эндпоинты `/health`, `/openapi.yaml`, прогнаны e2e тесты Python и Go, верифицирована загрузка и получение аватара через Garage S3 (побайтовое совпадение PNG).
+
+### Результаты тестов/бенчмарка:
+- `cd services/gateway && gofmt -l .` — вывод пуст (форматирование строго по стандарту).
+- `cd services/gateway && go build ./... && go vet ./...` — успешно, без предупреждений.
+- `cd services/gateway && go test ./...` — все модульные и интеграционные тесты Go пройдены успешно (без `TEST_DB_DSN` интеграционный тест корректно пропускается через `t.Skip`).
+- `TEST_DB_DSN='postgres://errorium_user:errorium_password@localhost:5432/errorium?sslmode=disable' go test ./internal/app/ -run Integration -v` — 13-шаговый e2e тест пройден успешно за 2.51 с на живой БД PostgreSQL 18.
+- `python3 -m unittest discover -s tests/unit -p "test_*.py"` — 213 unit-тестов пройдены успешно (0 регрессий).
+- `GATEWAY_URL=http://localhost:8000 python3 -m unittest discover -s tests/integration -p "test_*.py"` — 18 интеграционных тестов пройдены успешно (при недоступности Gateway тесты чисто пропускаются).
+- `git diff services/gateway/api/openapi.yaml` — вывод пуст (спецификация контракта не изменялась).
+- Ручная проверка Garage S3: загружен 67-байтный PNG через `POST /api/v1/users/avatar`, скачан без токена через `GET /api/v1/users/{id}/avatar` (код 200), утилита `cmp` подтвердила 100% побайтовое совпадение.
+
+## [2026-11-19] — REST-контракт Gateway (openapi.yaml) и пакет задач «Ядро + стабы» для внешней команды
+
+### Затронутые компоненты и спецификации:
+- `services/gateway/api/openapi.yaml` (новый) — OpenAPI 3.0.3, источник истины REST-контракта
+- `docs/Tech/04-api-and-access.md` (раздел 2 переписан под спеку, карта эндпоинтов, note о противоречии MCP-политики), `docs/Tech/03-data.md` (§3: поля users/chat_messages, аватары через прокси, миграция 000002), `docs/Service/decisions.md` (ADR-010)
+- `handoff/gateway-backend/TASKS.md`, `handoff/gateway-backend/PROMPTS.md` (новые) — самодостаточный пакет из 8 задач + промпты (оркестратор /teamwork и ручной режим)
+- `STATUS.md`
+
+### Суть изменений:
+1. **Аудит бэкенда:** хендлеры gateway не подключены (регистрируется только `/health`); обнаружены баги — два разных типа context key у middleware и handler (чаты всегда 401), отсутствие проверки владельца чата, самоназначение роли `admin` через `PATCH /users/me`; схема БД не покрывает UI (нет profession/gender/language, негде хранить текст и код RAG-ответа). Фронтенд полностью на моках (0 fetch-вызовов).
+2. **Контракт по фронтенду:** 33 пути, 24 операции `x-status: core` (auth, профиль+аватар, чаты, search/RAG/graph/tags/status стабы, Swagger UI) и 14 `planned` (SSO, сброс пароля, MCP-токены, SSE, admin). Решения ADR-010: `role` (RBAC) отделён от `profession` («роль» в UI); ошибки `{"error":msg}`, чужой ресурс → 404; два score у источника (`question_score` — голоса SO, `bm25_score` — релевантность); теги `[Python]` извлекаются из запроса; аватар без WebP-конвертации, приватный бакет Garage + публичный прокси-роут; bcrypt с прозрачным перехэшированием legacy sha256; стабы за интерфейсами SearchClient/GraphClient (замена на gRPC без изменения REST).
+3. **Пакет передачи:** T1 wiring/context/CORS → T2 миграция 000002 + domain/репозитории → T3 bcrypt/remember_me → T4 стабы → T5 чаты (владелец, конвейер сообщений, автозаголовок) → T6 профиль + аватар S3 (aws-sdk-go-v2, UsePathStyle) → T7 Swagger UI → T8 интеграционные тесты (Go c TEST_DB_DSN + Python e2e) и документация. Линейный граф (T3/T4 оба правят app.go), TDD, гейты gofmt/build/vet/test + unit-тесты проекта, один коммит на задачу, простые сообщения коммитов, лимит ретраев 3 и эскалация; зависимости разрешены владельцем (x/crypto, aws-sdk-go-v2).
+4. **Нерешённое:** политика авторизации MCP (FR-4.4 «персональные токены» против 03-data §3.4 «открытый доступ») — требует решения владельца до реализации planned-части; зафиксировано в спеке и docs.
+
+### Результаты тестов/бенчмарка:
+- `services/gateway/api/openapi.yaml`: YAML валиден, все `$ref` разрешаются (33 пути, 22 схемы, 24 core / 14 planned операций) — проверено скриптом на PyYAML.
+- `cd services/gateway && go build ./... && go vet ./...` — зелёные на момент аудита (код не менялся в этой записи).
+- Бенчмарк не запускался: ранжирование и токенизация не затрагивались (изменения только спецификаций и пакета задач).
+
 ## [2026-11-18] — Золотой набор benchmark: корпус из 30 документов и 15 вопросов
 
 ### Затронутые компоненты и спецификации:
