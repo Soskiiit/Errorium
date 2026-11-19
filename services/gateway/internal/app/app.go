@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/soskiiit/errorium/services/gateway/api"
 	"github.com/soskiiit/errorium/services/gateway/internal/graph"
 	"github.com/soskiiit/errorium/services/gateway/internal/handler"
 	"github.com/soskiiit/errorium/services/gateway/internal/middleware"
@@ -28,6 +29,9 @@ func New(cfg *config.Config) *App {
 
 	healthHandler := handler.NewHealthHandler()
 	healthHandler.RegisterRoutes(mux)
+
+	docsHandler := handler.NewDocsHandler(api.OpenAPIYAML)
+	docsHandler.RegisterRoutes(mux)
 
 	searchStub := search.NewStub()
 	graphStub := graph.NewStub()
