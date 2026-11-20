@@ -1,5 +1,22 @@
 # CHANGE_HISTORY.md — История изменений проекта Errorium
 
+## [2026-11-20] — GIGACHAT_CA_CERT: контейнерный путь сертификата стал дефолтом в конфиге gateway
+
+### Затронутые компоненты и спецификации:
+- `services/gateway/pkg/config/config.go`, `services/gateway/pkg/config/config_test.go`
+- `.env.example`, `services/gateway/README.md` (таблица env)
+- `docs/Tech/02-running.md` (§5.3), `docs/Service/decisions.md` (ADR-013 п.3)
+- `STATUS.md`
+
+### Суть изменений:
+1. Дефолт `GIGACHAT_CA_CERT` изменён с `""` на `/app/certs/russian_trusted_root_ca.crt`: автодеплой гарантированно доставляет `deploy/certs/` на сервер, compose монтирует его в `/app/certs` — отдельная переменная в `.env` больше не обязательна для работы GigaChat TLS (переопределение сохраняется). Прежний дефолт `""` приводил к клиенту с системным пулом CA без корня НУЦ (TLS со Сбером не работал) при заданных ключах.
+2. Документация синхронизирована: `.env.example` и README gateway отражают дефолт (в README прежний дефолт был указан неверно — хостовый путь), §5.3 и ADR-013 дополнены.
+
+### Результаты тестов/бенчмарка:
+- `go test -race -count=1 ./...` (gateway, без кэша) — все пакеты OK; в `TestLoadLLMConfigDefaults` добавлена проверка нового дефолта CACert.
+- `.venv/bin/python -m unittest discover -s tests/unit -p "test_*.py"` — **317 тестов, OK**.
+- Ранжирование и токенизация не изменялись — бенчмарк не требовался.
+
 ## [2026-11-20] — Фикс автодеплоя: образ ядра в CI, сертификат НУЦ в репозитории, контракт деплоя (ADR-013)
 
 ### Затронутые компоненты и спецификации:

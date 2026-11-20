@@ -220,7 +220,7 @@ func Load() *Config {
 			OAuthURL:     getEnv("GIGACHAT_OAUTH_URL", "https://ngw.devices.sberbank.ru:9443/api/v2/oauth"),
 			BaseURL:      getEnv("GIGACHAT_BASE_URL", "https://api.giga.chat/v1"),
 			Model:        getEnv("GIGACHAT_MODEL", "GigaChat"),
-			CACert:       getEnv("GIGACHAT_CA_CERT", ""),
+			CACert:       getEnv("GIGACHAT_CA_CERT", "/app/certs/russian_trusted_root_ca.crt"),
 		},
 	}
 

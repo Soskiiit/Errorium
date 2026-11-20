@@ -113,7 +113,7 @@
 | `GIGACHAT_CLIENT_ID` | `""` | Client ID для авторизации в GigaChat OAuth |
 | `GIGACHAT_CLIENT_SECRET` | `""` | Client Secret для GigaChat OAuth |
 | `GIGACHAT_SCOPE` | `GIGACHAT_API_PERS` | Scope доступа (по умолчанию `GIGACHAT_API_PERS` для физлиц) |
-| `GIGACHAT_CA_CERT` | `deploy/certs/russian_trusted_root_ca.crt` | Путь к корневому сертификату НУЦ Минцифры |
+| `GIGACHAT_CA_CERT` | `/app/certs/russian_trusted_root_ca.crt` | Путь к корневому сертификату НУЦ Минцифры внутри контейнера (compose монтирует `./deploy/certs` → `/app/certs`) |
 | `MCP_MAX_SESSIONS_PER_IP` | `100` | Максимум одновременных активных MCP сессий с одного IP (429) |
 | `MCP_MAX_SESSIONS` | `200` | Максимум одновременных активных MCP сессий глобально (503) |
 | `MCP_CALLS_PER_MIN` | `60` | Максимум вызовов `tools/call` в минуту на одну MCP сессию (429) |

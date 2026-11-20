@@ -29,7 +29,7 @@
 ## 3. Следующий шаг (Next Step)
 
 1. **Запуск прода на errorium.ru (остаток на стороне сервера, не кода):**
-   - Заполнить `~/Errorium/.env` по `.env.example`: `GIGACHAT_CLIENT_ID/SECRET`, `LLM_PROVIDER=gigachat`, `GIGACHAT_CA_CERT=/app/certs/russian_trusted_root_ca.crt`, `SSO_REDIRECT_BASE=https://errorium.ru`, `FRONTEND_URL=https://errorium.ru`, SMTP (деплой `.env` не доставляет).
+   - Заполнить `~/Errorium/.env` по `.env.example`: `GIGACHAT_CLIENT_ID/SECRET`, `LLM_PROVIDER=gigachat`, `SSO_REDIRECT_BASE=https://errorium.ru`, `FRONTEND_URL=https://errorium.ru`, SMTP (деплой `.env` не доставляет). `GIGACHAT_CA_CERT` можно не задавать — путь `/app/certs/russian_trusted_root_ca.crt` стал дефолтом в `pkg/config`.
    - Положить поисковый индекс в `~/Errorium/data/index/` (без него core стартует unready, поиск недоступен).
    - Влить ветку в `main` — деплой триггерится только на push в `main` (или `workflow_dispatch`).
 2. **Защита проекта НИРС:**

@@ -257,7 +257,7 @@ make test
    ```
    Прежний путь `https://gu-st.ru/content/Other/doc/russian_trusted_root_ca.crt` с 2026 года отдаёт 404 — не использовать.
 2. **Конфигурация:**
-   - Каталог `deploy/certs/` монтируется в контейнер gateway как `/app/certs` (read-only) в обоих compose-файлах. Путь к файлу передается через переменную `GIGACHAT_CA_CERT` **внутри контейнера**:
+   - Каталог `deploy/certs/` монтируется в контейнер gateway как `/app/certs` (read-only) в обоих compose-файлах. Путь `/app/certs/russian_trusted_root_ca.crt` — **дефолт в `pkg/config` gateway**, отдельная переменная не обязательна; переопределение через `GIGACHAT_CA_CERT` (путь **внутри контейнера**):
      ```bash
      GIGACHAT_CA_CERT=/app/certs/russian_trusted_root_ca.crt
      ```
