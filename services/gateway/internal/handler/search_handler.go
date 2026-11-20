@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 	"unicode/utf8"
 
 	"github.com/soskiiit/errorium/services/gateway/internal/graph"
@@ -18,11 +19,17 @@ type RAGSynthesizer interface {
 	SynthesizeStream(ctx context.Context, query string, hits []search.Source, onDelta func(string)) (*search.RAGResult, error)
 }
 
+// LatencyRecorder records latency measurements in milliseconds.
+type LatencyRecorder interface {
+	Record(durationMs float64)
+}
+
 // SearchHandler handles /api/v1/search and /api/v1/graph endpoints.
 type SearchHandler struct {
 	searchClient search.SearchClient
 	graphClient  graph.GraphClient
 	ragOrch      RAGSynthesizer
+	metrics      LatencyRecorder
 }
 
 // NewSearchHandler constructs a SearchHandler with search and graph clients.
@@ -41,6 +48,12 @@ func NewSearchHandler(searchClient search.SearchClient, graphClient graph.GraphC
 // WithRAGOrchestrator attaches a RAG synthesizer orchestrator to the handler.
 func (h *SearchHandler) WithRAGOrchestrator(orch RAGSynthesizer) *SearchHandler {
 	h.ragOrch = orch
+	return h
+}
+
+// WithMetrics attaches a latency recorder for search calls.
+func (h *SearchHandler) WithMetrics(recorder LatencyRecorder) *SearchHandler {
+	h.metrics = recorder
 	return h
 }
 
@@ -81,12 +94,16 @@ func (h *SearchHandler) Search(w http.ResponseWriter, r *http.Request) {
 		topK = 50
 	}
 
+	start := time.Now()
 	resp, err := h.searchClient.Search(r.Context(), search.SearchRequest{
 		Query:    trimmedQuery,
 		TopK:     topK,
 		Tags:     body.Tags,
 		Language: body.Language,
 	})
+	if h.metrics != nil {
+		h.metrics.Record(float64(time.Since(start).Nanoseconds()) / 1e6)
+	}
 	if err != nil {
 		respondError(w, http.StatusBadGateway, "search backend unavailable")
 		return
@@ -130,7 +147,11 @@ func (h *SearchHandler) SearchRAG(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 1. Retrieve search hits from core first (errors before streaming -> 502 JSON)
+	start := time.Now()
 	searchResp, err := h.searchClient.Search(r.Context(), searchReq)
+	if h.metrics != nil {
+		h.metrics.Record(float64(time.Since(start).Nanoseconds()) / 1e6)
+	}
 	if err != nil {
 		respondError(w, http.StatusBadGateway, "search backend unavailable")
 		return

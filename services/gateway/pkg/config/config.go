@@ -93,18 +93,20 @@ type MCPConfig struct {
 }
 
 type Config struct {
-	Port             string
-	SearchEngineAddr string
-	DB               DBConfig
-	S3               S3Config
-	MinIO            S3Config
-	JWT              JWTConfig
-	SMTP             SMTPConfig
-	SSO              SSOConfig
-	FrontendURL      string
-	AutoMigrate      bool
-	LLM              LLMConfig
-	MCP              MCPConfig
+	Port               string
+	SearchEngineAddr   string
+	DB                 DBConfig
+	S3                 S3Config
+	MinIO              S3Config
+	JWT                JWTConfig
+	SMTP               SMTPConfig
+	SSO                SSOConfig
+	FrontendURL        string
+	AutoMigrate        bool
+	LLM                LLMConfig
+	MCP                MCPConfig
+	FirstAdminEmail    string
+	FirstAdminPassword string
 }
 
 func getEnv(key, defaultVal string) string {
@@ -250,14 +252,16 @@ func Load() *Config {
 	}
 
 	return &Config{
-		Port:             getEnv("GATEWAY_PORT", "8000"),
-		SearchEngineAddr: searchEngineAddr,
-		AutoMigrate:      getEnv("AUTO_MIGRATE", "true") == "true",
-		FrontendURL:      getEnv("FRONTEND_URL", "http://localhost:3000"),
-		SMTP:             smtpCfg,
-		SSO:              ssoCfg,
-		LLM:              llmCfg,
-		MCP:              mcpCfg,
+		Port:               getEnv("GATEWAY_PORT", "8000"),
+		SearchEngineAddr:   searchEngineAddr,
+		AutoMigrate:        getEnv("AUTO_MIGRATE", "true") == "true",
+		FrontendURL:        getEnv("FRONTEND_URL", "http://localhost:3000"),
+		SMTP:               smtpCfg,
+		SSO:                ssoCfg,
+		LLM:                llmCfg,
+		MCP:                mcpCfg,
+		FirstAdminEmail:    getEnv("FIRST_ADMIN_EMAIL", ""),
+		FirstAdminPassword: getEnv("FIRST_ADMIN_PASSWORD", ""),
 		JWT: JWTConfig{
 			SecretKey:              getEnv("JWT_SECRET_KEY", "change-this-in-production"),
 			AccessTokenExpireMin:   accessExpMin,

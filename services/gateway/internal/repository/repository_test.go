@@ -4,8 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"database/sql/driver"
+	"encoding/json"
 	"fmt"
 	"io"
+	"net/netip"
 	"strings"
 	"sync"
 	"testing"
@@ -25,6 +27,8 @@ var (
 	_ repository.RagConfigStore     = (*repository.RagConfigRepository)(nil)
 	_ repository.SessionStore       = (*repository.SessionRepository)(nil)
 	_ repository.SSOAccountStore    = (*repository.SSOAccountRepository)(nil)
+	_ repository.AuditStore         = (*repository.AuditRepository)(nil)
+	_ repository.UserStore          = (*repository.UserRepository)(nil)
 )
 
 // ── Mock SQL Driver ───────────────────────────────────────────────────────────
@@ -34,11 +38,17 @@ type queryRecord struct {
 	args  []driver.NamedValue
 }
 
+type queryResult struct {
+	cols []string
+	vals [][]driver.Value
+}
+
 type mockDriver struct {
 	mu           sync.Mutex
 	queries      []queryRecord
 	nextRowsCols []string
 	nextRowsVals [][]driver.Value
+	resultQueue  []queryResult
 	execErr      error
 	queryErr     error
 }
@@ -62,6 +72,7 @@ func (d *mockDriver) reset() {
 	d.queries = nil
 	d.nextRowsCols = nil
 	d.nextRowsVals = nil
+	d.resultQueue = nil
 	d.execErr = nil
 	d.queryErr = nil
 }
@@ -101,8 +112,17 @@ func (c *mockConn) QueryContext(ctx context.Context, query string, args []driver
 	if c.d.queryErr != nil {
 		return nil, c.d.queryErr
 	}
-	cols := c.d.nextRowsCols
-	vals := c.d.nextRowsVals
+	var cols []string
+	var vals [][]driver.Value
+	if len(c.d.resultQueue) > 0 {
+		res := c.d.resultQueue[0]
+		c.d.resultQueue = c.d.resultQueue[1:]
+		cols = res.cols
+		vals = res.vals
+	} else {
+		cols = c.d.nextRowsCols
+		vals = c.d.nextRowsVals
+	}
 	return &mockRows{cols: cols, rows: vals, idx: 0}, nil
 }
 
@@ -426,5 +446,92 @@ func TestSSOAccountRepository_CreateAndGet(t *testing.T) {
 	}
 	if got.Email == nil || *got.Email != email {
 		t.Errorf("unexpected email: %v", got.Email)
+	}
+}
+
+// ── Tests for AuditRepository ────────────────────────────────────────────────
+
+func TestAuditRepository_CreateAndLog(t *testing.T) {
+	database, mock := setupMockDB(t)
+	repo := repository.NewAuditRepository(database)
+
+	ctx := context.Background()
+	userID := uuid.New()
+	addr := netip.MustParseAddr("127.0.0.1")
+
+	err := repo.Log(ctx, &userID, "admin_test", &addr, json.RawMessage(`{"foo":"bar"}`))
+	if err != nil {
+		t.Fatalf("Log failed: %v", err)
+	}
+	if len(mock.queries) != 1 || !strings.Contains(mock.queries[0].query, "INSERT INTO audit_logs") {
+		t.Errorf("expected insert query, got %v", mock.queries)
+	}
+}
+
+// ── Tests for UserRepository.List and UpdateRoleAndStatus ─────────────────────
+
+func TestUserRepository_List(t *testing.T) {
+	database, mock := setupMockDB(t)
+	repo := repository.NewUserRepository(database)
+
+	ctx := context.Background()
+	now := time.Now().UTC()
+	uID := uuid.New()
+
+	// Enqueue count result and rows result
+	mock.resultQueue = []queryResult{
+		{
+			cols: []string{"count"},
+			vals: [][]driver.Value{{1}},
+		},
+		{
+			cols: []string{
+				"id", "email", "username", "avatar_url", "password_hash",
+				"role", "profession", "gender", "language", "is_active",
+				"created_at", "updated_at", "last_login_at",
+			},
+			vals: [][]driver.Value{
+				{uID.String(), "user@example.com", "user", nil, nil, "user", "Developer", "Not specified", "English", true, now, now, nil},
+			},
+		},
+	}
+
+	items, total, err := repo.List(ctx, 20, 0, "user")
+	if err != nil {
+		t.Fatalf("List failed: %v", err)
+	}
+	if total != 1 || len(items) != 1 {
+		t.Errorf("unexpected list result: total=%d, items=%d", total, len(items))
+	}
+	if items[0].Email != "user@example.com" {
+		t.Errorf("unexpected user: %v", items[0])
+	}
+}
+
+func TestUserRepository_UpdateRoleAndStatus(t *testing.T) {
+	database, mock := setupMockDB(t)
+	repo := repository.NewUserRepository(database)
+
+	ctx := context.Background()
+	now := time.Now().UTC()
+	uID := uuid.New()
+
+	mock.nextRowsCols = []string{
+		"id", "email", "username", "avatar_url", "password_hash",
+		"role", "profession", "gender", "language", "is_active",
+		"created_at", "updated_at", "last_login_at",
+	}
+	mock.nextRowsVals = [][]driver.Value{
+		{uID.String(), "user@example.com", "user", nil, nil, "admin", "Developer", "Not specified", "English", false, now, now, nil},
+	}
+
+	newRole := domain.RoleAdmin
+	newActive := false
+	updated, err := repo.UpdateRoleAndStatus(ctx, uID, &newRole, &newActive)
+	if err != nil {
+		t.Fatalf("UpdateRoleAndStatus failed: %v", err)
+	}
+	if updated.Role != domain.RoleAdmin || updated.IsActive != false {
+		t.Errorf("unexpected updated user: %+v", updated)
 	}
 }

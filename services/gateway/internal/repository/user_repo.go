@@ -3,7 +3,9 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -103,6 +105,116 @@ func (r *UserRepository) UpdateLastLogin(ctx context.Context, id uuid.UUID, t ti
 		return fmt.Errorf("user_repo.UpdateLastLogin: %w", err)
 	}
 	return nil
+}
+
+// List retrieves users with pagination and optional search filter by email or username.
+func (r *UserRepository) List(ctx context.Context, limit, offset int, search string) ([]*domain.User, int, error) {
+	if limit <= 0 {
+		limit = 20
+	} else if limit > 100 {
+		limit = 100
+	}
+	if offset < 0 {
+		offset = 0
+	}
+
+	search = strings.TrimSpace(search)
+	var countQuery string
+	var listQuery string
+	var countArgs []interface{}
+	var listArgs []interface{}
+
+	if search != "" {
+		countQuery = `SELECT COUNT(*) FROM users WHERE email ILIKE $1 OR username ILIKE $1`
+		searchPattern := "%" + search + "%"
+		countArgs = []interface{}{searchPattern}
+
+		listQuery = `
+			SELECT id, email, username, avatar_url, password_hash, role, profession, gender, language, is_active, created_at, updated_at, last_login_at
+			FROM users
+			WHERE email ILIKE $1 OR username ILIKE $1
+			ORDER BY created_at DESC, id DESC
+			LIMIT $2 OFFSET $3`
+		listArgs = []interface{}{searchPattern, limit, offset}
+	} else {
+		countQuery = `SELECT COUNT(*) FROM users`
+		listQuery = `
+			SELECT id, email, username, avatar_url, password_hash, role, profession, gender, language, is_active, created_at, updated_at, last_login_at
+			FROM users
+			ORDER BY created_at DESC, id DESC
+			LIMIT $1 OFFSET $2`
+		listArgs = []interface{}{limit, offset}
+	}
+
+	var total int
+	if err := r.db.QueryRowContext(ctx, countQuery, countArgs...).Scan(&total); err != nil {
+		return nil, 0, fmt.Errorf("user_repo.List.count: %w", err)
+	}
+
+	rows, err := r.db.QueryContext(ctx, listQuery, listArgs...)
+	if err != nil {
+		return nil, 0, fmt.Errorf("user_repo.List.query: %w", err)
+	}
+	defer rows.Close()
+
+	items := make([]*domain.User, 0, limit)
+	for rows.Next() {
+		u := &domain.User{}
+		var roleStr string
+		if err := rows.Scan(
+			&u.ID, &u.Email, &u.Username, &u.AvatarURL, &u.PasswordHash,
+			&roleStr, &u.Profession, &u.Gender, &u.Language, &u.IsActive, &u.CreatedAt, &u.UpdatedAt, &u.LastLoginAt,
+		); err != nil {
+			return nil, 0, fmt.Errorf("user_repo.List.scan: %w", err)
+		}
+		u.Role = domain.Role(roleStr)
+		items = append(items, u)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, 0, fmt.Errorf("user_repo.List.rows: %w", err)
+	}
+
+	return items, total, nil
+}
+
+// UpdateRoleAndStatus updates role and/or is_active fields of a user and returns updated User.
+func (r *UserRepository) UpdateRoleAndStatus(ctx context.Context, id uuid.UUID, role *domain.Role, isActive *bool) (*domain.User, error) {
+	if role == nil && isActive == nil {
+		return r.GetByID(ctx, id)
+	}
+
+	setParts := []string{"updated_at = NOW()"}
+	args := []interface{}{}
+	argIdx := 1
+
+	if role != nil {
+		setParts = append(setParts, fmt.Sprintf("role = $%d", argIdx))
+		args = append(args, string(*role))
+		argIdx++
+	}
+	if isActive != nil {
+		setParts = append(setParts, fmt.Sprintf("is_active = $%d", argIdx))
+		args = append(args, *isActive)
+		argIdx++
+	}
+
+	args = append(args, id)
+	q := fmt.Sprintf(`
+		UPDATE users
+		SET %s
+		WHERE id = $%d
+		RETURNING id, email, username, avatar_url, password_hash, role, profession, gender, language, is_active, created_at, updated_at, last_login_at`,
+		strings.Join(setParts, ", "), argIdx)
+
+	row := r.db.QueryRowContext(ctx, q, args...)
+	u, err := r.scanUser(row)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) || strings.Contains(err.Error(), "no rows") {
+			return nil, sql.ErrNoRows
+		}
+		return nil, fmt.Errorf("user_repo.UpdateRoleAndStatus: %w", err)
+	}
+	return u, nil
 }
 
 // scanUser reads a *domain.User from a single *sql.Row.

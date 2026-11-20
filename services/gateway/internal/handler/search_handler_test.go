@@ -257,3 +257,37 @@ func TestSearchHandler_BackendError_502(t *testing.T) {
 		t.Errorf("expected 502 for graph backend error, got %d", recGraph.Code)
 	}
 }
+
+type mockLatencyRecorder struct {
+	recorded []float64
+}
+
+func (m *mockLatencyRecorder) Record(durationMs float64) {
+	m.recorded = append(m.recorded, durationMs)
+}
+
+func TestSearchHandler_MetricsRecorded(t *testing.T) {
+	searchStub := search.NewStub()
+	graphStub := graph.NewStub()
+	recorder := &mockLatencyRecorder{}
+
+	h := handler.NewSearchHandler(searchStub, graphStub).WithMetrics(recorder)
+	mux := http.NewServeMux()
+	h.RegisterRoutes(mux)
+
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/search", bytes.NewBufferString(`{"query":"python error"}`))
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+	mux.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rec.Code)
+	}
+
+	if len(recorder.recorded) != 1 {
+		t.Fatalf("expected 1 recorded latency, got %d", len(recorder.recorded))
+	}
+	if recorder.recorded[0] < 0 {
+		t.Errorf("expected non-negative duration, got %f", recorder.recorded[0])
+	}
+}

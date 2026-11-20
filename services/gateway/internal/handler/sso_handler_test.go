@@ -165,6 +165,14 @@ func (f *ssoFakeUserStore) UpdateLastLogin(ctx context.Context, id uuid.UUID, t 
 	return nil
 }
 
+func (f *ssoFakeUserStore) List(ctx context.Context, limit, offset int, search string) ([]*domain.User, int, error) {
+	return nil, 0, nil
+}
+
+func (f *ssoFakeUserStore) UpdateRoleAndStatus(ctx context.Context, id uuid.UUID, role *domain.Role, isActive *bool) (*domain.User, error) {
+	return nil, nil
+}
+
 type ssoFakeSessionStore struct {
 	mu       sync.Mutex
 	sessions map[string]*domain.UserSession

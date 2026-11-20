@@ -286,3 +286,23 @@ func TestLoadLLMConfigCustom(t *testing.T) {
 		t.Errorf("expected custom SystemPrompt, got %s", cfg.LLM.SystemPrompt)
 	}
 }
+
+func TestLoadFirstAdminConfig(t *testing.T) {
+	os.Clearenv()
+
+	cfg := config.Load()
+	if cfg.FirstAdminEmail != "" || cfg.FirstAdminPassword != "" {
+		t.Errorf("expected empty default FirstAdminEmail and FirstAdminPassword")
+	}
+
+	t.Setenv("FIRST_ADMIN_EMAIL", "admin@errorium.ru")
+	t.Setenv("FIRST_ADMIN_PASSWORD", "SuperAdminSecret123")
+
+	cfgCustom := config.Load()
+	if cfgCustom.FirstAdminEmail != "admin@errorium.ru" {
+		t.Errorf("expected admin@errorium.ru, got %s", cfgCustom.FirstAdminEmail)
+	}
+	if cfgCustom.FirstAdminPassword != "SuperAdminSecret123" {
+		t.Errorf("expected SuperAdminSecret123, got %s", cfgCustom.FirstAdminPassword)
+	}
+}

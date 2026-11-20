@@ -2,18 +2,24 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
+	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/soskiiit/errorium/services/gateway/api"
+	"github.com/soskiiit/errorium/services/gateway/domain"
 	"github.com/soskiiit/errorium/services/gateway/internal/graph"
 	"github.com/soskiiit/errorium/services/gateway/internal/handler"
 	"github.com/soskiiit/errorium/services/gateway/internal/llm"
 	"github.com/soskiiit/errorium/services/gateway/internal/mcp"
+	"github.com/soskiiit/errorium/services/gateway/internal/metrics"
 	"github.com/soskiiit/errorium/services/gateway/internal/middleware"
 	"github.com/soskiiit/errorium/services/gateway/internal/rag"
 	"github.com/soskiiit/errorium/services/gateway/internal/repository"
@@ -119,7 +125,9 @@ func New(cfg *config.Config) *App {
 		nil,
 	)
 
-	searchHandler := handler.NewSearchHandler(searchClient, graphClient, ragOrch)
+	metricsInst := metrics.New()
+
+	searchHandler := handler.NewSearchHandler(searchClient, graphClient, ragOrch).WithMetrics(metricsInst)
 	searchHandler.RegisterRoutes(mux)
 
 	tagsHandler := handler.NewTagsHandler()
@@ -208,6 +216,31 @@ func New(cfg *config.Config) *App {
 			cfg.JWT.RefreshTokenExpireDays,
 		)
 		ssoHandler.RegisterRoutes(mux)
+
+		auditRepo := repository.NewAuditRepository(database)
+
+		if cfg.FirstAdminEmail != "" && cfg.FirstAdminPassword != "" {
+			if err := BootstrapFirstAdmin(context.Background(), userRepo, cfg.FirstAdminEmail, cfg.FirstAdminPassword); err != nil {
+				log.Printf("Bootstrap admin failed: %v", err)
+			}
+		}
+
+		var coreAdminClient handler.CoreAdminClient
+		if grpcSearch, ok := searchClient.(handler.CoreAdminClient); ok {
+			coreAdminClient = grpcSearch
+		}
+
+		adminHandler := handler.NewAdminHandler(
+			coreAdminClient,
+			metricsInst,
+			userRepo,
+			ragConfigRepo,
+			auditRepo,
+		)
+		adminMW := func(next http.Handler) http.Handler {
+			return authMW(middleware.RequireAdmin(next))
+		}
+		adminHandler.RegisterRoutes(mux, adminMW)
 	}
 
 	corsMW := middleware.CORS()
@@ -260,4 +293,51 @@ func (a *App) Shutdown(ctx context.Context) error {
 		}
 	}
 	return err
+}
+
+// BootstrapFirstAdmin creates the initial administrator user if not already present.
+// The operation is strictly idempotent and does not overwrite existing users.
+func BootstrapFirstAdmin(ctx context.Context, userRepo repository.UserStore, email, password string) error {
+	email = strings.TrimSpace(email)
+	if email == "" || password == "" {
+		return nil
+	}
+
+	existing, err := userRepo.GetByEmail(ctx, email)
+	if err == nil && existing != nil {
+		return nil
+	}
+
+	parts := strings.Split(email, "@")
+	username := parts[0]
+	if username == "" {
+		username = "admin"
+	}
+
+	pwHash, err := bcrypt.GenerateFromPassword([]byte(password), 12)
+	if err != nil {
+		return fmt.Errorf("failed to hash first admin password: %w", err)
+	}
+	hashStr := string(pwHash)
+
+	now := time.Now().UTC()
+	adminUser := &domain.User{
+		ID:           uuid.New(),
+		Email:        email,
+		Username:     username,
+		PasswordHash: &hashStr,
+		Role:         domain.RoleAdmin,
+		Profession:   "Administrator",
+		Gender:       "Not specified",
+		Language:     "English",
+		IsActive:     true,
+		CreatedAt:    now,
+		UpdatedAt:    now,
+	}
+
+	if err := userRepo.Create(ctx, adminUser); err != nil {
+		return fmt.Errorf("failed to create first admin user: %w", err)
+	}
+	log.Printf("First administrator successfully bootstrapped: %s", email)
+	return nil
 }

@@ -2,6 +2,7 @@ package app_test
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -9,6 +10,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
+
+	"github.com/soskiiit/errorium/services/gateway/domain"
 	"github.com/soskiiit/errorium/services/gateway/internal/app"
 	"github.com/soskiiit/errorium/services/gateway/pkg/config"
 )
@@ -57,6 +62,10 @@ func TestApp_NoDB_Health200_Chats404(t *testing.T) {
 		{http.MethodPost, "/api/v1/auth/password/forgot"},
 		{http.MethodPost, "/api/v1/auth/password/reset"},
 		{http.MethodPost, "/api/v1/auth/password/change"},
+		{http.MethodGet, "/api/v1/admin/stats"},
+		{http.MethodPost, "/api/v1/admin/index/reload"},
+		{http.MethodGet, "/api/v1/admin/users"},
+		{http.MethodGet, "/api/v1/admin/rag/config"},
 	}
 
 	for _, up := range unregisteredPaths {
@@ -233,4 +242,153 @@ func TestApp_ServerTimeouts_WriteTimeoutZero(t *testing.T) {
 	if server.IdleTimeout != 60*time.Second {
 		t.Errorf("expected IdleTimeout 60s, got %v", server.IdleTimeout)
 	}
+}
+
+type fakeUserStore struct {
+	users map[string]*domain.User
+}
+
+func newFakeUserStore() *fakeUserStore {
+	return &fakeUserStore{users: make(map[string]*domain.User)}
+}
+
+func (f *fakeUserStore) Create(ctx context.Context, u *domain.User) error {
+	f.users[u.Email] = u
+	return nil
+}
+
+func (f *fakeUserStore) GetByID(ctx context.Context, id uuid.UUID) (*domain.User, error) {
+	for _, u := range f.users {
+		if u.ID == id {
+			return u, nil
+		}
+	}
+	return nil, sql.ErrNoRows
+}
+
+func (f *fakeUserStore) GetByEmail(ctx context.Context, email string) (*domain.User, error) {
+	u, ok := f.users[email]
+	if !ok {
+		return nil, sql.ErrNoRows
+	}
+	return u, nil
+}
+
+func (f *fakeUserStore) UpdateProfile(ctx context.Context, u *domain.User) error {
+	f.users[u.Email] = u
+	return nil
+}
+
+func (f *fakeUserStore) UpdatePasswordHash(ctx context.Context, id uuid.UUID, hash string) error {
+	return nil
+}
+
+func (f *fakeUserStore) UpdateLastLogin(ctx context.Context, id uuid.UUID, t time.Time) error {
+	return nil
+}
+
+func (f *fakeUserStore) List(ctx context.Context, limit, offset int, search string) ([]*domain.User, int, error) {
+	return nil, 0, nil
+}
+
+func (f *fakeUserStore) UpdateRoleAndStatus(ctx context.Context, id uuid.UUID, role *domain.Role, isActive *bool) (*domain.User, error) {
+	return nil, nil
+}
+
+func TestBootstrapFirstAdmin(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("creates first admin when none exists", func(t *testing.T) {
+		store := newFakeUserStore()
+		email := "admin@errorium.ru"
+		pass := "AdminSecurePass123!"
+
+		err := app.BootstrapFirstAdmin(ctx, store, email, pass)
+		if err != nil {
+			t.Fatalf("BootstrapFirstAdmin failed: %v", err)
+		}
+
+		u, ok := store.users[email]
+		if !ok {
+			t.Fatalf("expected admin user to be created")
+		}
+		if u.Email != email {
+			t.Errorf("expected email %s, got %s", email, u.Email)
+		}
+		if u.Username != "admin" {
+			t.Errorf("expected username 'admin', got %s", u.Username)
+		}
+		if u.Role != domain.RoleAdmin {
+			t.Errorf("expected role 'admin', got %s", u.Role)
+		}
+		if !u.IsActive {
+			t.Errorf("expected is_active true")
+		}
+		if u.PasswordHash == nil {
+			t.Fatalf("expected password hash to be set")
+		}
+
+		if err := bcrypt.CompareHashAndPassword([]byte(*u.PasswordHash), []byte(pass)); err != nil {
+			t.Errorf("password hash verification failed: %v", err)
+		}
+	})
+
+	t.Run("idempotent: does not overwrite existing admin", func(t *testing.T) {
+		store := newFakeUserStore()
+		email := "admin@errorium.ru"
+		pass := "AdminSecurePass123!"
+
+		_ = app.BootstrapFirstAdmin(ctx, store, email, pass)
+		initialUser := store.users[email]
+
+		// Call again with a different password
+		err := app.BootstrapFirstAdmin(ctx, store, email, "DifferentPassword456!")
+		if err != nil {
+			t.Fatalf("second bootstrap failed: %v", err)
+		}
+
+		afterUser := store.users[email]
+		if *afterUser.PasswordHash != *initialUser.PasswordHash {
+			t.Errorf("expected password hash to remain unchanged")
+		}
+	})
+
+	t.Run("does not overwrite regular user with same email", func(t *testing.T) {
+		store := newFakeUserStore()
+		email := "existing@errorium.ru"
+		existingHash := "$2a$12$existingFakeHash"
+		existingUser := &domain.User{
+			ID:           uuid.New(),
+			Email:        email,
+			Username:     "existing",
+			PasswordHash: &existingHash,
+			Role:         domain.RoleUser,
+			IsActive:     true,
+			CreatedAt:    time.Now(),
+			UpdatedAt:    time.Now(),
+		}
+		_ = store.Create(ctx, existingUser)
+
+		err := app.BootstrapFirstAdmin(ctx, store, email, "NewAdminPassword!")
+		if err != nil {
+			t.Fatalf("bootstrap failed: %v", err)
+		}
+
+		u := store.users[email]
+		if u.Role != domain.RoleUser {
+			t.Errorf("expected role to remain 'user', got %s", u.Role)
+		}
+		if *u.PasswordHash != existingHash {
+			t.Errorf("expected password hash to remain original")
+		}
+	})
+
+	t.Run("empty email or password does nothing", func(t *testing.T) {
+		store := newFakeUserStore()
+		_ = app.BootstrapFirstAdmin(ctx, store, "", "pass")
+		_ = app.BootstrapFirstAdmin(ctx, store, "admin@test.ru", "")
+		if len(store.users) != 0 {
+			t.Errorf("expected no users created when credentials are empty")
+		}
+	})
 }

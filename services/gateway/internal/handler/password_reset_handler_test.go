@@ -101,6 +101,14 @@ func (m *mockUserStore) UpdateLastLogin(ctx context.Context, id uuid.UUID, t tim
 	return nil
 }
 
+func (m *mockUserStore) List(ctx context.Context, limit, offset int, search string) ([]*domain.User, int, error) {
+	return nil, 0, nil
+}
+
+func (m *mockUserStore) UpdateRoleAndStatus(ctx context.Context, id uuid.UUID, role *domain.Role, isActive *bool) (*domain.User, error) {
+	return nil, nil
+}
+
 type mockPasswordResetStore struct {
 	mu             sync.Mutex
 	tokensByHash   map[string]*domain.PasswordResetToken

@@ -104,6 +104,14 @@ func (f *fakeUserStore) UpdateLastLogin(ctx context.Context, id uuid.UUID, t tim
 	return nil
 }
 
+func (f *fakeUserStore) List(ctx context.Context, limit, offset int, search string) ([]*domain.User, int, error) {
+	return nil, 0, nil
+}
+
+func (f *fakeUserStore) UpdateRoleAndStatus(ctx context.Context, id uuid.UUID, role *domain.Role, isActive *bool) (*domain.User, error) {
+	return nil, nil
+}
+
 type fakeSessionStore struct {
 	mu       sync.Mutex
 	sessions map[string]*domain.UserSession // tokenHash -> session

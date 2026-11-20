@@ -4,6 +4,8 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
+	"net/netip"
 	"time"
 
 	"github.com/google/uuid"
@@ -20,6 +22,8 @@ type UserStore interface {
 	UpdateProfile(ctx context.Context, u *domain.User) error
 	UpdatePasswordHash(ctx context.Context, id uuid.UUID, hash string) error
 	UpdateLastLogin(ctx context.Context, id uuid.UUID, t time.Time) error
+	List(ctx context.Context, limit, offset int, search string) ([]*domain.User, int, error)
+	UpdateRoleAndStatus(ctx context.Context, id uuid.UUID, role *domain.Role, isActive *bool) (*domain.User, error)
 }
 
 // SessionStore is the interface auth-layer uses to manage refresh-token sessions.
@@ -75,4 +79,10 @@ type RagConfigStore interface {
 type SSOAccountStore interface {
 	Create(ctx context.Context, account *domain.UserSSOAccount) error
 	GetByProviderAndUserID(ctx context.Context, provider domain.SSOProvider, providerUserID string) (*domain.UserSSOAccount, error)
+}
+
+// AuditStore manages audit logging for security and administrative events.
+type AuditStore interface {
+	Create(ctx context.Context, entry *domain.AuditLog) error
+	Log(ctx context.Context, userID *uuid.UUID, action string, clientIP *netip.Addr, details json.RawMessage) error
 }
