@@ -89,13 +89,52 @@ func ExtractCodeAndSynthesis(raw string) (string, *string) {
 	return synthesis, codePtr
 }
 
+// ChatTurn is one past chat message passed to the LLM as context (ADR-014).
+type ChatTurn struct {
+	Role    string
+	Content string
+}
+
+// ChatContext carries per-chat memory: a recent history window and the distilled memory cell.
+type ChatContext struct {
+	History []ChatTurn
+	Memory  string
+}
+
+var rememberBlockRegex = regexp.MustCompile("(?s)```remember[ \t]*\r?\n?(.*?)\r?\n?```")
+
+// ExtractRemember pulls the service ```remember block out of raw LLM output.
+// It returns the trimmed memory, the raw text without the block, and whether the block was present.
+func ExtractRemember(raw string) (string, string, bool) {
+	m := rememberBlockRegex.FindStringSubmatchIndex(raw)
+	if m == nil {
+		return "", raw, false
+	}
+	memory := strings.TrimSpace(raw[m[2]:m[3]])
+	rest := strings.TrimSpace(raw[:m[0]] + "\n" + raw[m[1]:])
+	rest = multiNewlineRegex.ReplaceAllString(rest, "\n\n")
+	return memory, rest, true
+}
+
 func stripHTML(s string) string {
 	clean := htmlTagRegex.ReplaceAllString(s, "")
 	return strings.TrimSpace(clean)
 }
 
-func buildUserPrompt(query string, hits []search.Source) string {
+func buildUserPrompt(query string, hits []search.Source, cc ChatContext) string {
 	var sb strings.Builder
+	if strings.TrimSpace(cc.Memory) != "" {
+		sb.WriteString("Память чата (краткие факты из прошлых сообщений):\n")
+		sb.WriteString(cc.Memory)
+		sb.WriteString("\n\n")
+	}
+	if len(cc.History) > 0 {
+		sb.WriteString("История чата (последние сообщения):\n")
+		for _, t := range cc.History {
+			sb.WriteString(fmt.Sprintf("[%s]: %s\n", t.Role, t.Content))
+		}
+		sb.WriteString("\n")
+	}
 	sb.WriteString("Запрос пользователя:\n")
 	sb.WriteString(query)
 	sb.WriteString("\n\nКонтекст из Stack Overflow:\n")
@@ -127,6 +166,7 @@ func buildUserPrompt(query string, hits []search.Source) string {
 
 	sb.WriteString("Инструкция:\n")
 	sb.WriteString("Ответь на русском языке. Сначала объясни суть и первопричину проблемы, затем приведи ОДИН fenced блок исправленного кода (в формате ```язык ... ```), затем дай рекомендации по профилактике.")
+	sb.WriteString("\nВ конце ответа добавь служебный блок ```remember\n<до 6 кратких фактов: язык/стек, суть ошибки, что уже пробовали, важные уточнения>\n``` — он не показывается пользователю и обновляет память чата. Если новых фактов нет, верни пустой блок.")
 
 	return sb.String()
 }
@@ -214,7 +254,13 @@ func (o *Orchestrator) resolveClient(cfg *domain.RagConfig) (llm.Client, llm.Par
 }
 
 // Synthesize generates a complete RAG synthesis, degrading to template on failure.
+// Stateless consumers (search, MCP) use it without chat context.
 func (o *Orchestrator) Synthesize(ctx context.Context, query string, hits []search.Source) (*search.RAGResult, error) {
+	return o.SynthesizeChat(ctx, query, hits, ChatContext{})
+}
+
+// SynthesizeChat generates a RAG synthesis with per-chat history and memory (ADR-014).
+func (o *Orchestrator) SynthesizeChat(ctx context.Context, query string, hits []search.Source, cc ChatContext) (*search.RAGResult, error) {
 	start := time.Now()
 
 	var cfg *domain.RagConfig
@@ -250,7 +296,7 @@ func (o *Orchestrator) Synthesize(ctx context.Context, query string, hits []sear
 	if systemPrompt == "" {
 		systemPrompt = o.defaultSystemPrompt
 	}
-	userPrompt := buildUserPrompt(query, hits)
+	userPrompt := buildUserPrompt(query, hits, cc)
 
 	rawResp, err := client.Complete(ctx, systemPrompt, userPrompt, params)
 	if err != nil {
@@ -259,20 +305,31 @@ func (o *Orchestrator) Synthesize(ctx context.Context, query string, hits []sear
 		return o.fallbackTemplate(query, hits, tookMs), nil
 	}
 
-	synthesis, code := ExtractCodeAndSynthesis(rawResp)
+	memory, rest, _ := ExtractRemember(rawResp)
+	synthesis, code := ExtractCodeAndSynthesis(rest)
 	tookMs := time.Since(start).Milliseconds()
 
-	return &search.RAGResult{
+	res := &search.RAGResult{
 		Query:     query,
 		Synthesis: synthesis,
 		Code:      code,
 		Sources:   hits,
 		TookMs:    tookMs,
-	}, nil
+	}
+	if memory != "" {
+		res.Remember = &memory
+	}
+	return res, nil
 }
 
 // SynthesizeStream generates a streaming RAG synthesis, invoking onDelta for text chunks.
+// Stateless consumers (search, MCP) use it without chat context.
 func (o *Orchestrator) SynthesizeStream(ctx context.Context, query string, hits []search.Source, onDelta func(string)) (*search.RAGResult, error) {
+	return o.SynthesizeChatStream(ctx, query, hits, ChatContext{}, onDelta)
+}
+
+// SynthesizeChatStream generates a streaming RAG synthesis with per-chat history and memory (ADR-014).
+func (o *Orchestrator) SynthesizeChatStream(ctx context.Context, query string, hits []search.Source, cc ChatContext, onDelta func(string)) (*search.RAGResult, error) {
 	start := time.Now()
 
 	var cfg *domain.RagConfig
@@ -320,7 +377,7 @@ func (o *Orchestrator) SynthesizeStream(ctx context.Context, query string, hits 
 	if systemPrompt == "" {
 		systemPrompt = o.defaultSystemPrompt
 	}
-	userPrompt := buildUserPrompt(query, hits)
+	userPrompt := buildUserPrompt(query, hits, cc)
 
 	var fullText strings.Builder
 	streamErr := client.Stream(ctx, systemPrompt, userPrompt, params, func(delta string) {
@@ -345,14 +402,19 @@ func (o *Orchestrator) SynthesizeStream(ctx context.Context, query string, hits 
 		return nil, streamErr
 	}
 
-	synthesis, code := ExtractCodeAndSynthesis(fullText.String())
+	memory, rest, _ := ExtractRemember(fullText.String())
+	synthesis, code := ExtractCodeAndSynthesis(rest)
 	tookMs := time.Since(start).Milliseconds()
 
-	return &search.RAGResult{
+	res := &search.RAGResult{
 		Query:     query,
 		Synthesis: synthesis,
 		Code:      code,
 		Sources:   hits,
 		TookMs:    tookMs,
-	}, nil
+	}
+	if memory != "" {
+		res.Remember = &memory
+	}
+	return res, nil
 }

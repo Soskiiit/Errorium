@@ -191,6 +191,7 @@ erDiagram
         uuid user_id FK "Ссылка на users(id)"
         text title "Заголовок чата (CHECK <= 255)"
         boolean is_pinned "Закреплен ли в сайдбаре"
+        text memory "Компактная память RAG, remember-блок модели (000004, ADR-014)"
         timestamptz created_at "Время создания"
         timestamptz updated_at "Время последнего сообщения"
     }
@@ -265,6 +266,7 @@ erDiagram
 4. **`chats`:** Диалоги и история запросов в Web UI (`Recent chats`).
    - `title`: TEXT NOT NULL DEFAULT 'Новый чат' CHECK (length(title) <= 255).
    - `is_pinned`: BOOLEAN NOT NULL DEFAULT FALSE.
+   - `memory`: TEXT NOT NULL DEFAULT '' — компактная память чата для RAG (факты о стеке/ошибке), обновляется моделью через remember-блок (миграция `000004`, ADR-014).
    - Ограничения: `FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE`.
    - Индексы: `idx_chats_user_updated` (`(user_id, updated_at DESC)`), `idx_chats_title_trgm` (GIN триграммный поиск).
 
@@ -314,6 +316,7 @@ erDiagram
 - **Изоляция инфраструктуры:** Контейнер `postgres` в `docker-compose` остается полностью чистым от скриптов инициализации (устранен антипаттерн разового монтирования в `/docker-entrypoint-initdb.d/`), а версионирование схемы (`schema_migrations`) ведется стандартными средствами мигратора.
 - **Миграция `000002_profile_and_message_content`** (итерация «Ядро + стабы», ADR-010): добавляет `users.profession`, `users.gender`, `users.language` и `chat_messages.content`, `chat_messages.code`.
 - **Миграция `000003_iteration2`** (итерация 2, ADR-011/012): добавляет `password_reset_tokens` (`id`, `user_id FK`, `token_hash UNIQUE`, `expires_at`, `used_at`, `created_at`), `sso_auth_states` (`state TEXT PK`, `provider`, `redirect_to`, `expires_at`), `rag_config` (одна строка `id=1`: `provider`, `base_url`, `model`, `system_prompt`, `temperature`, `max_tokens`, `updated_at`). Таблица `mcp_tokens` НЕ создаётся (ADR-012: MCP без токенов).
+- **Миграция `000004_chat_memory`** (ADR-014): добавляет `chats.memory` (TEXT NOT NULL DEFAULT '') — память чата для RAG: окно из 5 последних сообщений + компактная ячейка фактов, обновляемая remember-блоком модели; блок извлекается gateway и пользователю не показывается.
 
 ---
 
