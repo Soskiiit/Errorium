@@ -250,13 +250,14 @@ make test
 > [!CAUTION]
 > Отключение проверки TLS (`InsecureSkipVerify: true`) в кодовой базе проекта категорически запрещено требованиями информационной безопасности!
 
-1. **Скачивание публичного сертификата:**
-   Скачайте публичный корневой сертификат с официального портала Госуслуг:
+1. **Публичный сертификат в репозитории:**
+   Корневой сертификат НУЦ (публичный, не секрет) лежит в `deploy/certs/russian_trusted_root_ca.crt` и доставляется на сервер автодеплоем вместе с папкой `deploy/`. Скачать/обновить его можно с официального портала Госуслуг (PEM, срок действия до 27.02.2032):
    ```bash
-   curl -k -o deploy/certs/russian_trusted_root_ca.crt https://gu-st.ru/content/Other/doc/russian_trusted_root_ca.crt
+   curl -o deploy/certs/russian_trusted_root_ca.crt https://gu-st.ru/content/lending/russian_trusted_root_ca_pem.crt
    ```
+   Прежний путь `https://gu-st.ru/content/Other/doc/russian_trusted_root_ca.crt` с 2026 года отдаёт 404 — не использовать.
 2. **Конфигурация:**
-   - Каталог `deploy/certs/` монтируется в контейнер gateway как `/app/certs` (read-only) в обоих compose-файлах. Путь к файлу передается через переменную `GIGACHAT_CA_CERT` **внутри контейнера**:
+   - Каталог `deploy/certs/` монтируется в контейнер gateway как `/app/certs` (read-only) в обоих compose-файлах. Путь `/app/certs/russian_trusted_root_ca.crt` — **дефолт в `pkg/config` gateway**, отдельная переменная не обязательна; переопределение через `GIGACHAT_CA_CERT` (путь **внутри контейнера**):
      ```bash
      GIGACHAT_CA_CERT=/app/certs/russian_trusted_root_ca.crt
      ```

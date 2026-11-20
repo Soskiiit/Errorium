@@ -1,5 +1,46 @@
 # CHANGE_HISTORY.md — История изменений проекта Errorium
 
+## [2026-11-20] — GIGACHAT_CA_CERT: контейнерный путь сертификата стал дефолтом в конфиге gateway
+
+### Затронутые компоненты и спецификации:
+- `services/gateway/pkg/config/config.go`, `services/gateway/pkg/config/config_test.go`
+- `.env.example`, `services/gateway/README.md` (таблица env)
+- `docs/Tech/02-running.md` (§5.3), `docs/Service/decisions.md` (ADR-013 п.3)
+- `STATUS.md`
+
+### Суть изменений:
+1. Дефолт `GIGACHAT_CA_CERT` изменён с `""` на `/app/certs/russian_trusted_root_ca.crt`: автодеплой гарантированно доставляет `deploy/certs/` на сервер, compose монтирует его в `/app/certs` — отдельная переменная в `.env` больше не обязательна для работы GigaChat TLS (переопределение сохраняется). Прежний дефолт `""` приводил к клиенту с системным пулом CA без корня НУЦ (TLS со Сбером не работал) при заданных ключах.
+2. Документация синхронизирована: `.env.example` и README gateway отражают дефолт (в README прежний дефолт был указан неверно — хостовый путь), §5.3 и ADR-013 дополнены.
+
+### Результаты тестов/бенчмарка:
+- `go test -race -count=1 ./...` (gateway, без кэша) — все пакеты OK; в `TestLoadLLMConfigDefaults` добавлена проверка нового дефолта CACert.
+- `.venv/bin/python -m unittest discover -s tests/unit -p "test_*.py"` — **317 тестов, OK**.
+- Ранжирование и токенизация не изменялись — бенчмарк не требовался.
+
+## [2026-11-20] — Фикс автодеплоя: образ ядра в CI, сертификат НУЦ в репозитории, контракт деплоя (ADR-013)
+
+### Затронутые компоненты и спецификации:
+- `docker-compose.yml` (image для search_engine_core)
+- `.github/workflows/deploy.yml` (CI-матрица + prepare-шаг)
+- `deploy/certs/russian_trusted_root_ca.crt` (новый, публичный сертификат НУЦ Минцифры)
+- `docs/Service/decisions.md` (новый ADR-013), `docs/Tech/02-running.md` (§5.3 — актуальный URL сертификата)
+- `tests/unit/test_deploy_contract.py` (новый статический контракт автодеплоя)
+- `STATUS.md`
+
+### Суть изменений:
+1. **Падение деплоя `resolve : lstat .../Errorium/services: no such file or directory`:** `search_engine_core` был возвращён в прод-compose только с `build:` (без `image:`), CI собирал лишь gateway/frontend, а на сервер возятся только `docker-compose.yml` + `deploy/` — compose пытался собрать ядро из отсутствующих исходников. Теперь у ядра `image: ghcr.io/soskiiit/errorium-search-engine-core:develop`, CI-матрица собирает все три образа (core — context корень репозитория, `file: services/search_engine_core/Dockerfile`; путь `file` резолвится от workspace, проверено экспериментом с buildx). На сервере ничего не собирается.
+2. **Сертификат НУЦ Минцифры для GigaChat:** скачан с Госуслуг по актуальному пути `https://gu-st.ru/content/lending/russian_trusted_root_ca_pem.crt` (прежний URL из docs отдаёт 404), проверен openssl (self-signed root `Russian Trusted Root CA`, действителен до 27.02.2032), закоммичен в `deploy/certs/` — автодеплой доставит его scp вместе с папкой `deploy/`. Локально каталог `deploy/certs` был создан Docker'ом от root и блокировал запись — пересоздан от пользователя.
+3. **Prepare-шаг деплоя усилен:** удаление пустого root-каталога `deploy/certs` на сервере (иначе scp не запишет сертификат) и создание `data/index`, `data/index-benchmark`, `benchmark` от пользователя деплоя (иначе Docker создаст их от root).
+4. **Контракт автодеплоя:** `tests/unit/test_deploy_contract.py` — 10 статических тестов (image у каждого прод-сервиса, имена образов ↔ CI-матрица, тег `:develop`, `file` из матрицы, состав scp, наличие/валидность PEM-сертификата, путь в `.env.example`).
+
+### Результаты тестов/бенчмарка:
+- `.venv/bin/python -m unittest discover -s tests/unit -p "test_*.py"` — **317 тестов, OK** (307 прежних + 10 новых).
+- `docker compose -f docker-compose.yml config --quiet` и `-f docker-compose.dev.yml config --quiet` — оба валидны.
+- `actionlint` (Docker) по `.github/workflows/deploy.yml` — замечаний нет.
+- Сборка ядра с параметрами CI (`context: .`, `dockerfile: services/search_engine_core/Dockerfile`) идентична проверенной dev-сборке из `docker-compose.dev.yml`.
+- Ранжирование и токенизация не изменялись — бенчмарк не требовался.
+- Остаток на стороне сервера (не кода): заполнить `~/Errorium/.env` (`GIGACHAT_*`, `SSO_REDIRECT_BASE=https://errorium.ru`, `FRONTEND_URL=https://errorium.ru`, SMTP и пр. — деплой их не доставляет), положить индекс в `~/Errorium/data/index/` (без него core unready), влить ветку в `main` для запуска деплоя.
+
 ## [2026-11-20] — Уникальные адреса чатов /chats/<uuid>, MCP-кнопка как якорь лендинга, логирование запросов Gateway, dev-индекс и антикеширование SPA
 
 ### Затронутые компоненты и спецификации:

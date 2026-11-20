@@ -207,6 +207,9 @@ func TestLoadLLMConfigDefaults(t *testing.T) {
 	if cfg.LLM.GigaChat.Model != "GigaChat" {
 		t.Errorf("expected default GigaChat Model GigaChat, got %s", cfg.LLM.GigaChat.Model)
 	}
+	if cfg.LLM.GigaChat.CACert != "/app/certs/russian_trusted_root_ca.crt" {
+		t.Errorf("expected default GigaChat CACert /app/certs/russian_trusted_root_ca.crt, got %s", cfg.LLM.GigaChat.CACert)
+	}
 	if cfg.LLM.Temperature != 0.2 {
 		t.Errorf("expected default LLM Temperature 0.2, got %f", cfg.LLM.Temperature)
 	}
