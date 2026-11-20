@@ -134,6 +134,8 @@
             "Новый чат": "New chat",
             "О нас": "About us",
             "Войти": "Log in",
+            "Выйти": "Log out",
+            "Log out": "Log out",
             "Встречайте новые функции!": "Meet new features!",
             "Бэкенд-разработчик": "Backend developer",
             "Фронтенд-разработчик": "Frontend developer",
@@ -301,6 +303,8 @@
             "New chat": "Новый чат",
             "About us": "О нас",
             "Log in": "Войти",
+            "Log out": "Выйти",
+            "Выйти": "Выйти",
             "Meet new features!": "Встречайте новые функции!",
             "Backend developer": "Бэкенд-разработчик",
             "Frontend developer": "Фронтенд-разработчик",
@@ -763,6 +767,10 @@
         btnLoginGithub: document.getElementById('btn-login-github'),
         btnLoginGoogle: document.getElementById('btn-login-google'),
 
+        btnSidebarLogout: document.getElementById('btn-sidebar-logout'),
+        btnProfileLogout: document.getElementById('btn-profile-logout'),
+        profileRowLogout: document.getElementById('profile-row-logout'),
+
         toast: document.getElementById('toast')
     };
 
@@ -976,7 +984,22 @@
     function setAuthUser(user) {
         try {
             if (user) {
-                localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
+                const username = user.username || '';
+                const profession = user.profession || user.role || 'Backend developer';
+                const normalized = {
+                    id: user.id || null,
+                    username: username,
+                    email: user.email || '',
+                    role: profession,
+                    profession: profession,
+                    userRole: user.role || 'user',
+                    gender: user.gender || 'Not specified',
+                    language: user.language || 'English',
+                    avatarUrl: user.avatar_url || user.avatarUrl || null,
+                    avatarLetter: (username && username[0] ? username[0] : 'U').toUpperCase(),
+                    avatarGlow: user.avatarGlow || null
+                };
+                localStorage.setItem(AUTH_USER_KEY, JSON.stringify(normalized));
             } else {
                 localStorage.removeItem(AUTH_USER_KEY);
             }
@@ -995,7 +1018,7 @@
                 if (user.avatarUrl) {
                     elements.headerAvatarAuth.innerHTML = `<img src="${user.avatarUrl}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" alt="Avatar" />`;
                 } else {
-                    elements.headerAvatarAuth.textContent = (user.avatarLetter || user.username[0] || 'T').toUpperCase();
+                    elements.headerAvatarAuth.textContent = (user.avatarLetter || user.username[0] || 'U').toUpperCase();
                 }
             }
 
@@ -1003,7 +1026,7 @@
                 if (user.avatarUrl) {
                     elements.sidebarAuthAvatar.innerHTML = `<img src="${user.avatarUrl}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" alt="Avatar" />`;
                 } else {
-                    elements.sidebarAuthAvatar.textContent = (user.avatarLetter || user.username[0] || 'T').toUpperCase();
+                    elements.sidebarAuthAvatar.textContent = (user.avatarLetter || user.username[0] || 'U').toUpperCase();
                 }
             }
             const targetLangCode = (getCurrentLanguage() === 'Русский') ? 'ru' : 'en';
@@ -1012,7 +1035,7 @@
             if (elements.sidebarAuthRole) elements.sidebarAuthRole.textContent = userRoleLocalized;
 
             if (elements.profileAvatarLetter) {
-                elements.profileAvatarLetter.textContent = (user.avatarLetter || user.username[0] || 'T').toUpperCase();
+                elements.profileAvatarLetter.textContent = (user.avatarLetter || user.username[0] || 'U').toUpperCase();
             }
             if (elements.profileAvatarImg) {
                 if (user.avatarUrl) {
@@ -1034,8 +1057,8 @@
                 elements.profileInfoUsername.textContent = user.username;
             }
             if (elements.profileInfoEmail) {
-                elements.profileInfoEmail.value = user.email || 'Test_user@mail.ru';
-                elements.profileInfoEmail.textContent = user.email || 'Test_user@mail.ru';
+                elements.profileInfoEmail.value = user.email || '';
+                elements.profileInfoEmail.textContent = user.email || '';
             }
             if (elements.profileInfoRole) {
                 elements.profileInfoRole.textContent = userRoleLocalized;
@@ -1088,6 +1111,11 @@
 
     function renderCurrentRoute() {
         const path = window.location.pathname;
+
+        if (path === '/auth/callback') {
+            handleAuthCallback();
+            return;
+        }
 
         if (path === '/profile') {
             if (getAuthUser()) {
@@ -1473,14 +1501,8 @@
             e.stopPropagation();
             const selectedGender = this.getAttribute('data-gender');
             if (!selectedGender) return;
-            const user = getAuthUser() || {
-                username: 'Test_user',
-                email: 'Test_user@mail.ru',
-                role: 'Backend developer',
-                gender: 'Male',
-                language: 'English',
-                avatarLetter: 'T'
-            };
+            const user = getAuthUser();
+            if (!user) return;
             user.gender = selectedGender;
             setAuthUser(user);
             showToast(`Gender set to ${selectedGender}`);
@@ -1550,14 +1572,8 @@
         reader.onload = function (event) {
             const dataUrl = event.target.result;
             extractDominantColor(dataUrl, (glowColor) => {
-                const user = getAuthUser() || {
-                    username: 'Test_user',
-                    email: 'Test_user@mail.ru',
-                    role: 'Backend developer',
-                    gender: 'Male',
-                    language: 'English',
-                    avatarLetter: 'T'
-                };
+                const user = getAuthUser();
+                if (!user) return;
                 user.avatarUrl = dataUrl;
                 user.avatarGlow = glowColor;
                 setAuthUser(user);
@@ -1571,14 +1587,8 @@
     elements.profileInfoUsername?.addEventListener('change', (e) => {
         const val = e.target.value.trim();
         if (!val) return;
-        const user = getAuthUser() || {
-            username: 'Test_user',
-            email: 'Test_user@mail.ru',
-            role: 'Backend developer',
-            gender: 'Male',
-            language: 'English',
-            avatarLetter: 'T'
-        };
+        const user = getAuthUser();
+        if (!user) return;
         user.username = val;
         user.avatarLetter = val[0].toUpperCase();
         setAuthUser(user);
@@ -1588,14 +1598,8 @@
     elements.profileInfoEmail?.addEventListener('change', (e) => {
         const val = e.target.value.trim();
         if (!val) return;
-        const user = getAuthUser() || {
-            username: 'Test_user',
-            email: 'Test_user@mail.ru',
-            role: 'Backend developer',
-            gender: 'Male',
-            language: 'English',
-            avatarLetter: 'T'
-        };
+        const user = getAuthUser();
+        if (!user) return;
         user.email = val;
         setAuthUser(user);
         showToast('Email updated');
@@ -1627,15 +1631,10 @@
             e.stopPropagation();
             const selectedRole = this.getAttribute('data-role');
             if (!selectedRole) return;
-            const user = getAuthUser() || {
-                username: 'Test_user',
-                email: 'Test_user@mail.ru',
-                role: 'Backend developer',
-                gender: 'Male',
-                language: 'English',
-                avatarLetter: 'T'
-            };
+            const user = getAuthUser();
+            if (!user) return;
             user.role = selectedRole;
+            user.profession = selectedRole;
             setAuthUser(user);
             showToast(`Role updated to ${selectedRole}`);
 
@@ -1663,37 +1662,88 @@
         }
     });
 
+    // SSO helper
+    function initiateSSO(provider) {
+        const prov = (provider || '').toLowerCase();
+        window.location.href = `/api/v1/auth/sso/login/${prov}`;
+    }
+
+    // Logout helper
+    async function handleLogout() {
+        const tokens = window.ErroriumAPI ? window.ErroriumAPI.getTokens() : null;
+        const refreshToken = tokens ? tokens.refresh_token : null;
+        try {
+            if (window.ErroriumAPI && refreshToken) {
+                await window.ErroriumAPI.request('POST', '/auth/logout', {
+                    body: { refresh_token: refreshToken },
+                    auth: true
+                });
+            }
+        } catch (_) {
+            // Ignore API network errors during logout and finish client cleanup
+        } finally {
+            if (window.ErroriumAPI) {
+                window.ErroriumAPI.clearTokens();
+            }
+            setAuthUser(null);
+            closeAllModals();
+            switchToHeroView();
+            showToast(getCurrentLanguage() === 'Русский' ? 'Вы вышли из системы' : 'Successfully logged out');
+        }
+    }
+
     // Reference Modal Handlers
     // 1. Auth Reference Modal (Auth-screen.png)
-    elements.refAuthForm?.addEventListener('submit', (e) => {
+    elements.refAuthForm?.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const email = elements.refAuthEmail?.value || 'Test_user@mail.ru';
-        const user = {
-            username: 'Test_user',
-            email: email,
-            role: 'Backend developer',
-            gender: 'Male',
-            language: 'English',
-            avatarLetter: 'T'
-        };
-        setAuthUser(user);
-        closeAllModals();
-        showToast('Successfully logged in!');
+        const email = elements.refAuthEmail?.value.trim() || '';
+        const password = elements.refAuthPassword?.value || '';
+        const rememberMe = elements.refAuthRemember ? elements.refAuthRemember.checked : true;
+
+        if (!email || !password) {
+            showToast(getCurrentLanguage() === 'Русский' ? 'Заполните email и пароль' : 'Please enter email and password');
+            return;
+        }
+
+        try {
+            const data = await window.ErroriumAPI.request('POST', '/auth/login', {
+                body: {
+                    email: email,
+                    password: password,
+                    remember_me: rememberMe
+                },
+                auth: false
+            });
+
+            if (data && data.access_token) {
+                window.ErroriumAPI.setTokens({
+                    access_token: data.access_token,
+                    refresh_token: data.refresh_token || ''
+                });
+            }
+
+            if (data && data.user) {
+                setAuthUser(data.user);
+            } else {
+                const me = await window.ErroriumAPI.request('GET', '/auth/me');
+                setAuthUser(me);
+            }
+
+            closeAllModals();
+            showToast(getCurrentLanguage() === 'Русский' ? 'Успешный вход в систему!' : 'Successfully logged in!');
+        } catch (err) {
+            const status = err && err.status;
+            let errMsg = (err && err.error) || '';
+            if (status === 401) {
+                errMsg = getCurrentLanguage() === 'Русский' ? 'Неверный email или пароль' : 'Invalid email or password';
+                elements.refAuthEmail?.style.setProperty('border-color', '#ef4444');
+                elements.refAuthPassword?.style.setProperty('border-color', '#ef4444');
+            }
+            showToast(errMsg || (getCurrentLanguage() === 'Русский' ? 'Ошибка входа' : 'Login failed'));
+        }
     });
 
-    elements.refBtnYandex?.addEventListener('click', () => {
-        const user = {
-            username: 'Test_user',
-            email: 'Test_user@mail.ru',
-            role: 'Backend developer',
-            gender: 'Male',
-            language: 'English',
-            avatarLetter: 'T'
-        };
-        setAuthUser(user);
-        closeAllModals();
-        showToast('Logged in via Yandex ID');
-    });
+    elements.refBtnYandex?.addEventListener('click', () => initiateSSO('yandex'));
 
     elements.refAuthForgot?.addEventListener('click', () => {
         showModal(elements.modalChangePasswordEmail);
@@ -1707,43 +1757,106 @@
         showModal(elements.modalAuthRef);
     });
 
-    elements.refRegisterForm?.addEventListener('submit', (e) => {
+    elements.refRegisterForm?.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const username = elements.refRegisterUsername?.value.trim() || 'New_user';
-        const email = elements.refRegisterEmail?.value.trim() || 'user@example.com';
+        const username = elements.refRegisterUsername?.value.trim() || '';
+        const email = elements.refRegisterEmail?.value.trim() || '';
         const password = elements.refRegisterPassword?.value || '';
         const confirm = elements.refRegisterConfirm?.value || '';
+        const terms = elements.refRegisterTerms ? elements.refRegisterTerms.checked : false;
 
-        if (password !== confirm) {
-            showToast('Passwords do not match');
+        if (!terms) {
+            showToast(getCurrentLanguage() === 'Русский' ? 'Примите условия использования' : 'Please accept terms & conditions');
             return;
         }
 
-        const user = {
-            username: username,
-            email: email,
-            role: 'Backend developer',
-            gender: 'Male',
-            language: 'English',
-            avatarLetter: (username[0] || 'U').toUpperCase()
-        };
-        setAuthUser(user);
-        closeAllModals();
-        showToast('Account created successfully!');
+        if (password !== confirm) {
+            showToast(getCurrentLanguage() === 'Русский' ? 'Пароли не совпадают' : 'Passwords do not match');
+            elements.refRegisterConfirm?.style.setProperty('border-color', '#ef4444');
+            return;
+        }
+
+        if (password.length < 8) {
+            showToast(getCurrentLanguage() === 'Русский' ? 'Пароль должен содержать не менее 8 символов' : 'Password must be at least 8 characters');
+            elements.refRegisterPassword?.style.setProperty('border-color', '#ef4444');
+            return;
+        }
+
+        try {
+            const data = await window.ErroriumAPI.request('POST', '/auth/register', {
+                body: {
+                    username: username,
+                    email: email,
+                    password: password
+                },
+                auth: false
+            });
+
+            if (data && data.access_token) {
+                window.ErroriumAPI.setTokens({
+                    access_token: data.access_token,
+                    refresh_token: data.refresh_token || ''
+                });
+            }
+
+            if (data && data.user) {
+                setAuthUser(data.user);
+            } else {
+                const me = await window.ErroriumAPI.request('GET', '/auth/me');
+                setAuthUser(me);
+            }
+
+            closeAllModals();
+            showToast(getCurrentLanguage() === 'Русский' ? 'Аккаунт успешно создан!' : 'Account created successfully!');
+        } catch (err) {
+            const status = err && err.status;
+            let errMsg = (err && err.error) || '';
+            if (status === 409) {
+                errMsg = getCurrentLanguage() === 'Русский' ? 'Email уже зарегистрирован' : 'Email is already registered';
+                elements.refRegisterEmail?.style.setProperty('border-color', '#ef4444');
+            }
+            showToast(errMsg || (getCurrentLanguage() === 'Русский' ? 'Ошибка регистрации' : 'Registration failed'));
+        }
     });
 
-    elements.refBtnRegisterYandex?.addEventListener('click', () => {
-        const user = {
-            username: 'Yandex_user',
-            email: 'yandex_user@yandex.ru',
-            role: 'Backend developer',
-            gender: 'Male',
-            language: 'English',
-            avatarLetter: 'Y'
-        };
-        setAuthUser(user);
-        closeAllModals();
-        showToast('Signed up via Yandex ID');
+    elements.refBtnRegisterYandex?.addEventListener('click', () => initiateSSO('yandex'));
+
+    ['input', 'focus'].forEach(ev => {
+        elements.refAuthEmail?.addEventListener(ev, () => {
+            elements.refAuthEmail?.style.removeProperty('border-color');
+        });
+        elements.refAuthPassword?.addEventListener(ev, () => {
+            elements.refAuthPassword?.style.removeProperty('border-color');
+        });
+        elements.refRegisterEmail?.addEventListener(ev, () => {
+            elements.refRegisterEmail?.style.removeProperty('border-color');
+        });
+        elements.refRegisterPassword?.addEventListener(ev, () => {
+            elements.refRegisterPassword?.style.removeProperty('border-color');
+        });
+        elements.refRegisterConfirm?.addEventListener(ev, () => {
+            elements.refRegisterConfirm?.style.removeProperty('border-color');
+        });
+    });
+
+    elements.btnSidebarLogout?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        handleLogout();
+    });
+
+    elements.btnProfileLogout?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        handleLogout();
+    });
+
+    elements.profileRowLogout?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        handleLogout();
+    });
+
+    window.addEventListener('errorium:logout', () => {
+        setAuthUser(null);
+        updateAuthUI();
     });
 
     // 2. Reset Password Alert Modal (Reset-password-alert.png)
@@ -1792,23 +1905,9 @@
         showToast('Password updated successfully!');
     });
 
-    // Fast Auth Demo
-    elements.btnLoginGithub?.addEventListener('click', () => handleLogin('GitHub'));
-    elements.btnLoginGoogle?.addEventListener('click', () => handleLogin('Google'));
-
-    function handleLogin(provider) {
-        const user = {
-            username: 'Test_user',
-            email: 'dev@errorium.ru',
-            role: 'Backend developer',
-            gender: 'Male',
-            language: 'English',
-            avatarLetter: 'T'
-        };
-        setAuthUser(user);
-        closeAllModals();
-        showToast(`Signed in via ${provider} SSO! MCP tokens active.`);
-    }
+    // SSO Buttons
+    elements.btnLoginGithub?.addEventListener('click', () => initiateSSO('github'));
+    elements.btnLoginGoogle?.addEventListener('click', () => initiateSSO('google'));
 
     // Copy to clipboard helpers
     elements.btnCopyToken?.addEventListener('click', () => {
