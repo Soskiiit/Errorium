@@ -8,7 +8,7 @@
 - `docker-compose.core.yml` (новый), `Makefile` (`core-up`/`core-down`/`test-core`, починка `proto` и `benchmark`), `.gitignore` (pb2)
 - `benchmark/evaluate.py` (новый) — Recall@{3,5,10}, MRR@10, латентность P50/P95, пороги приёмки, JSON-отчёт
 - Тесты: `tests/unit/test_bm25_formula.py`, `test_top_k.py`, `test_index_reader.py`, `test_search_engine.py`, `test_thread_graph.py`, `_core_fixture.py` (новые, 57 тестов); `tests/integration/test_grpc_search.py` (новый, 14 gRPC-тестов), `test_core_e2e.py` (новый, parity с эталонным BM25 индексатора)
-- Спецификации: `docs/Tech/03-data.md` (новый раздел 6 — чтение индекса, BM25, фильтры, GraphService, конфиг), `docs/Tech/02-running.md` (команды ядра, env), `docs/Tech/05-verification.md` (пирамида тестов и бенчмарк ядра), `docs/Tech/WORKSPACE_MAP.md`, `docs/Service/decisions.md` (ADR-011), `STATUS.md`
+- Спецификации: `docs/Tech/03-data.md` (новый раздел 6 — чтение индекса, BM25, фильтры, GraphService, конфиг), `docs/Tech/02-running.md` (команды ядра, env), `docs/Tech/05-verification.md` (пирамида тестов и бенчмарк ядра), `docs/Tech/WORKSPACE_MAP.md`, `docs/Service/decisions.md` (ADR-011), `docs/Service/verification.md` (протокол проверки КТ2, часть Роли 2), `STATUS.md`
 
 ### Суть изменений:
 1. **Ридер индекса (`reader.py`):** `postings.bin` — через `mmap` (срезы по offset/length из словаря, без загрузки в RAM); `lexicon.bin` и `doc_lengths.bin` — в память при старте; `metadata.json` — маркер готовности, N/avgdl берутся из него; отказ при `format_version != 1` или `tokenizer_version != "1"`; lazy reload (индекс, построенный после старта, подхватывается без перезапуска).
