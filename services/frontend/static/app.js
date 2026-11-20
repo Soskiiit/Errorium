@@ -11,7 +11,7 @@
     // =========================================================================
     let currentChatId = null;
     let chatsList = [];
-    let initialGuestRecentChatsHtml = '';
+    let pendingResetToken = null;
 
     // =========================================================================
     // Multi-Language Localization System (EN <-> RU)
@@ -83,8 +83,9 @@
             "Уже есть аккаунт?": "Already have an account?",
             "Введите почту от вашего аккаунта": "Enter your account email",
             "Отправить ссылку для сброса": "Send reset link",
-            "Мы отправили вам письмо.": "We've sent you an email.",
+            "Если этот email зарегистрирован, мы отправили ссылку для сброса.": "If this email is registered, we've sent a reset link.",
             "Не забудьте проверить папку «Спам»": "Don't forget to check your spam folder",
+            "Войдите, чтобы сохранять историю чатов": "Log in to save chat history",
             "Новый пароль": "Enter a new password",
             "Повторите пароль": "Enter it again",
             "Подтвердить": "Approve",
@@ -251,8 +252,9 @@
             "Already have an account?": "Уже есть аккаунт?",
             "Enter your account email": "Введите почту от вашего аккаунта",
             "Send reset link": "Отправить ссылку для сброса",
-            "We've sent you an email.": "Мы отправили вам письмо.",
+            "If this email is registered, we've sent a reset link.": "Если этот email зарегистрирован, мы отправили ссылку для сброса.",
             "Don't forget to check your spam folder": "Не забудьте проверить папку «Спам»",
+            "Log in to save chat history": "Войдите, чтобы сохранять историю чатов",
             "Enter a new password": "Новый пароль",
             "Enter it again": "Повторите пароль",
             "Approve": "Подтвердить",
@@ -670,10 +672,6 @@
         toast: document.getElementById('toast')
     };
 
-    if (elements.recentChatsList) {
-        initialGuestRecentChatsHtml = elements.recentChatsList.innerHTML;
-    }
-
     // =========================================================================
     // Image Dominant Color Extractor (Canvas sampling with saturation boost)
     // =========================================================================
@@ -1085,6 +1083,23 @@
             return;
         }
 
+        if (path === '/reset-password') {
+            const token = new URLSearchParams(window.location.search).get('token') || '';
+            switchToHeroView(false);
+            if (token) {
+                pendingResetToken = token;
+                if (elements.refNewPassword) elements.refNewPassword.value = '';
+                if (elements.refConfirmPassword) elements.refConfirmPassword.value = '';
+                if (elements.refPasswordError) elements.refPasswordError.style.display = 'none';
+                showModal(elements.modalChangePassword, false);
+            } else {
+                window.history.replaceState({}, '', '/');
+                showToast(getCurrentLanguage() === 'Русский' ? 'Ссылка для сброса недействительна. Запросите новую.' : 'Reset link is invalid. Request a new one.');
+                showModal(elements.modalChangePasswordEmail, false);
+            }
+            return;
+        }
+
         const chatMatch = path.match(/^\/chats(?:\/([a-zA-Z0-9_\-]+))?$/);
         if (chatMatch) {
             const chatId = chatMatch[1];
@@ -1154,7 +1169,7 @@
         elements.btnAttach?.classList.remove('active');
         if (restoreRoute && !isNavigatingFromPopState) {
             const path = window.location.pathname;
-            if (['/login', '/auth', '/register', '/signup', '/settings', '/about', '/mcp'].includes(path)) {
+            if (['/login', '/auth', '/register', '/signup', '/settings', '/about', '/mcp', '/reset-password'].includes(path)) {
                 window.history.pushState({}, '', '/');
             }
         }
@@ -1951,6 +1966,7 @@
     elements.refBtnYandex?.addEventListener('click', () => initiateSSO('yandex'));
 
     elements.refAuthForgot?.addEventListener('click', () => {
+        if (elements.refResetNotice) elements.refResetNotice.style.display = 'none';
         showModal(elements.modalChangePasswordEmail);
     });
 
@@ -2066,48 +2082,104 @@
 
     // 2. Reset Password Alert Modal (Reset-password-alert.png)
     elements.refBtnAlertSendReset?.addEventListener('click', () => {
+        if (elements.refResetNotice) elements.refResetNotice.style.display = 'none';
         showModal(elements.modalChangePasswordEmail);
     });
 
     // 3. Change Password Email Modal (Change-password-email-screen.png)
-    elements.refResetEmailForm?.addEventListener('submit', (e) => {
+    elements.refResetEmailForm?.addEventListener('submit', async (e) => {
         e.preventDefault();
-        if (elements.refResetNotice) {
-            elements.refResetNotice.style.display = 'block';
+        const isRu = getCurrentLanguage() === 'Русский';
+        const email = elements.refResetEmail?.value.trim() || '';
+        if (!email) {
+            showToast(isRu ? 'Введите email' : 'Please enter your email');
+            return;
         }
-        showToast(getCurrentLanguage() === 'Русский' ? 'Письмо для сброса отправлено! Проверьте папку «Спам».' : 'Reset email sent! Check your spam folder.');
-        setTimeout(() => {
-            showModal(elements.modalChangePassword);
-            if (elements.refResetNotice) {
-                elements.refResetNotice.style.display = 'none';
+
+        const btn = elements.refBtnSendReset;
+        if (btn) btn.disabled = true;
+        if (elements.refResetNotice) elements.refResetNotice.style.display = 'none';
+        try {
+            await window.ErroriumAPI.request('POST', '/auth/password/forgot', {
+                body: { email: email },
+                auth: false
+            });
+            if (elements.refResetNotice) elements.refResetNotice.style.display = 'block';
+            showToast(isRu ? 'Если этот email зарегистрирован, ссылка для сброса отправлена. Проверьте папку «Спам».' : 'If this email is registered, a reset link has been sent. Check your spam folder.');
+        } catch (err) {
+            const status = err && err.status;
+            let errMsg = (err && err.error) || '';
+            if (status === 400) {
+                errMsg = isRu ? 'Некорректный email' : 'Invalid email format';
+            } else if (status === 500) {
+                errMsg = isRu ? 'Не удалось отправить письмо. Попробуйте позже.' : 'Failed to send the email. Please try again later.';
             }
-        }, 1600);
+            showToast(errMsg || (isRu ? 'Ошибка запроса сброса пароля' : 'Password reset request failed'));
+        } finally {
+            if (btn) btn.disabled = false;
+        }
     });
 
-    // 4. Change Password Modal (Change-password-screen.png)
-    elements.refChangePasswordForm?.addEventListener('submit', (e) => {
+    // 4. Change Password Modal (Change-password-screen.png) — только по ссылке из письма (/reset-password?token=...)
+    elements.refChangePasswordForm?.addEventListener('submit', async (e) => {
         e.preventDefault();
+        const isRu = getCurrentLanguage() === 'Русский';
         const pwd1 = elements.refNewPassword?.value || '';
         const pwd2 = elements.refConfirmPassword?.value || '';
-        if (!pwd1) {
+        const showError = (msg) => {
             if (elements.refPasswordError) {
-                elements.refPasswordError.textContent = 'Password cannot be empty';
+                elements.refPasswordError.textContent = msg;
                 elements.refPasswordError.style.display = 'block';
             }
+        };
+
+        if (!pwd1) {
+            showError(isRu ? 'Введите новый пароль' : 'Password cannot be empty');
+            return;
+        }
+        if (pwd1.length < 8 || pwd1.length > 128) {
+            showError(isRu ? 'Пароль должен содержать от 8 до 128 символов' : 'Password must be between 8 and 128 characters');
             return;
         }
         if (pwd1 !== pwd2) {
-            if (elements.refPasswordError) {
-                elements.refPasswordError.textContent = 'Passwords do not match';
-                elements.refPasswordError.style.display = 'block';
-            }
+            showError(isRu ? 'Пароли не совпадают' : 'Passwords do not match');
+            return;
+        }
+        if (!pendingResetToken) {
+            showError(isRu ? 'Ссылка для сброса недействительна. Запросите новую.' : 'Reset link is invalid. Request a new one.');
             return;
         }
         if (elements.refPasswordError) {
             elements.refPasswordError.style.display = 'none';
         }
-        closeAllModals();
-        showToast('Password updated successfully!');
+
+        const btn = elements.refBtnApprovePassword;
+        if (btn) btn.disabled = true;
+        try {
+            await window.ErroriumAPI.request('POST', '/auth/password/reset', {
+                body: { token: pendingResetToken, new_password: pwd1 },
+                auth: false
+            });
+            pendingResetToken = null;
+            // Бэкенд отзывает все сессии — очищаем локальное состояние тоже
+            if (window.ErroriumAPI) window.ErroriumAPI.clearTokens();
+            setAuthUser(null);
+            window.history.replaceState({}, '', '/');
+            closeAllModals(false);
+            showToast(isRu ? 'Пароль успешно обновлён! Войдите с новым паролем.' : 'Password updated successfully! Log in with your new password.');
+            showModal(elements.modalAuthRef || elements.modalAuth, false);
+        } catch (err) {
+            const status = err && err.status;
+            if (status === 401) {
+                showError(isRu ? 'Ссылка недействительна или истекла. Запросите новую.' : 'Reset link is invalid or expired. Request a new one.');
+            } else if (status === 400) {
+                showError(isRu ? 'Пароль должен содержать от 8 до 128 символов' : 'Password must be between 8 and 128 characters');
+            } else {
+                showError((err && err.error) || (isRu ? 'Не удалось обновить пароль' : 'Failed to update password'));
+            }
+        } finally {
+            if (btn) btn.disabled = false;
+        }
     });
 
     // SSO Buttons
@@ -2736,10 +2808,7 @@
         const isAuth = !!(window.ErroriumAPI && window.ErroriumAPI.getTokens() && getAuthUser());
 
         if (!isAuth) {
-            if (initialGuestRecentChatsHtml) {
-                elements.recentChatsList.innerHTML = initialGuestRecentChatsHtml;
-                attachGuestRecentChatsListeners();
-            }
+            elements.recentChatsList.innerHTML = `<li class="recent-chat-empty-hint" style="padding:10px 12px;font-size:0.85rem;color:rgba(255,255,255,0.4);text-align:center;">${getCurrentLanguage() === 'Русский' ? 'Войдите, чтобы сохранять историю чатов' : 'Log in to save chat history'}</li>`;
             return;
         }
 
@@ -2779,23 +2848,6 @@
                 e.stopPropagation();
                 const chatId = this.getAttribute('data-chat-id');
                 openChatContextMenu(chatId, this);
-            });
-        });
-    }
-
-    function attachGuestRecentChatsListeners() {
-        if (!elements.recentChatsList) return;
-        elements.recentChatsList.querySelectorAll('.recent-chat-item').forEach(item => {
-            item.addEventListener('click', function (e) {
-                if (e.target.closest('.chat-item-more')) {
-                    e.stopPropagation();
-                    showToast('Log in to manage recent chats');
-                    return;
-                }
-                const query = this.getAttribute('data-query') || this.querySelector('.chat-item-title')?.textContent || '';
-                if (query) {
-                    submitGuestMessage(query, query);
-                }
             });
         });
     }

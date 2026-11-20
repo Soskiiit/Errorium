@@ -38,7 +38,7 @@ class TestFrontendChats(unittest.TestCase):
             )
 
     def test_no_knowledge_base_or_mock_chats(self):
-        """Проверка полного отсутствия KNOWLEDGE_BASE и статических моковых чатов в app.js."""
+        """Проверка полного отсутствия KNOWLEDGE_BASE и статических моковых чатов в app.js и index.html."""
         self.assertNotIn(
             "KNOWLEDGE_BASE",
             self.app_js,
@@ -50,6 +50,19 @@ class TestFrontendChats(unittest.TestCase):
                 self.app_js,
                 f"В app.js не должно остаться мокового идентификатора чата {mock_id}",
             )
+
+        with open(self.index_html_path, "r", encoding="utf-8") as f:
+            html = f.read()
+        self.assertNotIn(
+            'data-chat-id="chat-',
+            html,
+            "В index.html не должно остаться моковых записей недавних чатов для гостя",
+        )
+
+        # Гостевой рендер списка чатов: подсказка о входе вместо моковых записей
+        self.assertNotIn("initialGuestRecentChatsHtml", self.app_js)
+        self.assertNotIn("attachGuestRecentChatsListeners", self.app_js)
+        self.assertIn("Log in to save chat history", self.app_js)
 
     def test_chats_api_endpoints(self):
         """Проверка наличия вызовов API чатов: /chats (GET, POST, PATCH, DELETE), /messages, /search/rag."""
@@ -149,7 +162,7 @@ class TestFrontendChats(unittest.TestCase):
         self.assertRegex(self.app_js, r"request\('POST', '/chats'")
 
     def test_guest_message_starts_new_conversation(self):
-        """Гостевая отправка (включая клик по референсному чату) начинает новый диалог, а не дописывает текущий."""
+        """Гостевая отправка начинает новый диалог, а не дописывает текущий."""
         start = self.app_js.index("async function submitGuestMessage")
         end = self.app_js.index("async function submitCurrentQuery")
         body = self.app_js[start:end]

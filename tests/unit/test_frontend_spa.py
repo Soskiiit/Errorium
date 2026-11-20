@@ -125,18 +125,15 @@ class TestFrontendSPA(unittest.TestCase):
         self.assertIn("Log in", html)
         self.assertIn("Meet new features!", html)
 
-        # 6. Референсные чаты из Chat-screen-menu-not-authorized.png
-        reference_errors = [
-            "SyntaxError: invalid syntax",
-            "IndentationError: unexpected indent",
-            "TypeError: ‘list’ object cannot be interpre...",
-            "NameError: name ‘foobar’ is not defined",
-            "UnboundLocalError: local variable ‘foobar’...",
-            "TypeError: ‘str’ object does not support it...",
-            "KeyError: ‘spam’",
-        ]
-        for err in reference_errors:
-            self.assertIn(err, html, f"В боковом меню не найден референсный чат: {err}")
+        # 6. Гостевой сайдбар без моковых записей: список недавних чатов пуст в разметке,
+        # реальные записи приходят только из API после входа
+        self.assertRegex(
+            html,
+            r'<ul id="recent-chats-list" class="recent-chats-list">\s*</ul>',
+            "Список недавних чатов в index.html должен быть пустым (без моковых записей)",
+        )
+        for mock_id in ['data-chat-id="chat-1"', 'data-chat-id="chat-7"']:
+            self.assertNotIn(mock_id, html, f"В index.html не должно остаться мокового чата {mock_id}")
 
         # 7. Окрашивание интерфейса браузера в цвет фона (#070a13)
         self.assertIn('name="theme-color"', html)
@@ -349,7 +346,7 @@ class TestFrontendSPA(unittest.TestCase):
         self.assertIn("Enter your account email", html)
         self.assertIn("ref-reset-email", html)
         self.assertIn("ref-btn-send-reset", html)
-        self.assertIn("We've sent you an email.", html)
+        self.assertIn("If this email is registered, we've sent a reset link.", html)
         self.assertIn("Don't forget to check your spam folder", html)
 
         # 3. Change Password Modal (Change-password-screen.png)
@@ -381,6 +378,37 @@ class TestFrontendSPA(unittest.TestCase):
         self.assertIn("Sign up with Yandex ID", html)
         self.assertIn("Already have an account?", html)
         self.assertIn("ref-link-signin", html)
+
+    def test_password_reset_flow_wired_to_api(self):
+        """Восстановление пароля работает через API, а не мок:
+        - forgot вызывает POST /auth/password/forgot и НЕ открывает окно нового пароля по таймеру;
+        - маршрут /reset-password?token=... открывает окно нового пароля;
+        - отправка нового пароля вызывает POST /auth/password/reset с токеном."""
+        js_path = os.path.join(STATIC_DIR, "app.js")
+        with open(js_path, "r", encoding="utf-8") as f:
+            js = f.read()
+
+        self.assertIn("'/auth/password/forgot'", js)
+        self.assertIn("'/auth/password/reset'", js)
+        self.assertIn("'/reset-password'", js)
+        self.assertIn("pendingResetToken", js)
+        self.assertIn("URLSearchParams", js)
+        self.assertIn("token: pendingResetToken", js)
+
+        # Обработчик формы email не должен имитировать отправку и открывать окно сброса по таймеру
+        start = js.index("elements.refResetEmailForm?.addEventListener")
+        end = js.index("// 4. Change Password Modal")
+        forgot_handler = js[start:end]
+        self.assertIn("/auth/password/forgot", forgot_handler)
+        self.assertNotIn("setTimeout", forgot_handler)
+        self.assertNotIn("modalChangePassword", forgot_handler)
+
+        # Обработчик нового пароля должен ходить в API, а не просто показывать тост
+        start = js.index("elements.refChangePasswordForm?.addEventListener")
+        end = js.index("// SSO Buttons")
+        reset_handler = js[start:end]
+        self.assertIn("/auth/password/reset", reset_handler)
+        self.assertIn("pendingResetToken", reset_handler)
 
     def test_profile_screen_structure(self):
         """Проверка разметки экрана профиля пользователя (Profile-screen.png)."""
