@@ -12,6 +12,7 @@
   - Web Frontend (:3000) $\to$ Gateway (:8000) по REST API и SSE.
   - Gateway (:8000) $\to$ Search Engine Core (:50051) исключительно по gRPC (SearchService, GraphService).
   - Remote MCP Server (:8000/sse, :8000/mcp/messages) работает открыто без токенов (ADR-012) для подключения из Cursor и Claude Code.
+  - Память чата для RAG (2026-11-20, ADR-014, ветка `fix/chat-memory`): окно из 5 последних сообщений + ячейка `chats.memory`, обновляемая remember-блоком модели; stateless-пути (поиск, MCP) не тронуты. Гейты зелёные (317 unit, 15 integration, бенчмарк NFR PASS); ждёт merge в `main` для деплоя.
 
 ---
 
@@ -31,7 +32,7 @@
 1. **Запуск прода на errorium.ru (остаток на стороне сервера, не кода):**
    - Заполнить `~/Errorium/.env` по `.env.example`: `GIGACHAT_CLIENT_ID/SECRET`, `LLM_PROVIDER=gigachat`, `SSO_REDIRECT_BASE=https://errorium.ru`, `FRONTEND_URL=https://errorium.ru`, SMTP (деплой `.env` не доставляет). `GIGACHAT_CA_CERT` можно не задавать — путь `/app/certs/russian_trusted_root_ca.crt` стал дефолтом в `pkg/config`.
    - Положить поисковый индекс в `~/Errorium/data/index/` (без него core стартует unready, поиск недоступен).
-   - Влить ветку в `main` — деплой триггерится только на push в `main` (или `workflow_dispatch`).
+   - Влить ветку в `main` — деплой триггерится только на push в `main` (или `workflow_dispatch`). Включая `fix/chat-memory` (память чата, ADR-014): миграция `000004` накатится автоматически при старте gateway.
 2. **Защита проекта НИРС:**
    - Демонстрация поиска решений и стектрейсов через Web UI (`http://localhost:3000`).
    - Демонстрация интерактивного графа связей Star Map на Canvas 2D.

@@ -1136,6 +1136,7 @@ components:
         user_id: { type: string, format: uuid }
         title: { type: string, maxLength: 255 }
         is_pinned: { type: boolean }
+        memory: { type: string, description: 'Компактная память чата для RAG (ADR-014), обновляется remember-блоком модели' }
         created_at: { type: string, format: date-time }
         updated_at: { type: string, format: date-time }
 
