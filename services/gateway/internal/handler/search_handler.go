@@ -10,6 +10,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/soskiiit/errorium/services/gateway/internal/graph"
+	"github.com/soskiiit/errorium/services/gateway/internal/rag"
 	"github.com/soskiiit/errorium/services/gateway/internal/search"
 )
 
@@ -17,6 +18,13 @@ import (
 type RAGSynthesizer interface {
 	Synthesize(ctx context.Context, query string, hits []search.Source) (*search.RAGResult, error)
 	SynthesizeStream(ctx context.Context, query string, hits []search.Source, onDelta func(string)) (*search.RAGResult, error)
+}
+
+// ChatRAGSynthesizer is an optional RAGSynthesizer extension with per-chat
+// history and memory (ADR-014). Stateless consumers keep using RAGSynthesizer.
+type ChatRAGSynthesizer interface {
+	SynthesizeChat(ctx context.Context, query string, hits []search.Source, cc rag.ChatContext) (*search.RAGResult, error)
+	SynthesizeChatStream(ctx context.Context, query string, hits []search.Source, cc rag.ChatContext, onDelta func(string)) (*search.RAGResult, error)
 }
 
 // LatencyRecorder records latency measurements in milliseconds.

@@ -12,6 +12,7 @@ type Chat struct {
 	UserID    uuid.UUID `json:"user_id" db:"user_id"`
 	Title     string    `json:"title" db:"title"`
 	IsPinned  bool      `json:"is_pinned" db:"is_pinned"`
+	Memory    string    `json:"memory" db:"memory"`
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 }

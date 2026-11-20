@@ -54,7 +54,7 @@ func (r *ChatRepository) ListByUser(
 	}
 
 	const q = `
-		SELECT id, user_id, title, is_pinned, created_at, updated_at
+		SELECT id, user_id, title, is_pinned, memory, created_at, updated_at
 		FROM chats
 		WHERE user_id = $1
 		  AND ($2 = '' OR title ILIKE '%' || $2 || '%')
@@ -70,7 +70,7 @@ func (r *ChatRepository) ListByUser(
 	var chats []*domain.Chat
 	for rows.Next() {
 		c := &domain.Chat{}
-		if err := rows.Scan(&c.ID, &c.UserID, &c.Title, &c.IsPinned, &c.CreatedAt, &c.UpdatedAt); err != nil {
+		if err := rows.Scan(&c.ID, &c.UserID, &c.Title, &c.IsPinned, &c.Memory, &c.CreatedAt, &c.UpdatedAt); err != nil {
 			return nil, 0, fmt.Errorf("chat_repo.ListByUser scan: %w", err)
 		}
 		chats = append(chats, c)
@@ -85,13 +85,13 @@ func (r *ChatRepository) ListByUser(
 // GetByID fetches a single chat by its primary key.
 func (r *ChatRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.Chat, error) {
 	const q = `
-		SELECT id, user_id, title, is_pinned, created_at, updated_at
+		SELECT id, user_id, title, is_pinned, memory, created_at, updated_at
 		FROM chats
 		WHERE id = $1`
 
 	c := &domain.Chat{}
 	err := r.db.QueryRowContext(ctx, q, id).Scan(
-		&c.ID, &c.UserID, &c.Title, &c.IsPinned, &c.CreatedAt, &c.UpdatedAt,
+		&c.ID, &c.UserID, &c.Title, &c.IsPinned, &c.Memory, &c.CreatedAt, &c.UpdatedAt,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("chat_repo.GetByID: %w", err)
@@ -103,13 +103,13 @@ func (r *ChatRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.Cha
 // If the chat does not exist or does not belong to the user, an error (wrapping sql.ErrNoRows) is returned.
 func (r *ChatRepository) GetByIDForUser(ctx context.Context, id, userID uuid.UUID) (*domain.Chat, error) {
 	const q = `
-		SELECT id, user_id, title, is_pinned, created_at, updated_at
+		SELECT id, user_id, title, is_pinned, memory, created_at, updated_at
 		FROM chats
 		WHERE id = $1 AND user_id = $2`
 
 	c := &domain.Chat{}
 	err := r.db.QueryRowContext(ctx, q, id, userID).Scan(
-		&c.ID, &c.UserID, &c.Title, &c.IsPinned, &c.CreatedAt, &c.UpdatedAt,
+		&c.ID, &c.UserID, &c.Title, &c.IsPinned, &c.Memory, &c.CreatedAt, &c.UpdatedAt,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("chat_repo.GetByIDForUser: %w", err)
@@ -117,14 +117,14 @@ func (r *ChatRepository) GetByIDForUser(ctx context.Context, id, userID uuid.UUI
 	return c, nil
 }
 
-// Update modifies title, is_pinned, and updated_at of an existing chat.
+// Update modifies title, is_pinned, memory, and updated_at of an existing chat.
 func (r *ChatRepository) Update(ctx context.Context, c *domain.Chat) error {
 	const q = `
 		UPDATE chats
-		SET title = $1, is_pinned = $2, updated_at = $3
-		WHERE id = $4`
+		SET title = $1, is_pinned = $2, memory = $3, updated_at = $4
+		WHERE id = $5`
 
-	_, err := r.db.ExecContext(ctx, q, c.Title, c.IsPinned, c.UpdatedAt, c.ID)
+	_, err := r.db.ExecContext(ctx, q, c.Title, c.IsPinned, c.Memory, c.UpdatedAt, c.ID)
 	if err != nil {
 		return fmt.Errorf("chat_repo.Update: %w", err)
 	}

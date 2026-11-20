@@ -1,5 +1,26 @@
 # CHANGE_HISTORY.md — История изменений проекта Errorium
 
+## [2026-11-20] — Память чата для RAG: окно истории + memory-ячейка (ADR-014, ветка fix/chat-memory)
+
+### Затронутые компоненты и спецификации:
+- `docs/Product/03-requirements.md` (FR-2.4), `docs/Tech/03-data.md` (`chats.memory`, миграция 000004), `docs/Service/decisions.md` (новый ADR-014), `services/gateway/api/openapi.yaml` (`Chat.memory`)
+- `services/gateway/migrations/000004_chat_memory.up.sql` / `.down.sql` (новые)
+- `services/gateway/domain/chat.go`, `internal/repository/chat_repo.go`, `internal/search/client.go` (`RAGResult.Remember`), `internal/rag/rag.go` (`ChatContext`, `ExtractRemember`, `SynthesizeChat`/`SynthesizeChatStream`), `internal/handler/search_handler.go` (`ChatRAGSynthesizer`), `internal/handler/chat_handler.go`
+- Новые тесты: `migrations/chat_memory_test.go`, `internal/rag/chat_memory_test.go`, `internal/repository/chat_memory_test.go`, `internal/handler/chat_memory_test.go`
+- `STATUS.md`
+
+### Суть изменений:
+1. RAG в чатах перестал быть stateless: в промпт подмешиваются секции «Память чата» (`chats.memory`) и «История чата» (последние 5 сообщений user/assistant, обрезка до 600 символов); снимок истории берётся до сохранения текущего user-сообщения.
+2. Модель в конце ответа возвращает служебный блок ` ```remember ` (до 6 кратких фактов); gateway извлекает его **до** извлечения кода, не показывает пользователю и перезаписывает `chats.memory` непустым значением; пустой/отсутствующий блок сохраняет прежнюю память.
+3. Миграция `000004_chat_memory` добавляет `chats.memory TEXT NOT NULL DEFAULT ''`; репозиторий читает/пишет колонку; `Chat.memory` отражён в openapi.
+4. Stateless-пути (`/api/v1/search/rag`, MCP) не тронуты: старые `Synthesize`/`SynthesizeStream` делегируют с пустым контекстом; чат-хендлер использует опциональный интерфейс `ChatRAGSynthesizer` (type-assert), SSE и non-SSE пути сохраняют память одинаково.
+
+### Результаты тестов/бенчмарка:
+- `go test -race ./...` (gateway) — все пакеты OK, включая 8 новых тестов (извлечение remember, секции промпта, окно истории, персист памяти, колонка БД, миграция).
+- `make test-unit` — Go -race OK + **317 Python-тестов OK**; `make test-integration` — 15 OK (3 skip — граф-фикстуры из дампа SO, ожидаемо).
+- `make benchmark` — Recall@3 0.9333, Recall@5 0.9333, Recall@10 0.9667, MRR@10 1.0000 — NFR PASS, без деградации.
+- Изменение в ветке `fix/chat-memory`; merge в `main` (триггер деплоя) — только по согласию владельца.
+
 ## [2026-11-20] — GIGACHAT_CA_CERT: контейнерный путь сертификата стал дефолтом в конфиге gateway
 
 ### Затронутые компоненты и спецификации:

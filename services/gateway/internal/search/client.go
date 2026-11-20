@@ -44,4 +44,8 @@ type RAGResult struct {
 	Code      *string  `json:"code"`
 	Sources   []Source `json:"sources"`
 	TookMs    int64    `json:"took_ms"`
+
+	// Remember carries the updated chat memory extracted from the ```remember
+	// block (ADR-014). Never serialized to API responses.
+	Remember *string `json:"-"`
 }

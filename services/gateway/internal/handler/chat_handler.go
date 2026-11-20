@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/soskiiit/errorium/services/gateway/domain"
 	"github.com/soskiiit/errorium/services/gateway/internal/middleware"
+	"github.com/soskiiit/errorium/services/gateway/internal/rag"
 	"github.com/soskiiit/errorium/services/gateway/internal/search"
 )
 
@@ -319,6 +320,30 @@ func (h *ChatHandler) DeleteChat(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// chatContext builds the per-chat RAG context: memory cell plus the last 5
+// messages, each truncated to 600 runes (ADR-014).
+func (h *ChatHandler) chatContext(ctx context.Context, chat *domain.Chat) rag.ChatContext {
+	cc := rag.ChatContext{Memory: chat.Memory}
+	msgs, err := h.chats.GetMessages(ctx, chat.ID)
+	if err != nil {
+		return cc
+	}
+	if len(msgs) > 5 {
+		msgs = msgs[len(msgs)-5:]
+	}
+	for _, m := range msgs {
+		if m.Content == nil {
+			continue
+		}
+		content := *m.Content
+		if runes := []rune(content); len(runes) > 600 {
+			content = string(runes[:600])
+		}
+		cc.History = append(cc.History, rag.ChatTurn{Role: string(m.SenderRole), Content: content})
+	}
+	return cc
+}
+
 // ---------------------------------------------------------------------------
 // POST /api/v1/chats/{id}/messages
 // ---------------------------------------------------------------------------
@@ -353,6 +378,9 @@ func (h *ChatHandler) SendMessage(w http.ResponseWriter, r *http.Request) {
 		respondError(w, http.StatusNotFound, "chat not found")
 		return
 	}
+
+	// Snapshot history/memory before the current user message is saved.
+	cc := h.chatContext(r.Context(), chat)
 
 	var req sendMessageRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -464,7 +492,13 @@ func (h *ChatHandler) SendMessage(w http.ResponseWriter, r *http.Request) {
 	if !isSSE(r) {
 		var ragResult *search.RAGResult
 		if h.ragOrch != nil {
-			res, err := h.ragOrch.Synthesize(r.Context(), cleanQuery, searchResp.Results)
+			var res *search.RAGResult
+			var err error
+			if chatOrch, ok := h.ragOrch.(ChatRAGSynthesizer); ok {
+				res, err = chatOrch.SynthesizeChat(r.Context(), cleanQuery, searchResp.Results, cc)
+			} else {
+				res, err = h.ragOrch.Synthesize(r.Context(), cleanQuery, searchResp.Results)
+			}
 			if err != nil {
 				respondError(w, http.StatusBadGateway, "search backend unavailable")
 				return
@@ -504,6 +538,10 @@ func (h *ChatHandler) SendMessage(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		if ragResult.Remember != nil && strings.TrimSpace(*ragResult.Remember) != "" {
+			chat.Memory = strings.TrimSpace(*ragResult.Remember)
+		}
+
 		// Auto-titling: if chat.Title == "Новый чат", set title to first 80 runes of cleanQuery.
 		if chat.Title == "Новый чат" {
 			runes := []rune(cleanQuery)
@@ -534,10 +572,15 @@ func (h *ChatHandler) SendMessage(w http.ResponseWriter, r *http.Request) {
 	var finalRagResult *search.RAGResult
 
 	if h.ragOrch != nil {
-		finalRagResult, streamErr = h.ragOrch.SynthesizeStream(r.Context(), cleanQuery, searchResp.Results, func(delta string) {
+		onDelta := func(delta string) {
 			accumulated.WriteString(delta)
 			_ = writeSSE(w, flusher, "delta", map[string]string{"text": delta})
-		})
+		}
+		if chatOrch, ok := h.ragOrch.(ChatRAGSynthesizer); ok {
+			finalRagResult, streamErr = chatOrch.SynthesizeChatStream(r.Context(), cleanQuery, searchResp.Results, cc, onDelta)
+		} else {
+			finalRagResult, streamErr = h.ragOrch.SynthesizeStream(r.Context(), cleanQuery, searchResp.Results, onDelta)
+		}
 	} else {
 		res, err := h.search.RAG(r.Context(), searchReq)
 		if err != nil {
@@ -597,6 +640,10 @@ func (h *ChatHandler) SendMessage(w http.ResponseWriter, r *http.Request) {
 	if err := h.chats.AddMessage(r.Context(), assistantMsg); err != nil {
 		_ = writeSSE(w, flusher, "error", map[string]string{"error": "failed to save assistant message"})
 		return
+	}
+
+	if finalRagResult != nil && finalRagResult.Remember != nil && strings.TrimSpace(*finalRagResult.Remember) != "" {
+		chat.Memory = strings.TrimSpace(*finalRagResult.Remember)
 	}
 
 	if chat.Title == "Новый чат" {
