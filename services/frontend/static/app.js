@@ -7,122 +7,11 @@
     'use strict';
 
     // =========================================================================
-    // Preset Knowledge Base for Default Recent Chats
+    // Chat State & Real API Integration (Wave C - Task C2)
     // =========================================================================
-    const KNOWLEDGE_BASE = {
-        'chat-1': {
-            title: 'SyntaxError: invalid syntax',
-            query: 'SyntaxError: invalid syntax',
-            solution: 'This error occurs when Python parser encounters code that violates language grammar rules. The most common causes are missing colons after control flow statements (`if`, `for`, `def`), unclosed parentheses or quotes, or using reserved keywords as identifiers.',
-            code: '# ❌ Incorrect:\ndef calculate_total(items)\n    total = 0\n    return total\n\n# ✅ Fixed (add colon and check matching braces):\ndef calculate_total(items):\n    total = 0\n    return total',
-            sources: [
-                {
-                    title: 'SyntaxError: invalid syntax in Python (Top causes & fixes)',
-                    score: 4180,
-                    accepted: true,
-                    tags: ['python', 'syntax-error', 'python-3.x'],
-                    url: 'https://stackoverflow.com/questions/27539308'
-                },
-                {
-                    title: 'Why am I getting SyntaxError on the line after my print statement?',
-                    score: 1240,
-                    accepted: true,
-                    tags: ['python', 'print-statement'],
-                    url: 'https://stackoverflow.com/questions/15478423'
-                }
-            ]
-        },
-        'chat-2': {
-            title: 'IndentationError: unexpected indent',
-            query: 'IndentationError: unexpected indent',
-            solution: 'Python uses indentation to define code blocks. An `unexpected indent` occurs when a line has more leading whitespace or tabs than expected, or when spaces and tabs are mixed within the same file.',
-            code: '# ❌ Incorrect:\ndef process_data():\n    step1 = True\n      step2 = False  # Unexpected indentation level\n\n# ✅ Fixed (use consistent 4 spaces per block):\ndef process_data():\n    step1 = True\n    step2 = False',
-            sources: [
-                {
-                    title: 'How to fix Python IndentationError: unexpected indent',
-                    score: 2890,
-                    accepted: true,
-                    tags: ['python', 'indentation', 'pep8'],
-                    url: 'https://stackoverflow.com/questions/11256501'
-                }
-            ]
-        },
-        'chat-3': {
-            title: 'TypeError: ‘list’ object cannot be interpre...',
-            query: "TypeError: 'list' object cannot be interpreted as an integer",
-            solution: 'This error happens when passing a list to a function or slice index that expects an integer (e.g. `range(my_list)` instead of `range(len(my_list))` or passing an array into `int()` conversion).',
-            code: '# ❌ Incorrect:\nitems = [10, 20, 30]\nfor i in range(items):  # Passing list instead of length\n    print(i)\n\n# ✅ Fixed:\nfor i in range(len(items)):\n    print(items[i])\n\n# Or idiomatically:\nfor item in items:\n    print(item)',
-            sources: [
-                {
-                    title: 'TypeError: \'list\' object cannot be interpreted as an integer in range()',
-                    score: 1950,
-                    accepted: true,
-                    tags: ['python', 'list', 'typeerror'],
-                    url: 'https://stackoverflow.com/questions/35593121'
-                }
-            ]
-        },
-        'chat-4': {
-            title: 'NameError: name ‘foobar’ is not defined',
-            query: "NameError: name 'foobar' is not defined",
-            solution: 'A variable, function, or module name was referenced before it was declared, imported, or within an inaccessible scope.',
-            code: '# ❌ Incorrect:\nprint(foobar)\nfoobar = "active"\n\n# ✅ Fixed:\nfoobar = "active"\nprint(foobar)',
-            sources: [
-                {
-                    title: 'NameError: name is not defined in Python',
-                    score: 3410,
-                    accepted: true,
-                    tags: ['python', 'scope', 'name-error'],
-                    url: 'https://stackoverflow.com/questions/14872225'
-                }
-            ]
-        },
-        'chat-5': {
-            title: 'UnboundLocalError: local variable ‘foobar’...',
-            query: "UnboundLocalError: local variable 'foobar' referenced before assignment",
-            solution: 'Occurs inside a function when assigning to a variable that has the same name as an outer/global variable, making Python treat it as local throughout the function before its assignment statement is reached.',
-            code: 'foobar = 10\n\ndef increment():\n    # ❌ foobar += 1  # Raises UnboundLocalError\n    global foobar     # ✅ Explicitly declare global or return new value\n    foobar += 1\n\nincrement()',
-            sources: [
-                {
-                    title: 'UnboundLocalError: local variable referenced before assignment',
-                    score: 5120,
-                    accepted: true,
-                    tags: ['python', 'variable-assignment', 'scope'],
-                    url: 'https://stackoverflow.com/questions/10851906'
-                }
-            ]
-        },
-        'chat-6': {
-            title: 'TypeError: ‘str’ object does not support it...',
-            query: "TypeError: 'str' object does not support item assignment",
-            solution: 'Strings in Python are immutable objects. You cannot modify an individual character in-place using indexing (`s[0] = "x"`). You must construct a new string or convert to a mutable sequence like a list.',
-            code: 'text = "hello"\n\n# ❌ text[0] = "H"  # TypeError\n\n# ✅ Fixed (slice and concatenate):\ntext = "H" + text[1:]\n\n# Or using list conversion:\nchars = list(text)\nchars[0] = "H"\ntext = "".join(chars)',
-            sources: [
-                {
-                    title: 'How to replace a character in a Python string by index?',
-                    score: 3740,
-                    accepted: true,
-                    tags: ['python', 'string', 'immutability'],
-                    url: 'https://stackoverflow.com/questions/4175294'
-                }
-            ]
-        },
-        'chat-7': {
-            title: 'KeyError: ‘spam’',
-            query: "KeyError: 'spam'",
-            solution: 'Raised when trying to access a dictionary key that does not exist. Use the `.get(key, default)` method or `in` operator to safely verify membership before reading.',
-            code: 'data = {"name": "Alice"}\n\n# ❌ value = data["spam"]  # Raises KeyError\n\n# ✅ Fixed:\nvalue = data.get("spam", "default_val")\n\n# Or with membership check:\nif "spam" in data:\n    print(data["spam"])',
-            sources: [
-                {
-                    title: 'How to handle KeyError exceptions when accessing Python dictionaries',
-                    score: 2210,
-                    accepted: true,
-                    tags: ['python', 'dictionary', 'keyerror'],
-                    url: 'https://stackoverflow.com/questions/11041405'
-                }
-            ]
-        }
-    };
+    let currentChatId = null;
+    let chatsList = [];
+    let initialGuestRecentChatsHtml = '';
 
     // =========================================================================
     // Multi-Language Localization System (EN <-> RU)
@@ -774,6 +663,10 @@
         toast: document.getElementById('toast')
     };
 
+    if (elements.recentChatsList) {
+        initialGuestRecentChatsHtml = elements.recentChatsList.innerHTML;
+    }
+
     // =========================================================================
     // Image Dominant Color Extractor (Canvas sampling with saturation boost)
     // =========================================================================
@@ -945,18 +838,31 @@
         closeAllModals();
     });
 
-    // Recent chats search filter
+    // Debounce helper (300 ms for recent chats search)
+    function debounce(fn, delay) {
+        let timeoutId;
+        return function (...args) {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => fn.apply(this, args), delay);
+        };
+    }
+
+    // Recent chats search filter (debounced 300 ms, API-backed)
+    const debouncedSearchRecentChats = debounce(function (query) {
+        const tokens = window.ErroriumAPI ? window.ErroriumAPI.getTokens() : null;
+        if (tokens && tokens.access_token) {
+            loadRecentChats(query);
+        } else {
+            const items = elements.recentChatsList ? elements.recentChatsList.querySelectorAll('.recent-chat-item') : [];
+            items.forEach(item => {
+                const title = item.querySelector('.chat-item-title')?.textContent.toLowerCase() || '';
+                item.style.display = title.includes(query.toLowerCase()) ? 'flex' : 'none';
+            });
+        }
+    }, 300);
+
     elements.searchRecentChats?.addEventListener('input', function (e) {
-        const query = e.target.value.toLowerCase().trim();
-        const items = elements.recentChatsList ? elements.recentChatsList.querySelectorAll('.recent-chat-item') : [];
-        items.forEach(item => {
-            const title = item.querySelector('.chat-item-title').textContent.toLowerCase();
-            if (title.includes(query)) {
-                item.style.display = 'flex';
-            } else {
-                item.style.display = 'none';
-            }
-        });
+        debouncedSearchRecentChats(e.target.value.trim());
     });
 
     // Recent chats collapse toggle
@@ -1010,6 +916,7 @@
     function updateAuthUI() {
         const user = getAuthUser();
         if (user) {
+            loadRecentChats();
             if (elements.sidebarUserGuest) elements.sidebarUserGuest.style.display = 'none';
             if (elements.sidebarUserAuth) elements.sidebarUserAuth.style.display = 'flex';
             if (elements.headerAvatarGuest) elements.headerAvatarGuest.style.display = 'none';
@@ -1093,6 +1000,8 @@
             if (elements.sidebarUserAuth) elements.sidebarUserAuth.style.display = 'none';
             if (elements.headerAvatarGuest) elements.headerAvatarGuest.style.display = 'inline-block';
             if (elements.headerAvatarAuth) elements.headerAvatarAuth.style.display = 'none';
+            currentChatId = null;
+            renderRecentChats([]);
         }
         applyLanguage(getCurrentLanguage());
     }
@@ -1172,12 +1081,10 @@
         const chatMatch = path.match(/^\/chat(?:\/([a-zA-Z0-9_\-]+))?$/);
         if (chatMatch) {
             const chatId = chatMatch[1];
-            if (chatId && KNOWLEDGE_BASE[chatId]) {
-                loadChatByQuery(KNOWLEDGE_BASE[chatId].query || KNOWLEDGE_BASE[chatId].title, chatId, false);
-            } else if (chatId) {
-                loadChatByQuery(decodeURIComponent(chatId.replace(/-/g, ' ')), chatId, false);
+            if (chatId) {
+                loadChatById(chatId, false);
             } else {
-                switchToChatView(false);
+                switchToHeroView(false);
             }
             return;
         }
@@ -2045,14 +1952,604 @@
     // =========================================================================
     // Core Chat / Query Interaction
     // =========================================================================
-    function submitCurrentQuery() {
+    // Escape HTML helper (XSS protection)
+    function escapeHtml(text) {
+        if (text === null || text === undefined) return '';
+        const div = document.createElement('div');
+        div.textContent = String(text);
+        return div.innerHTML;
+    }
+
+    function scrollChatToBottom() {
+        if (elements.messagesContainer) {
+            elements.messagesContainer.scrollTop = elements.messagesContainer.scrollHeight;
+        }
+    }
+
+    function normalizeSources(rawSources) {
+        if (!Array.isArray(rawSources)) return [];
+        return rawSources.map(src => {
+            if (!src) return { score: 0, question_score: 0, title: '', url: '#', tags: [] };
+            const scoreVal = src.question_score !== undefined ? src.question_score : (src.score !== undefined ? src.score : 0);
+            return {
+                doc_id: src.doc_id || null,
+                score: scoreVal,
+                question_score: scoreVal,
+                title: src.title || (src.doc_id ? `Question #${src.doc_id}` : 'Stack Overflow Source'),
+                url: src.url || (src.doc_id ? `https://stackoverflow.com/questions/${src.doc_id}` : '#'),
+                is_accepted: src.is_accepted !== undefined ? src.is_accepted : (src.accepted || false),
+                accepted: src.is_accepted !== undefined ? src.is_accepted : (src.accepted || false),
+                tags: Array.isArray(src.tags) ? src.tags : []
+            };
+        });
+    }
+
+    function renderAssistantCardInner(assistantData, isStreaming = false) {
+        const isRu = getCurrentLanguage() === 'Русский';
+        const cardTitle = isRu ? 'Errorium RAG-синтез (BM25 Ядро)' : 'Errorium RAG Synthesis (BM25 Core)';
+        const solutionCodeText = isRu ? 'Код решения' : 'Solution Code';
+        const copyCodeText = isRu ? 'Скопировать код' : 'Copy code';
+        const starMapText = isRu ? 'Карта связей' : 'Star Map';
+        const starMapTitle = isRu ? 'Открыть карту связей' : 'Open Star Map';
+
+        const sources = assistantData.sources || [];
+        const sourcesText = isRu ? `Источники Stack Overflow (${sources.length})` : `Stack Overflow Sources (${sources.length})`;
+        const solution = assistantData.solution || assistantData.content || '';
+
+        return `
+            <div class="card-top-bar">
+                <div class="badge-mascot">
+                    <img src="/mascot.png" alt="Mascot" width="22">
+                </div>
+                <span class="card-title">${cardTitle}</span>
+                <button class="star-map-open-btn" onclick="openStarMapFromCard()" title="${starMapTitle}" aria-label="${starMapTitle}">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="5" cy="6" r="2.2"></circle>
+                        <circle cx="19" cy="5" r="2.2"></circle>
+                        <circle cx="12" cy="12" r="2.6"></circle>
+                        <circle cx="6" cy="19" r="2.2"></circle>
+                        <circle cx="19" cy="18" r="2.2"></circle>
+                        <path d="M7 7.5 10 10.5M14 10.5 17.2 6.6M10 14 7.3 17.4M14.2 13.8 17.3 16.6"></path>
+                    </svg>
+                    <span>${starMapText}</span>
+                </button>
+            </div>
+
+            <div class="card-solution-text">${escapeHtml(solution)}${isStreaming ? '<span class="typing-cursor"></span>' : ''}</div>
+
+            ${assistantData.code ? `
+            <div class="code-block-wrapper">
+                <div class="code-block-header">
+                    <span>${solutionCodeText}</span>
+                    <button class="code-copy-btn" onclick="copySnippet(this)">${copyCodeText}</button>
+                </div>
+                <pre><code>${escapeHtml(assistantData.code)}</code></pre>
+            </div>
+            ` : ''}
+
+            ${(!isStreaming && sources.length > 0) ? `
+            <div class="sources-card">
+                <div class="sources-header" onclick="toggleSources(this)">
+                    <span>${sourcesText}</span>
+                    <span class="sources-arrow">▾</span>
+                </div>
+                <div class="sources-list">
+                    ${sources.map(src => `
+                        <a href="${escapeHtml(src.url)}" target="_blank" rel="noopener noreferrer" class="source-item">
+                            <div class="source-left">
+                                <span class="source-score">▲ ${src.score}</span>
+                                <span class="source-title" title="${escapeHtml(src.title)}">${escapeHtml(src.title)}</span>
+                            </div>
+                            <span class="source-tags">${(src.tags || []).map(t => '#' + escapeHtml(t)).join(' ')}</span>
+                        </a>
+                    `).join('')}
+                </div>
+            </div>
+            ` : ''}
+        `;
+    }
+
+    function renderConversation(messagesOrUserText, assistantData = null) {
+        if (!elements.messagesContainer) return;
+        elements.messagesContainer.innerHTML = '';
+
+        let messages = [];
+        if (Array.isArray(messagesOrUserText)) {
+            messages = messagesOrUserText;
+        } else if (typeof messagesOrUserText === 'string') {
+            const userText = messagesOrUserText;
+            messages = [{ sender_role: 'user', content: userText }];
+            if (assistantData) {
+                messages.push({
+                    sender_role: 'assistant',
+                    content: assistantData.solution || assistantData.content || '',
+                    code: assistantData.code || null,
+                    rag_sources: assistantData.sources || assistantData.rag_sources || []
+                });
+            }
+        }
+
+        let lastAssistant = null;
+        let conversationHtml = '';
+
+        messages.forEach(msg => {
+            const role = msg.sender_role || msg.senderRole || 'user';
+            if (role === 'user') {
+                const userText = msg.content || (msg.error_context && msg.error_context.raw_query) || '';
+                currentQueryText = userText;
+                conversationHtml += `
+                    <!-- User Message -->
+                    <div class="message-row user">
+                        <div class="user-bubble">${escapeHtml(userText)}</div>
+                    </div>
+                `;
+            } else if (role === 'assistant') {
+                const solution = msg.content || '';
+                const code = msg.code || null;
+                const rawSources = msg.rag_sources || msg.sources || [];
+                const sources = normalizeSources(rawSources);
+
+                lastAssistant = {
+                    query: currentQueryText,
+                    solution: solution,
+                    code: code,
+                    sources: sources
+                };
+
+                conversationHtml += `
+                    <!-- Assistant Solution Card -->
+                    <div class="message-row assistant">
+                        <div class="assistant-avatar">
+                            <img src="/favicon.png" alt="Mascot" width="28" height="28">
+                        </div>
+                        <div class="assistant-card">
+                            ${renderAssistantCardInner(lastAssistant, false)}
+                        </div>
+                    </div>
+                `;
+            }
+        });
+
+        elements.messagesContainer.innerHTML = conversationHtml;
+
+        if (lastAssistant) {
+            currentAssistantData = lastAssistant;
+        }
+        scrollChatToBottom();
+    }
+
+    async function loadChatById(chatId, updateRoute = true) {
+        if (!chatId) return;
+        currentChatId = chatId;
+        switchToChatView(false);
+        closeSidebar();
+
+        if (updateRoute && !isNavigatingFromPopState) {
+            const chatUrl = `/chat/${encodeURIComponent(chatId)}`;
+            if (window.location.pathname !== chatUrl) {
+                window.history.pushState({ view: 'chat', chatId }, '', chatUrl);
+            }
+        }
+
+        updateRecentChatsActiveState(chatId);
+
+        try {
+            const res = await window.ErroriumAPI.request('GET', `/chats/${encodeURIComponent(chatId)}`);
+            if (res && res.messages) {
+                renderConversation(res.messages);
+            } else if (res && res.chat) {
+                renderConversation([]);
+            }
+        } catch (err) {
+            showToast((err && err.error) || 'Failed to load chat');
+            if (err && (err.status === 404 || err.status === 401)) {
+                currentChatId = null;
+                switchToHeroView();
+            }
+        }
+    }
+
+    function loadChatByQuery(query, chatId = null, updateRoute = true) {
+        if (chatId) {
+            loadChatById(chatId, updateRoute);
+        } else {
+            submitGuestMessage(query, query);
+        }
+    }
+
+    async function submitAuthorizedMessage(query, savedQuery) {
+        switchToChatView(false);
+
+        // 1. Create chat if not present
+        if (!currentChatId) {
+            try {
+                const newChat = await window.ErroriumAPI.request('POST', '/chats', {
+                    body: { title: 'Новый чат' }
+                });
+                if (!newChat || !newChat.id) {
+                    throw new Error('Failed to create new chat');
+                }
+                currentChatId = newChat.id;
+                const chatUrl = `/chat/${encodeURIComponent(currentChatId)}`;
+                window.history.pushState({ view: 'chat', chatId: currentChatId }, '', chatUrl);
+                loadRecentChats();
+            } catch (err) {
+                elements.promptInput.value = savedQuery;
+                adjustTextareaHeight();
+                showToast((err && err.error) || 'Failed to create chat. Please try again.');
+                return;
+            }
+        }
+
+        let assistantRowEl = null;
+        let solutionTextEl = null;
+        let accumulatedText = '';
+
+        try {
+            await window.ErroriumAPI.stream(
+                `/chats/${encodeURIComponent(currentChatId)}/messages`,
+                { query: query },
+                function (eventName, data) {
+                    if (eventName === 'user_message') {
+                        const userMsg = (data && data.user_message) ? data.user_message : data;
+                        const userText = (userMsg && (userMsg.content || (userMsg.error_context && userMsg.error_context.raw_query))) || query;
+                        currentQueryText = userText;
+
+                        const userRow = document.createElement('div');
+                        userRow.className = 'message-row user';
+                        userRow.innerHTML = `<div class="user-bubble">${escapeHtml(userText)}</div>`;
+                        elements.messagesContainer.appendChild(userRow);
+
+                        assistantRowEl = document.createElement('div');
+                        assistantRowEl.className = 'message-row assistant';
+                        assistantRowEl.innerHTML = `
+                            <div class="assistant-avatar">
+                                <img src="/favicon.png" alt="Mascot" width="28" height="28">
+                            </div>
+                            <div class="assistant-card">
+                                ${renderAssistantCardInner({ solution: '', code: null, sources: [] }, true)}
+                            </div>
+                        `;
+                        elements.messagesContainer.appendChild(assistantRowEl);
+                        solutionTextEl = assistantRowEl.querySelector('.card-solution-text');
+                        scrollChatToBottom();
+                    } else if (eventName === 'delta') {
+                        const deltaText = (data && typeof data === 'object' && data.text !== undefined) ? data.text : (typeof data === 'string' ? data : '');
+                        accumulatedText += deltaText;
+                        if (solutionTextEl) {
+                            solutionTextEl.textContent = accumulatedText;
+                        }
+                        scrollChatToBottom();
+                    } else if (eventName === 'done') {
+                        const assistantMsg = (data && data.assistant_message) ? data.assistant_message : null;
+                        const finalContent = (assistantMsg && assistantMsg.content) || accumulatedText;
+                        const finalCode = assistantMsg ? assistantMsg.code : null;
+                        const rawSources = assistantMsg ? (assistantMsg.rag_sources || assistantMsg.sources || []) : [];
+                        const finalSources = normalizeSources(rawSources);
+
+                        currentAssistantData = {
+                            query: query,
+                            solution: finalContent,
+                            code: finalCode,
+                            sources: finalSources
+                        };
+
+                        if (assistantRowEl) {
+                            const cardEl = assistantRowEl.querySelector('.assistant-card');
+                            if (cardEl) {
+                                cardEl.innerHTML = renderAssistantCardInner(currentAssistantData, false);
+                            }
+                        }
+                        scrollChatToBottom();
+                        loadRecentChats();
+                    } else if (eventName === 'error') {
+                        const errMsg = (data && data.error) ? data.error : 'Stream error';
+                        showToast(errMsg);
+                    }
+                }
+            );
+        } catch (err) {
+            showToast((err && err.error) || 'Failed to send message: network error');
+            elements.promptInput.value = savedQuery;
+            adjustTextareaHeight();
+            if (assistantRowEl && !accumulatedText) {
+                assistantRowEl.remove();
+            }
+        }
+    }
+
+    async function submitGuestMessage(query, savedQuery) {
+        switchToChatView(false);
+        currentQueryText = query;
+
+        const userRow = document.createElement('div');
+        userRow.className = 'message-row user';
+        userRow.innerHTML = `<div class="user-bubble">${escapeHtml(query)}</div>`;
+        elements.messagesContainer.appendChild(userRow);
+
+        const assistantRowEl = document.createElement('div');
+        assistantRowEl.className = 'message-row assistant';
+        assistantRowEl.innerHTML = `
+            <div class="assistant-avatar">
+                <img src="/favicon.png" alt="Mascot" width="28" height="28">
+            </div>
+            <div class="assistant-card">
+                ${renderAssistantCardInner({ solution: '', code: null, sources: [] }, true)}
+            </div>
+        `;
+        elements.messagesContainer.appendChild(assistantRowEl);
+        const solutionTextEl = assistantRowEl.querySelector('.card-solution-text');
+        scrollChatToBottom();
+
+        let accumulatedText = '';
+
+        try {
+            await window.ErroriumAPI.stream(
+                '/search/rag',
+                { query: query },
+                function (eventName, data) {
+                    if (eventName === 'delta') {
+                        const deltaText = (data && typeof data === 'object' && data.text !== undefined) ? data.text : (typeof data === 'string' ? data : '');
+                        accumulatedText += deltaText;
+                        if (solutionTextEl) {
+                            solutionTextEl.textContent = accumulatedText;
+                        }
+                        scrollChatToBottom();
+                    } else if (eventName === 'done') {
+                        const ragResp = data || {};
+                        const finalContent = ragResp.synthesis || accumulatedText;
+                        const finalCode = ragResp.code || null;
+                        const finalSources = normalizeSources(ragResp.sources || []);
+
+                        currentAssistantData = {
+                            query: query,
+                            solution: finalContent,
+                            code: finalCode,
+                            sources: finalSources
+                        };
+
+                        const cardEl = assistantRowEl.querySelector('.assistant-card');
+                        if (cardEl) {
+                            cardEl.innerHTML = renderAssistantCardInner(currentAssistantData, false);
+                        }
+                        scrollChatToBottom();
+                    } else if (eventName === 'error') {
+                        const errMsg = (data && data.error) ? data.error : 'Search error';
+                        showToast(errMsg);
+                    }
+                },
+                { auth: false }
+            );
+        } catch (err) {
+            showToast((err && err.error) || 'Search failed. Please try again.');
+            elements.promptInput.value = savedQuery;
+            adjustTextareaHeight();
+            if (assistantRowEl && !accumulatedText) {
+                assistantRowEl.remove();
+            }
+        }
+    }
+
+    async function submitCurrentQuery() {
         if (!elements.promptInput) return;
         const query = elements.promptInput.value.trim();
         if (!query) return;
 
+        const savedQuery = query;
         elements.promptInput.value = '';
         adjustTextareaHeight();
-        loadChatByQuery(query);
+
+        const isAuth = !!(window.ErroriumAPI && window.ErroriumAPI.getTokens() && getAuthUser());
+        if (isAuth) {
+            await submitAuthorizedMessage(query, savedQuery);
+        } else {
+            await submitGuestMessage(query, savedQuery);
+        }
+    }
+
+    function updateRecentChatsActiveState(chatId) {
+        if (!elements.recentChatsList) return;
+        elements.recentChatsList.querySelectorAll('.recent-chat-item').forEach(item => {
+            if (chatId && item.getAttribute('data-chat-id') === chatId) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
+    }
+
+    async function loadRecentChats(searchQuery = '') {
+        const tokens = window.ErroriumAPI ? window.ErroriumAPI.getTokens() : null;
+        if (!tokens || !tokens.access_token || !getAuthUser()) {
+            renderRecentChats([]);
+            return;
+        }
+
+        const endpoint = '/chats?limit=50' + (searchQuery ? '&search=' + encodeURIComponent(searchQuery) : '');
+        try {
+            const res = await window.ErroriumAPI.request('GET', endpoint);
+            chatsList = (res && Array.isArray(res.items)) ? res.items : [];
+            renderRecentChats(chatsList);
+        } catch (err) {
+            renderRecentChats([]);
+        }
+    }
+
+    function renderRecentChats(chats) {
+        if (!elements.recentChatsList) return;
+
+        const isAuth = !!(window.ErroriumAPI && window.ErroriumAPI.getTokens() && getAuthUser());
+
+        if (!isAuth) {
+            if (initialGuestRecentChatsHtml) {
+                elements.recentChatsList.innerHTML = initialGuestRecentChatsHtml;
+                attachGuestRecentChatsListeners();
+            }
+            return;
+        }
+
+        if (!chats || chats.length === 0) {
+            elements.recentChatsList.innerHTML = `<li class="recent-chat-empty-hint" style="padding:10px 12px;font-size:0.85rem;color:rgba(255,255,255,0.4);text-align:center;">${getCurrentLanguage() === 'Русский' ? 'Нет диалогов' : 'No chats yet'}</li>`;
+            return;
+        }
+
+        elements.recentChatsList.innerHTML = chats.map(chat => {
+            const isActive = (chat.id === currentChatId);
+            const pinPrefix = chat.is_pinned ? '📌 ' : '';
+            const titleEscaped = escapeHtml(chat.title || 'Новый чат');
+            return `
+                <li class="recent-chat-item ${isActive ? 'active' : ''}" data-chat-id="${escapeHtml(chat.id)}" data-query="${titleEscaped}">
+                    <span class="chat-item-title" title="${titleEscaped}">${pinPrefix}${titleEscaped}</span>
+                    <button class="chat-item-more" aria-label="More options" data-chat-id="${escapeHtml(chat.id)}">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <circle cx="12" cy="5" r="2"></circle>
+                            <circle cx="12" cy="12" r="2"></circle>
+                            <circle cx="12" cy="19" r="2"></circle>
+                        </svg>
+                    </button>
+                </li>
+            `;
+        }).join('');
+
+        elements.recentChatsList.querySelectorAll('.recent-chat-item').forEach(item => {
+            item.addEventListener('click', function (e) {
+                if (e.target.closest('.chat-item-more')) return;
+                const chatId = this.getAttribute('data-chat-id');
+                loadChatById(chatId, true);
+            });
+        });
+
+        elements.recentChatsList.querySelectorAll('.chat-item-more').forEach(btn => {
+            btn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                const chatId = this.getAttribute('data-chat-id');
+                openChatContextMenu(chatId, this);
+            });
+        });
+    }
+
+    function attachGuestRecentChatsListeners() {
+        if (!elements.recentChatsList) return;
+        elements.recentChatsList.querySelectorAll('.recent-chat-item').forEach(item => {
+            item.addEventListener('click', function (e) {
+                if (e.target.closest('.chat-item-more')) {
+                    e.stopPropagation();
+                    showToast('Log in to manage recent chats');
+                    return;
+                }
+                const query = this.getAttribute('data-query') || this.querySelector('.chat-item-title')?.textContent || '';
+                if (query) {
+                    submitGuestMessage(query, query);
+                }
+            });
+        });
+    }
+
+    function closeChatContextMenu() {
+        const existing = document.getElementById('chat-context-menu');
+        if (existing) existing.remove();
+    }
+
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('#chat-context-menu')) {
+            closeChatContextMenu();
+        }
+    });
+
+    function openChatContextMenu(chatId, buttonEl) {
+        closeChatContextMenu();
+
+        const chat = chatsList.find(c => c.id === chatId) || { id: chatId, title: '', is_pinned: false };
+        const isRu = getCurrentLanguage() === 'Русский';
+        const isPinned = !!chat.is_pinned;
+
+        const menu = document.createElement('div');
+        menu.className = 'chat-context-menu';
+        menu.id = 'chat-context-menu';
+        menu.style.position = 'fixed';
+        menu.style.zIndex = '9999';
+        menu.style.backgroundColor = '#161d31';
+        menu.style.border = '1px solid rgba(255, 255, 255, 0.15)';
+        menu.style.borderRadius = '8px';
+        menu.style.padding = '4px 0';
+        menu.style.minWidth = '150px';
+        menu.style.boxShadow = '0 8px 24px rgba(0,0,0,0.5)';
+
+        const renameLabel = isRu ? 'Переименовать' : 'Rename';
+        const pinLabel = isPinned ? (isRu ? 'Открепить' : 'Unpin') : (isRu ? 'Закрепить' : 'Pin');
+        const removeLabel = isRu ? 'Удалить' : 'Remove';
+
+        menu.innerHTML = `
+            <button class="chat-menu-action" data-action="rename" style="width:100%;text-align:left;padding:8px 12px;background:none;border:none;color:#e2e8f0;font-size:0.88rem;cursor:pointer;display:flex;align-items:center;gap:8px;">
+                <span>✏️</span><span>${renameLabel}</span>
+            </button>
+            <button class="chat-menu-action" data-action="pin" style="width:100%;text-align:left;padding:8px 12px;background:none;border:none;color:#e2e8f0;font-size:0.88rem;cursor:pointer;display:flex;align-items:center;gap:8px;">
+                <span>📌</span><span>${pinLabel}</span>
+            </button>
+            <div style="height:1px;background:rgba(255,255,255,0.1);margin:4px 0;"></div>
+            <button class="chat-menu-action" data-action="remove" style="width:100%;text-align:left;padding:8px 12px;background:none;border:none;color:#f87171;font-size:0.88rem;cursor:pointer;display:flex;align-items:center;gap:8px;">
+                <span>🗑️</span><span>${removeLabel}</span>
+            </button>
+        `;
+
+        document.body.appendChild(menu);
+
+        const rect = buttonEl.getBoundingClientRect();
+        menu.style.top = (rect.bottom + 4) + 'px';
+        menu.style.left = Math.max(10, rect.left - 110) + 'px';
+
+        menu.querySelectorAll('.chat-menu-action').forEach(actionBtn => {
+            actionBtn.addEventListener('mouseenter', () => {
+                actionBtn.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+            });
+            actionBtn.addEventListener('mouseleave', () => {
+                actionBtn.style.backgroundColor = 'transparent';
+            });
+
+            actionBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const action = actionBtn.getAttribute('data-action');
+                closeChatContextMenu();
+
+                if (action === 'rename') {
+                    const newTitle = prompt(isRu ? 'Новое название чата:' : 'New chat title:', chat.title || '');
+                    if (newTitle && newTitle.trim() && newTitle.trim() !== chat.title) {
+                        try {
+                            const updated = await window.ErroriumAPI.request('PATCH', `/chats/${encodeURIComponent(chatId)}`, {
+                                body: { title: newTitle.trim() }
+                            });
+                            chat.title = (updated && updated.title) ? updated.title : newTitle.trim();
+                            loadRecentChats();
+                        } catch (err) {
+                            showToast((err && err.error) || 'Failed to rename chat');
+                        }
+                    }
+                } else if (action === 'pin') {
+                    try {
+                        await window.ErroriumAPI.request('PATCH', `/chats/${encodeURIComponent(chatId)}`, {
+                            body: { is_pinned: !isPinned }
+                        });
+                        loadRecentChats();
+                    } catch (err) {
+                        showToast((err && err.error) || 'Failed to update pin status');
+                    }
+                } else if (action === 'remove') {
+                    const confirmed = confirm(isRu ? 'Удалить этот чат?' : 'Delete this chat?');
+                    if (confirmed) {
+                        try {
+                            await window.ErroriumAPI.request('DELETE', `/chats/${encodeURIComponent(chatId)}`);
+                            if (currentChatId === chatId) {
+                                currentChatId = null;
+                                switchToHeroView();
+                            }
+                            loadRecentChats();
+                        } catch (err) {
+                            showToast((err && err.error) || 'Failed to delete chat');
+                        }
+                    }
+                }
+            });
+        });
     }
 
     function switchToChatView(updateRoute = true) {
@@ -2095,6 +2592,7 @@
         if (elements.messagesContainer) elements.messagesContainer.innerHTML = '';
         currentAssistantData = null;
         currentQueryText = '';
+        currentChatId = null;
         if (elements.promptInput) elements.promptInput.value = '';
         adjustTextareaHeight();
         document.querySelectorAll('.recent-chat-item').forEach(i => i.classList.remove('active'));
@@ -2105,173 +2603,19 @@
     }
 
     elements.btnNewChat?.addEventListener('click', () => {
+        currentChatId = null;
         switchToHeroView();
         closeSidebar();
     });
 
     elements.headerLogo?.addEventListener('click', () => {
+        currentChatId = null;
         switchToHeroView();
     });
 
     elements.sidebarBrand?.addEventListener('click', () => {
         switchToLandingView(true, null);
     });
-
-    // Render Chat Messages
-    function loadChatByQuery(query, chatId = null, updateRoute = true) {
-        switchToChatView(false);
-        closeSidebar();
-
-        if (updateRoute && !isNavigatingFromPopState) {
-            const chatUrl = chatId ? `/chat/${encodeURIComponent(chatId)}` : '/chat';
-            if (window.location.pathname !== chatUrl) {
-                window.history.pushState({ view: 'chat', chatId, query }, '', chatUrl);
-            }
-        }
-
-        // Mark active in sidebar if known
-        document.querySelectorAll('.recent-chat-item').forEach(item => {
-            if (chatId && item.getAttribute('data-chat-id') === chatId) {
-                item.classList.add('active');
-            } else {
-                item.classList.remove('active');
-            }
-        });
-
-        // Resolve data from KB or synthesize on-the-fly
-        let data = chatId ? KNOWLEDGE_BASE[chatId] : null;
-        if (!data) {
-            // Find match in KB by fuzzy title
-            for (const key in KNOWLEDGE_BASE) {
-                if (KNOWLEDGE_BASE[key].title.toLowerCase().includes(query.toLowerCase()) ||
-                    query.toLowerCase().includes(KNOWLEDGE_BASE[key].title.toLowerCase())) {
-                    data = KNOWLEDGE_BASE[key];
-                    break;
-                }
-            }
-        }
-
-        if (!data) {
-            data = {
-                title: query,
-                query: query,
-                solution: `Analyzed error with BM25 inverted index ranking ($k_1=1.5, b=0.75$). The exception indicates an invalid runtime operation or unresolved reference in your execution environment.`,
-                code: `// Diagnostic verification:\ntry {\n    // Execute target operation\n    verifyInputParameters();\n} catch (Exception ex) {\n    System.err.println("Resolved: " + ex.getMessage());\n}`,
-                sources: [
-                    {
-                        title: `Stack Overflow: Solutions and discussions for "${escapeHtml(query)}"`,
-                        score: 1840,
-                        accepted: true,
-                        tags: ['error', 'debugging', 'stack-trace'],
-                        url: 'https://stackoverflow.com/search?q=' + encodeURIComponent(query)
-                    }
-                ]
-            };
-        }
-
-        renderConversation(query, data);
-    }
-
-    function renderConversation(userText, assistantData) {
-        const isRu = getCurrentLanguage() === 'Русский';
-        const cardTitle = isRu ? 'Errorium RAG-синтез (BM25 Ядро)' : 'Errorium RAG Synthesis (BM25 Core)';
-        const solutionCodeText = isRu ? 'Код решения' : 'Solution Code';
-        const copyCodeText = isRu ? 'Скопировать код' : 'Copy code';
-
-        const sourcesText = isRu ? `Источники Stack Overflow (${assistantData.sources.length})` : `Stack Overflow Sources (${assistantData.sources.length})`;
-        const starMapText = isRu ? 'Карта связей' : 'Star Map';
-        const starMapTitle = isRu ? 'Открыть карту связей' : 'Open Star Map';
-
-        currentQueryText = userText;
-        currentAssistantData = assistantData;
-
-        elements.messagesContainer.innerHTML = `
-            <!-- User Message -->
-            <div class="message-row user">
-                <div class="user-bubble">${escapeHtml(userText)}</div>
-            </div>
-
-            <!-- Assistant Solution Card -->
-            <div class="message-row assistant">
-                <div class="assistant-avatar">
-                    <img src="/favicon.png" alt="Mascot" width="28" height="28">
-                </div>
-                <div class="assistant-card">
-                    <div class="card-top-bar">
-                        <div class="badge-mascot">
-                            <img src="/mascot.png" alt="Mascot" width="22">
-                        </div>
-                        <span class="card-title">${cardTitle}</span>
-                        <button class="star-map-open-btn" onclick="openStarMapFromCard()" title="${starMapTitle}" aria-label="${starMapTitle}">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="5" cy="6" r="2.2"></circle>
-                                <circle cx="19" cy="5" r="2.2"></circle>
-                                <circle cx="12" cy="12" r="2.6"></circle>
-                                <circle cx="6" cy="19" r="2.2"></circle>
-                                <circle cx="19" cy="18" r="2.2"></circle>
-                                <path d="M7 7.5 10 10.5M14 10.5 17.2 6.6M10 14 7.3 17.4M14.2 13.8 17.3 16.6"></path>
-                            </svg>
-                            <span>${starMapText}</span>
-                        </button>
-                    </div>
-
-                    <div class="card-solution-text">
-                        ${assistantData.solution}
-                    </div>
-
-                    ${assistantData.code ? `
-                    <div class="code-block-wrapper">
-                        <div class="code-block-header">
-                            <span>${solutionCodeText}</span>
-                            <button class="code-copy-btn" onclick="copySnippet(this)">${copyCodeText}</button>
-                        </div>
-                        <pre><code>${escapeHtml(assistantData.code)}</code></pre>
-                    </div>
-                    ` : ''}
-
-                    <div class="sources-card">
-                        <div class="sources-header" onclick="toggleSources(this)">
-                            <span>${sourcesText}</span>
-                            <span class="sources-arrow">▾</span>
-                        </div>
-                        <div class="sources-list">
-                            ${assistantData.sources.map(src => `
-                                <a href="${src.url}" target="_blank" rel="noopener noreferrer" class="source-item">
-                                    <div class="source-left">
-                                        <span class="source-score">▲ ${src.score}</span>
-                                        <span class="source-title" title="${src.title}">${src.title}</span>
-                                    </div>
-                                    <span class="source-tags">${src.tags.map(t => '#' + t).join(' ')}</span>
-                                </a>
-                            `).join('')}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
-    // Attach click listeners to default recent chat items
-    document.querySelectorAll('.recent-chat-item').forEach(item => {
-        item.addEventListener('click', function (e) {
-            // Ignore clicking 3 dots button
-            if (e.target.closest('.chat-item-more')) {
-                e.stopPropagation();
-                showToast('Chat options: Rename / Pin / Remove');
-                return;
-            }
-            const chatId = this.getAttribute('data-chat-id');
-            const query = this.getAttribute('data-query');
-            loadChatByQuery(query, chatId);
-        });
-    });
-
-    // Escape HTML helper
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
 
     // Window helpers for dynamically rendered HTML
     window.copySnippet = function (btn) {
