@@ -70,3 +70,9 @@ type RagConfigStore interface {
 	Get(ctx context.Context) (*domain.RagConfig, error)
 	Update(ctx context.Context, cfg *domain.RagConfig) error
 }
+
+// SSOAccountStore manages linked third-party SSO accounts in storage.
+type SSOAccountStore interface {
+	Create(ctx context.Context, account *domain.UserSSOAccount) error
+	GetByProviderAndUserID(ctx context.Context, provider domain.SSOProvider, providerUserID string) (*domain.UserSSOAccount, error)
+}

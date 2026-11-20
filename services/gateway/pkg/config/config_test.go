@@ -44,6 +44,12 @@ func TestLoadDefaults(t *testing.T) {
 	if cfg.SMTP.Host != "" {
 		t.Errorf("expected empty default SMTP host, got %s", cfg.SMTP.Host)
 	}
+	if cfg.SSO.RedirectBase != "http://localhost:8000" {
+		t.Errorf("expected SSO.RedirectBase http://localhost:8000, got %s", cfg.SSO.RedirectBase)
+	}
+	if cfg.SSO.GitHub.ClientID != "" || cfg.SSO.Google.ClientID != "" || cfg.SSO.Yandex.ClientID != "" {
+		t.Errorf("expected empty default SSO client IDs")
+	}
 }
 
 func TestLoadSearchEngineAddrOverride(t *testing.T) {
@@ -121,5 +127,30 @@ func TestLoadSMTPAndFrontendConfig(t *testing.T) {
 	}
 	if cfg.SMTP.From != "support@errorium.ru" {
 		t.Errorf("expected SMTP from support@errorium.ru, got %s", cfg.SMTP.From)
+	}
+}
+
+func TestLoadSSOConfig(t *testing.T) {
+	os.Clearenv()
+	t.Setenv("SSO_REDIRECT_BASE", "https://api.errorium.ru")
+	t.Setenv("GITHUB_CLIENT_ID", "gh-id")
+	t.Setenv("GITHUB_CLIENT_SECRET", "gh-secret")
+	t.Setenv("GOOGLE_CLIENT_ID", "goog-id")
+	t.Setenv("GOOGLE_CLIENT_SECRET", "goog-secret")
+	t.Setenv("YANDEX_CLIENT_ID", "ya-id")
+	t.Setenv("YANDEX_CLIENT_SECRET", "ya-secret")
+
+	cfg := config.Load()
+	if cfg.SSO.RedirectBase != "https://api.errorium.ru" {
+		t.Errorf("expected SSO redirect base https://api.errorium.ru, got %s", cfg.SSO.RedirectBase)
+	}
+	if cfg.SSO.GitHub.ClientID != "gh-id" || cfg.SSO.GitHub.ClientSecret != "gh-secret" {
+		t.Errorf("unexpected GitHub config: %+v", cfg.SSO.GitHub)
+	}
+	if cfg.SSO.Google.ClientID != "goog-id" || cfg.SSO.Google.ClientSecret != "goog-secret" {
+		t.Errorf("unexpected Google config: %+v", cfg.SSO.Google)
+	}
+	if cfg.SSO.Yandex.ClientID != "ya-id" || cfg.SSO.Yandex.ClientSecret != "ya-secret" {
+		t.Errorf("unexpected Yandex config: %+v", cfg.SSO.Yandex)
 	}
 }

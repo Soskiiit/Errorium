@@ -24,6 +24,7 @@ var (
 	_ repository.SsoStateStore      = (*repository.SsoStateRepository)(nil)
 	_ repository.RagConfigStore     = (*repository.RagConfigRepository)(nil)
 	_ repository.SessionStore       = (*repository.SessionRepository)(nil)
+	_ repository.SSOAccountStore    = (*repository.SSOAccountRepository)(nil)
 )
 
 // ── Mock SQL Driver ───────────────────────────────────────────────────────────
@@ -376,5 +377,54 @@ func TestRagConfigRepository_GetAndUpdate(t *testing.T) {
 	q := mock.queries[1]
 	if !strings.Contains(q.query, "UPDATE rag_config") || !strings.Contains(q.query, "WHERE id = 1") {
 		t.Errorf("unexpected update query: %s", q.query)
+	}
+}
+
+// ── Tests for SSOAccountRepository ───────────────────────────────────────────
+
+func TestSSOAccountRepository_CreateAndGet(t *testing.T) {
+	database, mock := setupMockDB(t)
+	repo := repository.NewSSOAccountRepository(database)
+
+	ctx := context.Background()
+	now := time.Now().UTC()
+	email := "dev@example.com"
+	accID := uuid.New()
+	userID := uuid.New()
+
+	acc := &domain.UserSSOAccount{
+		ID:             accID,
+		UserID:         userID,
+		Provider:       domain.SSOProviderGitHub,
+		ProviderUserID: "123456",
+		Email:          &email,
+		ProfileData:    []byte(`{"login":"octocat"}`),
+		CreatedAt:      now,
+		UpdatedAt:      now,
+	}
+
+	err := repo.Create(ctx, acc)
+	if err != nil {
+		t.Fatalf("Create failed: %v", err)
+	}
+	if len(mock.queries) != 1 || !strings.Contains(mock.queries[0].query, "INSERT INTO user_sso_accounts") {
+		t.Errorf("expected insert query, got %v", mock.queries)
+	}
+
+	// Test GetByProviderAndUserID
+	mock.nextRowsCols = []string{"id", "user_id", "provider", "provider_user_id", "email", "profile_data", "created_at", "updated_at"}
+	mock.nextRowsVals = [][]driver.Value{
+		{accID.String(), userID.String(), "github", "123456", email, []byte(`{"login":"octocat"}`), now, now},
+	}
+
+	got, err := repo.GetByProviderAndUserID(ctx, domain.SSOProviderGitHub, "123456")
+	if err != nil {
+		t.Fatalf("GetByProviderAndUserID failed: %v", err)
+	}
+	if got.ID != accID || got.UserID != userID || got.Provider != domain.SSOProviderGitHub || got.ProviderUserID != "123456" {
+		t.Errorf("unexpected account got: %+v", got)
+	}
+	if got.Email == nil || *got.Email != email {
+		t.Errorf("unexpected email: %v", got.Email)
 	}
 }

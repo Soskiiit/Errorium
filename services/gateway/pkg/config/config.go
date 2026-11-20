@@ -48,6 +48,18 @@ type SMTPConfig struct {
 	From     string
 }
 
+type SSOProviderConfig struct {
+	ClientID     string
+	ClientSecret string
+}
+
+type SSOConfig struct {
+	RedirectBase string
+	GitHub       SSOProviderConfig
+	Google       SSOProviderConfig
+	Yandex       SSOProviderConfig
+}
+
 type Config struct {
 	Port             string
 	SearchEngineAddr string
@@ -56,6 +68,7 @@ type Config struct {
 	MinIO            S3Config
 	JWT              JWTConfig
 	SMTP             SMTPConfig
+	SSO              SSOConfig
 	FrontendURL      string
 	AutoMigrate      bool
 }
@@ -116,12 +129,29 @@ func Load() *Config {
 		From:     getEnv("SMTP_FROM", "no-reply@errorium.ru"),
 	}
 
+	ssoCfg := SSOConfig{
+		RedirectBase: getEnv("SSO_REDIRECT_BASE", "http://localhost:8000"),
+		GitHub: SSOProviderConfig{
+			ClientID:     getEnv("GITHUB_CLIENT_ID", ""),
+			ClientSecret: getEnv("GITHUB_CLIENT_SECRET", ""),
+		},
+		Google: SSOProviderConfig{
+			ClientID:     getEnv("GOOGLE_CLIENT_ID", ""),
+			ClientSecret: getEnv("GOOGLE_CLIENT_SECRET", ""),
+		},
+		Yandex: SSOProviderConfig{
+			ClientID:     getEnv("YANDEX_CLIENT_ID", ""),
+			ClientSecret: getEnv("YANDEX_CLIENT_SECRET", ""),
+		},
+	}
+
 	return &Config{
 		Port:             getEnv("GATEWAY_PORT", "8000"),
 		SearchEngineAddr: searchEngineAddr,
 		AutoMigrate:      getEnv("AUTO_MIGRATE", "true") == "true",
 		FrontendURL:      getEnv("FRONTEND_URL", "http://localhost:3000"),
 		SMTP:             smtpCfg,
+		SSO:              ssoCfg,
 		JWT: JWTConfig{
 			SecretKey:              getEnv("JWT_SECRET_KEY", "change-this-in-production"),
 			AccessTokenExpireMin:   accessExpMin,

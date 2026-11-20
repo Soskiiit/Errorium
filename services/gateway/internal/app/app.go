@@ -15,6 +15,7 @@ import (
 	"github.com/soskiiit/errorium/services/gateway/internal/middleware"
 	"github.com/soskiiit/errorium/services/gateway/internal/repository"
 	"github.com/soskiiit/errorium/services/gateway/internal/search"
+	"github.com/soskiiit/errorium/services/gateway/internal/sso"
 	"github.com/soskiiit/errorium/services/gateway/pkg/config"
 	"github.com/soskiiit/errorium/services/gateway/pkg/db"
 	jwtpkg "github.com/soskiiit/errorium/services/gateway/pkg/jwt"
@@ -118,6 +119,36 @@ func New(cfg *config.Config) *App {
 				cfg.FrontendURL,
 			)
 			passwordResetHandler.RegisterRoutes(mux, authMW)
+
+			ssoStateRepo := repository.NewSsoStateRepository(database)
+			ssoAccountRepo := repository.NewSSOAccountRepository(database)
+
+			ssoRegistry := sso.NewRegistry()
+			ssoRegistry.Register(sso.NewGitHubProvider(sso.ProviderConfig{
+				ClientID:     cfg.SSO.GitHub.ClientID,
+				ClientSecret: cfg.SSO.GitHub.ClientSecret,
+			}))
+			ssoRegistry.Register(sso.NewGoogleProvider(sso.ProviderConfig{
+				ClientID:     cfg.SSO.Google.ClientID,
+				ClientSecret: cfg.SSO.Google.ClientSecret,
+			}))
+			ssoRegistry.Register(sso.NewYandexProvider(sso.ProviderConfig{
+				ClientID:     cfg.SSO.Yandex.ClientID,
+				ClientSecret: cfg.SSO.Yandex.ClientSecret,
+			}))
+
+			ssoHandler := handler.NewSSOHandler(
+				ssoRegistry,
+				ssoStateRepo,
+				ssoAccountRepo,
+				userRepo,
+				sessionRepo,
+				jwtMgr,
+				cfg.SSO.RedirectBase,
+				cfg.FrontendURL,
+				cfg.JWT.RefreshTokenExpireDays,
+			)
+			ssoHandler.RegisterRoutes(mux)
 		}
 	}
 
