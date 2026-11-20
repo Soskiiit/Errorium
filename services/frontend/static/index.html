@@ -735,17 +735,20 @@
                             <div class="setting-title">BM25 Search Core</div>
                             <div class="setting-desc">Self-hosted inverted index (k₁ = 1.5, b = 0.75)</div>
                         </div>
-                        <span class="badge active-badge">Connected (:50051)</span>
+                        <span class="badge active-badge" id="setting-core-status">Connected (:50051)</span>
                     </div>
                     <div class="settings-row">
                         <div>
                             <div class="setting-title">RAG Streaming</div>
-                            <div class="setting-desc">Stream synthesized answers in real time via SSE</div>
+                            <div class="setting-desc" id="setting-rag-desc">Stream synthesized answers in real time via SSE</div>
                         </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="toggle-rag" checked>
-                            <span class="toggle-slider"></span>
-                        </label>
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <span class="badge" id="setting-rag-provider-badge" style="font-size:11px;">Provider: stub</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="toggle-rag" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
                     </div>
                 </div>
             </div>

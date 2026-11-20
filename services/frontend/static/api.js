@@ -311,6 +311,15 @@
         }
     }
 
+    /**
+     * Initiate OAuth2/SSO login redirect for the specified provider.
+     * @param {string} [provider='yandex']
+     */
+    function ssoLogin(provider) {
+        const prov = (provider || 'yandex').toLowerCase();
+        window.location.href = buildUrl(`/auth/sso/login/${prov}`);
+    }
+
     // Export API object to window.ErroriumAPI
     window.ErroriumAPI = {
         BASE_URL: BASE_URL,
@@ -319,6 +328,7 @@
         setTokens: setTokens,
         clearTokens: clearTokens,
         request: request,
-        stream: stream
+        stream: stream,
+        ssoLogin: ssoLogin
     };
 })();

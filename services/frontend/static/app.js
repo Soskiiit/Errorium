@@ -603,6 +603,9 @@
         modalMcp: document.getElementById('modal-mcp'),
         modalAbout: document.getElementById('modal-about'),
         modalSettings: document.getElementById('modal-settings'),
+        settingCoreStatus: document.getElementById('setting-core-status'),
+        settingRagDesc: document.getElementById('setting-rag-desc'),
+        settingRagProviderBadge: document.getElementById('setting-rag-provider-badge'),
         userDisplayName: document.getElementById('user-display-name'),
 
         // Reference Modals (services/frontend/references/)
@@ -1104,6 +1107,9 @@
         closeAllModals(false);
         if (modalEl) {
             modalEl.style.display = 'flex';
+            if (modalEl === elements.modalSettings) {
+                loadStatus();
+            }
             if (updateRoute && !isNavigatingFromPopState) {
                 if (modalEl === elements.modalAuthRef || modalEl === elements.modalAuth) {
                     if (window.location.pathname !== '/login') window.history.pushState({ modal: 'login' }, '', '/login');
@@ -1382,6 +1388,171 @@
         showModal(elements.modalResetPasswordAlert);
     });
 
+    // =========================================================================
+    // User Profile API Integration (Wave C - Task C3)
+    // =========================================================================
+    async function loadUserProfile() {
+        if (!window.ErroriumAPI) return;
+        const tokens = window.ErroriumAPI.getTokens();
+        if (!tokens || !tokens.access_token) return;
+
+        try {
+            const user = await window.ErroriumAPI.request('GET', '/users/me');
+            if (user) {
+                setAuthUser(user);
+            }
+        } catch (err) {
+            console.error('Failed to load user profile', err);
+            const status = err && err.status;
+            if (status !== 401) {
+                showToast(getCurrentLanguage() === 'Русский' ? 'Ошибка загрузки профиля' : 'Failed to load profile');
+            }
+        }
+    }
+
+    async function patchUserProfile(patchData) {
+        if (!window.ErroriumAPI) return { ok: false };
+        try {
+            const updated = await window.ErroriumAPI.request('PATCH', '/users/me', {
+                body: patchData
+            });
+            if (updated) {
+                setAuthUser(updated);
+            }
+            return { ok: true, user: updated };
+        } catch (err) {
+            console.error('Failed to update profile', err);
+            const status = err && err.status;
+            let errMsg = (err && err.error) || '';
+            if (status === 409) {
+                errMsg = getCurrentLanguage() === 'Русский' ? 'Email уже занят другим пользователем' : 'Email is already in use';
+            } else if (status === 400) {
+                errMsg = errMsg || (getCurrentLanguage() === 'Русский' ? 'Некорректные данные профиля' : 'Invalid profile data');
+            } else {
+                errMsg = errMsg || (getCurrentLanguage() === 'Русский' ? 'Ошибка обновления профиля' : 'Failed to update profile');
+            }
+            showToast(errMsg);
+            return { ok: false, error: err, status: status, message: errMsg };
+        }
+    }
+
+    // =========================================================================
+    // Tags API & Status API (Wave C - Task C3)
+    // =========================================================================
+    function getTagClass(name) {
+        const map = {
+            'Go': 'tag-go',
+            'Python': 'tag-python',
+            'Java': 'tag-java',
+            'C#': 'tag-csharp',
+            'C++': 'tag-cpp',
+            'JS': 'tag-js',
+            'SQL': 'tag-sql',
+            'Rust': 'tag-rust',
+            'TypeScript': 'tag-ts',
+            'Docker': 'tag-docker',
+            'Linux': 'tag-linux',
+            'Kubernetes': 'tag-k8s',
+            'PostgreSQL': 'tag-postgres',
+            'Redis': 'tag-redis',
+            'GraphQL': 'tag-graphql',
+            'React': 'tag-react',
+            'Vue': 'tag-vue',
+            'Swift': 'tag-swift',
+            'Kotlin': 'tag-kotlin',
+            'PHP': 'tag-php',
+            'Git': 'tag-git',
+            'Nginx': 'tag-nginx',
+            'gRPC': 'tag-grpc'
+        };
+        return map[name] || `tag-${(name || '').toLowerCase().replace(/[^a-z0-9]/g, '')}`;
+    }
+
+    let tagsLoaded = false;
+    async function loadTags() {
+        if (!window.ErroriumAPI) return;
+        try {
+            const data = await window.ErroriumAPI.request('GET', '/tags', { auth: false });
+            if (data && Array.isArray(data.items)) {
+                renderTagPills(data.items);
+                tagsLoaded = true;
+            }
+        } catch (err) {
+            console.warn('Failed to load tags from API, keeping fallback pills', err);
+        }
+    }
+
+    function renderTagPills(items) {
+        if (!elements.tagsPopover) return;
+        const grid = elements.tagsPopover.querySelector('.tags-grid');
+        if (!grid) return;
+
+        grid.innerHTML = '';
+        const row = document.createElement('div');
+        row.className = 'tags-row';
+        row.style.flexWrap = 'wrap';
+        row.style.gap = '6px';
+
+        items.forEach(item => {
+            const tagName = typeof item === 'string' ? item : item.name;
+            if (!tagName) return;
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = `tag-pill ${getTagClass(tagName)}`;
+            btn.setAttribute('data-tag', tagName);
+            btn.textContent = tagName;
+            row.appendChild(btn);
+        });
+        grid.appendChild(row);
+    }
+
+    async function loadStatus() {
+        if (!window.ErroriumAPI) return;
+        try {
+            const data = await window.ErroriumAPI.request('GET', '/status', { auth: false });
+            updateStatusUI(data);
+        } catch (err) {
+            console.error('Failed to load status', err);
+            updateStatusUI(null);
+        }
+    }
+
+    function updateStatusUI(data) {
+        const isRu = getCurrentLanguage() === 'Русский';
+        const coreBadge = elements.settingCoreStatus || document.getElementById('setting-core-status') || document.querySelector('#modal-settings .badge');
+        const isConnected = !!(data && data.search_core && data.search_core.connected);
+        const addr = (data && data.search_core && data.search_core.address) ? data.search_core.address : ':50051';
+        const port = addr.includes(':') ? addr.substring(addr.lastIndexOf(':')) : ':50051';
+
+        if (coreBadge) {
+            if (isConnected) {
+                coreBadge.className = 'badge active-badge';
+                coreBadge.textContent = isRu ? `Подключено (${port})` : `Connected (${port})`;
+                coreBadge.style.color = '#10b981';
+                coreBadge.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+                coreBadge.style.background = 'rgba(16, 185, 129, 0.1)';
+            } else {
+                coreBadge.className = 'badge inactive-badge';
+                coreBadge.textContent = isRu ? 'Недоступно' : 'Unavailable';
+                coreBadge.style.color = '#9ca3af';
+                coreBadge.style.borderColor = 'rgba(156, 163, 175, 0.3)';
+                coreBadge.style.background = 'rgba(156, 163, 175, 0.1)';
+            }
+        }
+
+        const provider = (data && data.rag && data.rag.provider) ? data.rag.provider : 'stub';
+        const ragBadge = elements.settingRagProviderBadge || document.getElementById('setting-rag-provider-badge');
+        if (ragBadge) {
+            ragBadge.textContent = `Provider: ${provider}`;
+        }
+        const ragDesc = elements.settingRagDesc || document.getElementById('setting-rag-desc');
+        if (ragDesc) {
+            ragDesc.textContent = isRu
+                ? `Потоковая передача синтезированных ответов в реальном времени через SSE (${provider})`
+                : `Stream synthesized answers in real time via SSE (${provider})`;
+        }
+    }
+
     // Profile Gender Dropdown Logic
     elements.profileInfoGenderRow?.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -1404,15 +1575,18 @@
     });
 
     document.querySelectorAll('#gender-dropdown-popover .profile-dropdown-item').forEach(item => {
-        item.addEventListener('click', function (e) {
+        item.addEventListener('click', async function (e) {
             e.stopPropagation();
             const selectedGender = this.getAttribute('data-gender');
             if (!selectedGender) return;
-            const user = getAuthUser();
-            if (!user) return;
-            user.gender = selectedGender;
-            setAuthUser(user);
-            showToast(`Gender set to ${selectedGender}`);
+            const apiGender = (selectedGender === 'Not selected' || selectedGender === 'Not specified')
+                ? 'Not specified'
+                : selectedGender;
+
+            const res = await patchUserProfile({ gender: apiGender });
+            if (res.ok) {
+                showToast(getCurrentLanguage() === 'Русский' ? `Пол: ${selectedGender}` : `Gender set to ${selectedGender}`);
+            }
 
             if (elements.genderDropdownPopover) elements.genderDropdownPopover.style.display = 'none';
             elements.profileInfoGenderRow?.classList.remove('open');
@@ -1442,17 +1616,16 @@
     });
 
     document.querySelectorAll('#lang-dropdown-popover .profile-dropdown-item').forEach(item => {
-        item.addEventListener('click', function (e) {
+        item.addEventListener('click', async function (e) {
             e.stopPropagation();
             const selectedLang = this.getAttribute('data-lang');
             if (!selectedLang) return;
-            const user = getAuthUser();
-            if (user) {
-                user.language = selectedLang;
-                setAuthUser(user);
-            }
-            applyLanguage(selectedLang);
-            showToast(selectedLang === 'Русский' ? 'Язык переключён на Русский' : 'Language switched to English');
+            const apiLang = (selectedLang === 'Русский' || selectedLang === 'Russian') ? 'Русский' : 'English';
+
+            applyLanguage(apiLang);
+            showToast(apiLang === 'Русский' ? 'Язык переключён на Русский' : 'Language switched to English');
+
+            await patchUserProfile({ language: apiLang });
 
             if (elements.langDropdownPopover) elements.langDropdownPopover.style.display = 'none';
             elements.profileInfoLangRow?.classList.remove('open');
@@ -1465,51 +1638,97 @@
         elements.profileAvatarFileInput?.click();
     });
 
-    elements.profileAvatarFileInput?.addEventListener('change', (e) => {
+    elements.profileAvatarFileInput?.addEventListener('change', async (e) => {
         const file = e.target.files && e.target.files[0];
         if (!file) return;
 
         // Check if file is an image
         if (!file.type.startsWith('image/')) {
-            showToast('Please select a valid image file');
+            showToast(getCurrentLanguage() === 'Русский' ? 'Пожалуйста, выберите файл изображения' : 'Please select a valid image file');
             return;
         }
 
-        const reader = new FileReader();
-        reader.onload = function (event) {
-            const dataUrl = event.target.result;
-            extractDominantColor(dataUrl, (glowColor) => {
-                const user = getAuthUser();
-                if (!user) return;
-                user.avatarUrl = dataUrl;
-                user.avatarGlow = glowColor;
-                setAuthUser(user);
-                showToast('Avatar photo and glow color updated');
+        // Maximum size: 5 MiB
+        if (file.size > 5 * 1024 * 1024) {
+            showToast(getCurrentLanguage() === 'Русский' ? 'Размер файла превышает 5 МБ' : 'File size exceeds 5 MB');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('avatar', file);
+
+        try {
+            const resp = await window.ErroriumAPI.request('POST', '/users/avatar', {
+                body: formData,
+                multipart: true,
+                auth: true
             });
-        };
-        reader.readAsDataURL(file);
+
+            const avatarUrl = resp && resp.avatar_url;
+            if (avatarUrl) {
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    const dataUrl = event.target.result;
+                    extractDominantColor(dataUrl, (glowColor) => {
+                        const user = getAuthUser();
+                        if (user) {
+                            user.avatarUrl = avatarUrl;
+                            user.avatarGlow = glowColor;
+                            setAuthUser(user);
+                        }
+                        showToast(getCurrentLanguage() === 'Русский' ? 'Аватар успешно обновлен' : 'Avatar photo and glow color updated');
+                    });
+                };
+                reader.readAsDataURL(file);
+            }
+        } catch (err) {
+            console.error('Failed to upload avatar', err);
+            const status = err && err.status;
+            let errMsg = (err && err.error) || '';
+            if (status === 400) {
+                errMsg = errMsg || (getCurrentLanguage() === 'Русский' ? 'Неверный формат или размер файла (400)' : 'Invalid image file or size (400)');
+            } else if (status === 502) {
+                errMsg = errMsg || (getCurrentLanguage() === 'Русский' ? 'Хранилище S3 недоступно (502)' : 'S3 storage unavailable (502)');
+            } else {
+                errMsg = errMsg || (getCurrentLanguage() === 'Русский' ? 'Ошибка загрузки аватара' : 'Failed to upload avatar');
+            }
+            showToast(errMsg);
+        }
     });
 
     // Profile input change listeners (Username, Email, Role)
-    elements.profileInfoUsername?.addEventListener('change', (e) => {
+    elements.profileInfoUsername?.addEventListener('change', async (e) => {
         const val = e.target.value.trim();
-        if (!val) return;
         const user = getAuthUser();
-        if (!user) return;
-        user.username = val;
-        user.avatarLetter = val[0].toUpperCase();
-        setAuthUser(user);
-        showToast('Username updated');
+        if (!val) {
+            if (user && elements.profileInfoUsername) elements.profileInfoUsername.value = user.username;
+            return;
+        }
+        if (user && val === user.username) return;
+
+        const res = await patchUserProfile({ username: val });
+        if (res.ok) {
+            showToast(getCurrentLanguage() === 'Русский' ? 'Имя пользователя обновлено' : 'Username updated');
+        } else {
+            if (user && elements.profileInfoUsername) elements.profileInfoUsername.value = user.username;
+        }
     });
 
-    elements.profileInfoEmail?.addEventListener('change', (e) => {
+    elements.profileInfoEmail?.addEventListener('change', async (e) => {
         const val = e.target.value.trim();
-        if (!val) return;
         const user = getAuthUser();
-        if (!user) return;
-        user.email = val;
-        setAuthUser(user);
-        showToast('Email updated');
+        if (!val) {
+            if (user && elements.profileInfoEmail) elements.profileInfoEmail.value = user.email;
+            return;
+        }
+        if (user && val === user.email) return;
+
+        const res = await patchUserProfile({ email: val });
+        if (res.ok) {
+            showToast(getCurrentLanguage() === 'Русский' ? 'Email обновлен' : 'Email updated');
+        } else {
+            if (user && elements.profileInfoEmail) elements.profileInfoEmail.value = user.email;
+        }
     });
 
     // Profile Role Dropdown Logic
@@ -1534,16 +1753,15 @@
     });
 
     document.querySelectorAll('.role-dropdown-item').forEach(item => {
-        item.addEventListener('click', function (e) {
+        item.addEventListener('click', async function (e) {
             e.stopPropagation();
             const selectedRole = this.getAttribute('data-role');
             if (!selectedRole) return;
-            const user = getAuthUser();
-            if (!user) return;
-            user.role = selectedRole;
-            user.profession = selectedRole;
-            setAuthUser(user);
-            showToast(`Role updated to ${selectedRole}`);
+
+            const res = await patchUserProfile({ profession: selectedRole });
+            if (res.ok) {
+                showToast(getCurrentLanguage() === 'Русский' ? `Роль обновлена: ${selectedRole}` : `Role updated to ${selectedRole}`);
+            }
 
             if (elements.roleDropdownPopover) elements.roleDropdownPopover.style.display = 'none';
             elements.profileInfoRoleRow?.classList.remove('open');
@@ -1572,7 +1790,72 @@
     // SSO helper
     function initiateSSO(provider) {
         const prov = (provider || '').toLowerCase();
-        window.location.href = `/api/v1/auth/sso/login/${prov}`;
+        if (prov === 'yandex') {
+            if (window.ErroriumAPI && typeof window.ErroriumAPI.ssoLogin === 'function') {
+                window.ErroriumAPI.ssoLogin('yandex');
+            } else {
+                // Redirect to /api/v1/auth/sso/login/yandex or /auth/sso/yandex/login
+                window.location.href = '/api/v1/auth/sso/login/yandex';
+            }
+            return;
+        }
+        // Redirect to /auth/sso/yandex/login is active.
+        // Google, GitHub, etc. remain inactive placeholders for now.
+        showToast(getCurrentLanguage() === 'Русский'
+            ? 'Авторизация через этот сервис находится в разработке'
+            : 'Sign in via this provider is in development');
+    }
+
+    async function handleAuthCallback() {
+        try {
+            // 1. Check hash for tokens (redirected from gateway SSO callback)
+            const hash = window.location.hash.startsWith('#') ? window.location.hash.slice(1) : window.location.hash;
+            const hashParams = new URLSearchParams(hash);
+            let accessToken = hashParams.get('access_token');
+            let refreshToken = hashParams.get('refresh_token');
+
+            // 2. Check query params for code and state
+            if (!accessToken) {
+                const searchParams = new URLSearchParams(window.location.search);
+                const code = searchParams.get('code');
+                const state = searchParams.get('state');
+                if (code && state && window.ErroriumAPI) {
+                    try {
+                        const res = await window.ErroriumAPI.request('GET', `/auth/sso/callback/yandex?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`, { auth: false });
+                        if (res && res.access_token) {
+                            accessToken = res.access_token;
+                            refreshToken = res.refresh_token;
+                        }
+                    } catch (e) {
+                        console.warn('SSO callback exchange error', e);
+                    }
+                }
+            }
+
+            if (accessToken && window.ErroriumAPI) {
+                window.ErroriumAPI.setTokens({
+                    access_token: accessToken,
+                    refresh_token: refreshToken || ''
+                });
+                try {
+                    const me = await window.ErroriumAPI.request('GET', '/auth/me');
+                    if (me) {
+                        setAuthUser(me);
+                    }
+                } catch (e) {
+                    console.error('Failed to load user profile after SSO', e);
+                }
+                showToast(getCurrentLanguage() === 'Русский' ? 'Вход через Яндекс ID выполнен успешно!' : 'Signed in with Yandex ID successfully!');
+                navigateTo('/', true);
+            } else {
+                showToast(getCurrentLanguage() === 'Русский' ? 'Не удалось выполнить авторизацию' : 'Failed to authorize');
+                navigateTo('/', true);
+            }
+        } catch (err) {
+            console.error('SSO callback handling error', err);
+            showToast(getCurrentLanguage() === 'Русский' ? 'Ошибка обработки авторизации' : 'Authorization callback error');
+            navigateTo('/', true);
+        }
     }
 
     // Logout helper
@@ -1899,27 +2182,45 @@
             const willShow = !isShown;
             elements.tagsPopover.style.display = willShow ? 'flex' : 'none';
             elements.btnAttach.classList.toggle('active', willShow);
+            if (willShow && !tagsLoaded) {
+                loadTags();
+            }
         }
         if (elements.attachPopover) {
             elements.attachPopover.style.display = 'none';
         }
     });
 
-    // Tag pills click listeners
+    function handleTagPillClick(tag) {
+        if (!tag) return;
+        if (elements.promptInput) {
+            const current = elements.promptInput.value;
+            elements.promptInput.value = current ? `${current} [${tag}] ` : `[${tag}] `;
+        }
+        if (elements.tagsPopover) {
+            elements.tagsPopover.style.display = 'none';
+            elements.btnAttach?.classList.remove('active');
+        }
+        adjustTextareaHeight();
+        elements.promptInput?.focus();
+    }
+
+    // Dynamic tag clicks via event delegation on #tags-popover
+    elements.tagsPopover?.addEventListener('click', function (e) {
+        const pill = e.target.closest('.tag-pill');
+        if (pill) {
+            e.stopPropagation();
+            const tag = pill.getAttribute('data-tag');
+            handleTagPillClick(tag);
+        }
+    });
+
+    // Tag pills click listeners (fallback/initial pills)
     document.querySelectorAll('.tag-pill').forEach(pill => {
         pill.addEventListener('click', function (e) {
             e.stopPropagation();
             const tag = this.getAttribute('data-tag');
-            if (elements.promptInput) {
-                const current = elements.promptInput.value;
-                elements.promptInput.value = current ? `${current} [${tag}] ` : `[${tag}] `;
-            }
-            if (elements.tagsPopover) {
-                elements.tagsPopover.style.display = 'none';
-                elements.btnAttach?.classList.remove('active');
-            }
-            adjustTextareaHeight();
-            elements.promptInput?.focus();
+            handleTagPillClick(tag);
         });
     });
 
@@ -2576,6 +2877,7 @@
         if (elements.promptFooter) elements.promptFooter.classList.add('hidden');
         closeSidebar();
         closeAllModals(false);
+        loadUserProfile();
         if (updateRoute && !isNavigatingFromPopState && window.location.pathname !== '/profile') {
             window.history.pushState({ view: 'profile' }, '', '/profile');
         }
@@ -3853,6 +4155,9 @@
 
     // Initialize cursor comet / star trail
     initCursorComet();
+
+    // Preload dynamic tags catalog from API
+    loadTags();
 
     // Initialize SPA route based on initial URL
     renderCurrentRoute();
