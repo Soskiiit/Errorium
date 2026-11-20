@@ -247,7 +247,7 @@ func New(cfg *config.Config) *App {
 
 	server := &http.Server{
 		Addr:              ":" + cfg.Port,
-		Handler:           corsMW(mux),
+		Handler:           middleware.RequestLogger(corsMW(mux)),
 		ReadHeaderTimeout: 5 * time.Second,
 		WriteTimeout:      0, // WriteTimeout = 0 to allow long-running SSE streams!
 		IdleTimeout:       60 * time.Second,
@@ -261,7 +261,7 @@ func New(cfg *config.Config) *App {
 	}
 }
 
-// Handler returns the application root HTTP handler (wrapped with CORS).
+// Handler returns the application root HTTP handler (wrapped with request logging and CORS).
 func (a *App) Handler() http.Handler {
 	return a.server.Handler
 }

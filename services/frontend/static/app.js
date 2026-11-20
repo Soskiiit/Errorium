@@ -1067,7 +1067,7 @@
         }
 
         if (path === '/mcp') {
-            openMcpModal();
+            switchToLandingView(false, 'mcp');
             return;
         }
 
@@ -1085,7 +1085,7 @@
             return;
         }
 
-        const chatMatch = path.match(/^\/chat(?:\/([a-zA-Z0-9_\-]+))?$/);
+        const chatMatch = path.match(/^\/chats(?:\/([a-zA-Z0-9_\-]+))?$/);
         if (chatMatch) {
             const chatId = chatMatch[1];
             if (chatId) {
@@ -1093,6 +1093,15 @@
             } else {
                 switchToHeroView(false);
             }
+            return;
+        }
+
+        // Legacy /chat[/<id>] addresses redirect to canonical /chats[/<id>]
+        const legacyChatMatch = path.match(/^\/chat(?:\/([a-zA-Z0-9_\-]+))?$/);
+        if (legacyChatMatch) {
+            const target = legacyChatMatch[1] ? `/chats/${legacyChatMatch[1]}` : '/chats';
+            window.history.replaceState({ view: 'chat' }, '', target);
+            renderCurrentRoute();
             return;
         }
 
@@ -1287,7 +1296,7 @@
     // Modal & View Triggers
     elements.btnMcp?.addEventListener('click', (e) => {
         e.preventDefault();
-        openMcpModal();
+        switchToLandingView(true, 'mcp');
     });
 
     elements.btnAbout?.addEventListener('click', (e) => {
@@ -2465,7 +2474,7 @@
         closeSidebar();
 
         if (updateRoute && !isNavigatingFromPopState) {
-            const chatUrl = `/chat/${encodeURIComponent(chatId)}`;
+            const chatUrl = `/chats/${encodeURIComponent(chatId)}`;
             if (window.location.pathname !== chatUrl) {
                 window.history.pushState({ view: 'chat', chatId }, '', chatUrl);
             }
@@ -2510,7 +2519,7 @@
                     throw new Error('Failed to create new chat');
                 }
                 currentChatId = newChat.id;
-                const chatUrl = `/chat/${encodeURIComponent(currentChatId)}`;
+                const chatUrl = `/chats/${encodeURIComponent(currentChatId)}`;
                 window.history.pushState({ view: 'chat', chatId: currentChatId }, '', chatUrl);
                 loadRecentChats();
             } catch (err) {
@@ -2600,7 +2609,13 @@
 
     async function submitGuestMessage(query, savedQuery) {
         switchToChatView(false);
+        // Guest queries are one-shot: every submission starts a fresh conversation
+        elements.messagesContainer.innerHTML = '';
+        currentAssistantData = null;
         currentQueryText = query;
+        if (!isNavigatingFromPopState && window.location.pathname !== '/chats') {
+            window.history.pushState({ view: 'chat' }, '', '/chats');
+        }
 
         const userRow = document.createElement('div');
         userRow.className = 'message-row user';
@@ -2901,8 +2916,8 @@
         if (elements.chatView) elements.chatView.style.display = 'flex';
         if (elements.promptFooter) elements.promptFooter.classList.remove('hidden');
         closeAllModals(false);
-        if (updateRoute && !isNavigatingFromPopState && !window.location.pathname.startsWith('/chat')) {
-            window.history.pushState({ view: 'chat' }, '', '/chat');
+        if (updateRoute && !isNavigatingFromPopState && !window.location.pathname.startsWith('/chats')) {
+            window.history.pushState({ view: 'chat' }, '', '/chats');
         }
     }
 

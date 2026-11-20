@@ -392,62 +392,113 @@ class TestFrontendE2E(unittest.TestCase):
         self.assertIn("total_hits", data)
 
     def test_06_open_mcp_sse_and_tools_call(self):
-        """Сценарий 6: Open MCP: подключение GET /sse, JSON-RPC initialize, tools/list и tools/call errorium_search_solution."""
-        # Подключение к SSE стриму
-        req = urllib.request.Request(f"{self.base_url}/sse", headers={"Accept": "text/event-stream"})
-        session_id = None
+        """Сценарий 6: Open MCP: GET /sse удерживается открытым, JSON-RPC initialize,
+        tools/list и tools/call errorium_search_solution отправляются POST /mcp/messages
+        (202), результаты приходят событием message в SSE-поток (openapi.yaml)."""
+        import queue
+        import threading
+
+        events_q = queue.Queue()
+        resp_holder = {}
+        stop = threading.Event()
+
+        def sse_reader():
+            req = urllib.request.Request(
+                f"{self.base_url}/sse", headers={"Accept": "text/event-stream"}
+            )
+            try:
+                with urllib.request.urlopen(req, timeout=60) as resp:
+                    resp_holder["resp"] = resp
+                    events_q.put(("status", resp.status))
+                    events_q.put(("content_type", resp.headers.get("Content-Type", "")))
+                    current_event = None
+                    while not stop.is_set():
+                        raw = resp.readline()
+                        if not raw:
+                            break
+                        line = raw.decode("utf-8").rstrip("\r\n")
+                        if line.startswith("event:"):
+                            current_event = line.split(":", 1)[1].strip()
+                        elif line.startswith("data:"):
+                            data = line.split(":", 1)[1].strip()
+                            if current_event == "endpoint" and "sessionId=" in data:
+                                events_q.put(("session", data.split("sessionId=")[1].strip()))
+                            elif current_event == "message":
+                                events_q.put(("message", data))
+            except Exception as e:
+                if not stop.is_set():
+                    events_q.put(("error", str(e)))
+
+        reader = threading.Thread(target=sse_reader, daemon=True)
+        reader.start()
         try:
-            with urllib.request.urlopen(req, timeout=5) as resp:
-                self.assertEqual(resp.status, 200)
-                ct = resp.headers.get("Content-Type", "")
-                self.assertIn("text/event-stream", ct)
+            session_id = None
+            deadline = time.time() + 10
+            while time.time() < deadline and session_id is None:
+                try:
+                    kind, val = events_q.get(timeout=0.5)
+                except queue.Empty:
+                    continue
+                if kind == "status":
+                    self.assertEqual(val, 200)
+                elif kind == "content_type":
+                    self.assertIn("text/event-stream", val)
+                elif kind == "session":
+                    session_id = val
+                elif kind == "error":
+                    self.fail(f"Не удалось подключиться к /sse: {val}")
 
-                for _ in range(20):
-                    line = resp.readline().decode("utf-8")
-                    if "sessionId=" in line:
-                        part = line.split("sessionId=")[1].strip()
-                        session_id = part.split()[0].rstrip("\r\n")
-                        break
-        except Exception as e:
-            self.fail(f"Не удалось подключиться к /sse: {e}")
+            self.assertTrue(bool(session_id), "sessionId не найден в /sse ответе")
 
-        self.assertTrue(bool(session_id), "sessionId не найден в /sse ответе")
+            def rpc_call(req_id, method, params=None):
+                payload = {"jsonrpc": "2.0", "id": req_id, "method": method}
+                if params is not None:
+                    payload["params"] = params
+                status, _, _ = self.make_request(
+                    "POST",
+                    f"/mcp/messages?sessionId={session_id}",
+                    payload,
+                )
+                self.assertEqual(status, 202)
+                deadline = time.time() + 30
+                while time.time() < deadline:
+                    try:
+                        kind, val = events_q.get(timeout=0.5)
+                    except queue.Empty:
+                        continue
+                    if kind == "message":
+                        data = json.loads(val)
+                        if data.get("id") == req_id:
+                            return data
+                    elif kind == "error":
+                        self.fail(f"Ошибка SSE-потока: {val}")
+                self.fail(f"JSON-RPC ответ id={req_id} не пришёл в SSE-поток")
 
-        # 1. tools/list
-        tools_list_payload = {
-            "jsonrpc": "2.0",
-            "id": 1,
-            "method": "tools/list",
-        }
-        status, _, content = self.make_request(
-            "POST",
-            f"/mcp/messages?sessionId={session_id}",
-            tools_list_payload,
-        )
-        self.assertEqual(status, 200)
-        tools_resp = json.loads(content.decode("utf-8"))
-        tool_names = [t["name"] for t in tools_resp.get("result", {}).get("tools", [])]
-        self.assertIn("errorium_search_solution", tool_names)
+            # 1. initialize
+            init_resp = rpc_call(1, "initialize", {
+                "protocolVersion": "2024-11-05",
+                "capabilities": {},
+                "clientInfo": {"name": "test-e2e", "version": "1.0"},
+            })
+            self.assertEqual(init_resp.get("jsonrpc"), "2.0")
+            self.assertIn("result", init_resp)
 
-        # 2. tools/call errorium_search_solution
-        tools_call_payload = {
-            "jsonrpc": "2.0",
-            "id": 2,
-            "method": "tools/call",
-            "params": {
+            # 2. tools/list
+            tools_resp = rpc_call(2, "tools/list")
+            tool_names = [t["name"] for t in tools_resp.get("result", {}).get("tools", [])]
+            self.assertIn("errorium_search_solution", tool_names)
+
+            # 3. tools/call errorium_search_solution
+            call_resp = rpc_call(3, "tools/call", {
                 "name": "errorium_search_solution",
                 "arguments": {"query": "IndexError: list index out of range"},
-            },
-        }
-        status_call, _, content_call = self.make_request(
-            "POST",
-            f"/mcp/messages?sessionId={session_id}",
-            tools_call_payload,
-        )
-        self.assertEqual(status_call, 200)
-        call_resp = json.loads(content_call.decode("utf-8"))
-        self.assertIn("result", call_resp)
-        self.assertIn("content", call_resp["result"])
+            })
+            self.assertIn("result", call_resp)
+            self.assertIn("content", call_resp["result"])
+        finally:
+            stop.set()
+            if "resp" in resp_holder:
+                resp_holder["resp"].close()
 
     def test_07_admin_api_lifecycle(self):
         """Сценарий 7: Admin API: stats, index reload, rag config, блокировка пользователя."""
@@ -523,13 +574,13 @@ class TestFrontendE2E(unittest.TestCase):
         blocked_user = json.loads(content_block.decode("utf-8"))
         self.assertFalse(blocked_user["is_active"])
 
-        # Попытка входа заблокированного пользователя -> 401
+        # Попытка входа заблокированного пользователя -> 403 (openapi.yaml: is_active=false)
         status_login, _, _ = self.make_request(
             "POST",
             "/api/v1/auth/login",
             {"email": victim_email, "password": victim_password},
         )
-        self.assertEqual(status_login, 401)
+        self.assertEqual(status_login, 403)
 
 
 if __name__ == "__main__":

@@ -89,6 +89,24 @@ class TestFrontendMCP(unittest.TestCase):
         # Открытие модалки не блокируется проверкой токена авторизации
         self.assertIn("modalMcp", self.app_js)
 
+    def test_mcp_button_opens_landing_anchor_not_modal(self):
+        """Кнопка MCP в сайдбаре открывает лендинг с якорем #mcp (как в main), а не модалку."""
+        m = re.search(
+            r"elements\.btnMcp\?\.addEventListener\('click', \(e\) => \{(.*?)\}\);",
+            self.app_js,
+            re.S,
+        )
+        self.assertIsNotNone(m, "Обработчик клика btnMcp должен присутствовать")
+        self.assertIn("switchToLandingView(true, 'mcp')", m.group(1))
+        self.assertNotIn("openMcpModal", m.group(1))
+
+    def test_mcp_route_opens_landing(self):
+        """Прямой переход на /mcp рендерит лендинг с секцией MCP (как в main)."""
+        self.assertRegex(
+            self.app_js,
+            r"if \(path === '/mcp'\) \{\s*switchToLandingView\(false, 'mcp'\);",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

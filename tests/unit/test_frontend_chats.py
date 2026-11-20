@@ -127,6 +127,50 @@ class TestFrontendChats(unittest.TestCase):
         """Проверка того, что renderConversation поддерживает рендеринг истории диалога."""
         self.assertIn("function renderConversation", self.app_js)
 
+    def test_canonical_chat_url_per_chat(self):
+        """Каждый чат имеет уникальный канонический адрес /chats/<id> (uuid с бэкенда)."""
+        self.assertIn("`/chats/${encodeURIComponent(chatId)}`", self.app_js)
+        self.assertIn("`/chats/${encodeURIComponent(currentChatId)}`", self.app_js)
+        self.assertIn(r"^\/chats(?:\/([a-zA-Z0-9_\-]+))?$", self.app_js)
+        self.assertIn("'/chats'", self.app_js)
+
+    def test_legacy_chat_route_redirect(self):
+        """Устаревшие /chat и /chat/<id> перенаправляются на канонические /chats[/<id>]."""
+        self.assertIn("legacyChatMatch", self.app_js)
+        self.assertIn("window.history.replaceState", self.app_js)
+
+    def test_new_chat_resets_current_chat(self):
+        """Кнопка New chat сбрасывает currentChatId, первое сообщение создаёт новый чат."""
+        self.assertRegex(
+            self.app_js,
+            r"elements\.btnNewChat\?\.addEventListener\('click', \(\) => \{\s*currentChatId = null;",
+        )
+        self.assertIn("if (!currentChatId) {", self.app_js)
+        self.assertRegex(self.app_js, r"request\('POST', '/chats'")
+
+    def test_guest_message_starts_new_conversation(self):
+        """Гостевая отправка (включая клик по референсному чату) начинает новый диалог, а не дописывает текущий."""
+        start = self.app_js.index("async function submitGuestMessage")
+        end = self.app_js.index("async function submitCurrentQuery")
+        body = self.app_js[start:end]
+        self.assertIn("elements.messagesContainer.innerHTML = '';", body)
+        self.assertIn("currentAssistantData = null;", body)
+
+    def test_scripts_cache_busted_in_index_html(self):
+        """index.html подключает api.js/app.js с версионным параметром против кеширования старого SPA."""
+        with open(self.index_html_path, "r", encoding="utf-8") as f:
+            html = f.read()
+        self.assertRegex(html, r"/static/api\.js\?v=[0-9_]+")
+        self.assertRegex(html, r"/static/app\.js\?v=[0-9_]+")
+
+    def test_dev_nginx_no_cache_and_api_proxy(self):
+        """Dev-nginx проксирует /api/ в gateway и отдаёт статику без кеширования."""
+        conf_path = os.path.join(REPO_ROOT, "services", "frontend", "nginx.dev.conf")
+        with open(conf_path, "r", encoding="utf-8") as f:
+            conf = f.read()
+        self.assertIn("proxy_pass http://gateway:8000/api/;", conf)
+        self.assertIn("no-cache", conf)
+
 
 if __name__ == "__main__":
     unittest.main()

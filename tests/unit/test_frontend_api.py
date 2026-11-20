@@ -77,9 +77,9 @@ class TestFrontendAPI(unittest.TestCase):
         with open(self.index_html_path, "r", encoding="utf-8") as f:
             html = f.read()
 
-        # Ищем теги скриптов api.js и app.js
-        api_match = re.search(r'<script[^>]+src=["\']([^"\']*api\.js)["\']', html)
-        app_match = re.search(r'<script[^>]+src=["\']([^"\']*app\.js)["\']', html)
+        # Ищем теги скриптов api.js и app.js (допускается версионный query ?v=...)
+        api_match = re.search(r'<script[^>]+src=["\']([^"\']*api\.js)(\?[^"\']*)?["\']', html)
+        app_match = re.search(r'<script[^>]+src=["\']([^"\']*app\.js)(\?[^"\']*)?["\']', html)
 
         self.assertIsNotNone(api_match, "В index.html должен быть тег подключения api.js")
         self.assertIsNotNone(app_match, "В index.html должен быть тег подключения app.js")

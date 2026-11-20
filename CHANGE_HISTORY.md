@@ -1,5 +1,54 @@
 # CHANGE_HISTORY.md — История изменений проекта Errorium
 
+## [2026-11-20] — Уникальные адреса чатов /chats/<uuid>, MCP-кнопка как якорь лендинга, логирование запросов Gateway, dev-индекс и антикеширование SPA
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/app.js`, `services/frontend/static/index.html`
+- `services/frontend/nginx.dev.conf`, `services/frontend/nginx.conf`
+- `services/gateway/internal/middleware/logging.go` (новый), `services/gateway/internal/app/app.go`
+- `docs/Product/03-requirements.md` (FR-3.4), `docs/Product/04-interface-and-behavior.md` (новый Экран 1.2, поведение кнопок MCP/About us)
+- `docs/Tech/02-running.md` (новый раздел 5.7)
+- `tests/unit/test_frontend_chats.py`, `tests/unit/test_frontend_mcp.py`, `tests/unit/test_frontend_api.py`
+- `tests/integration/test_gateway_api.py`, `tests/integration/test_frontend_e2e.py`
+- `STATUS.md`
+
+### Суть изменений:
+1. **Уникальный адрес каждого чата:** канонический SPA-маршрут `/chats/<uuid>` (идентификатор выдаёт `POST /api/v1/chats`); устаревшие `/chat` и `/chat/<id>` перенаправляются через `history.replaceState`. Кнопка `New chat` сбрасывает `currentChatId`, первое сообщение авторизованного пользователя создаёт новый чат и меняет URL; гостевая отправка (включая клик по референсному чату сайдбара) теперь начинает новый диалог с чистым контейнером сообщений, а не дописывает текущий.
+2. **Кнопка MCP — как в `main`:** клик по `MCP` в сайдбаре и прямой переход на `/mcp` открывают лендинг с плавной прокруткой к секции `#mcp` (`switchToLandingView`), а не модальное окно. Поведение приведено к уже описанному в спецификации (Экран 1.1).
+3. **Логирование HTTP-запросов Gateway:** новый middleware `RequestLogger` (метод, URI с query, статус, длительность, клиентский IP из `X-Real-IP`/`RemoteAddr`) подключён внешним слоем к CORS+роутеру. Обёртка `ResponseWriter` сохраняет `http.Flusher`/`http.Hijacker` — SSE-стримы не буферизуются. Запросы теперь видны в `docker logs errorium_gateway_dev` (ранее логировались только старт/ошибки, из-за чего бэкенд «не было видно» в логах при работающем прокси).
+4. **Антикеширование SPA:** `index.html` подключает `api.js`/`app.js` с версионным параметром `?v=20261120_1`; dev-nginx отдаёт статику с `Cache-Control: no-cache`, prod-nginx — `no-cache` для `/index.html`. Устраняет исполнение браузером устаревшей версии `app.js` (симптомы: моковые чаты «в одну кучу», отсутствие запросов к API).
+5. **Dev-индекс и интеграционные тесты:** `data/index/` был пуст — core стартовал в unready, сообщения чатов падали с `search backend unavailable`; построен индекс малого корпуса (`docker compose -f docker-compose.indexer.yml run --rm indexer corpus`, 30 документов). Интеграционные тесты приведены к openapi.yaml: MCP-флоу удерживает SSE-соединение открытым и ожидает `202` + JSON-RPC ответ в SSE-потоке (ранее тест закрывал стрим до POST и ждал `200` с телом); вход заблокированного пользователя ожидается `403` (ранее `401`); граф-тесты с SO-фикстурами 27539308/15478423 пропускаются (SkipTest), если в текущем индексе нет выборки из дампа (`make index-sample`).
+
+### Результаты тестов/бенчмарка:
+- `cd services/gateway && go test -race ./...` — все пакеты OK, включая 5 новых тестов `logging_test.go` (статусы, X-Real-IP, Flusher для SSE, первый WriteHeader).
+- `python3 -m unittest discover -s tests/unit -p "test_*.py"` — **307 тестов, OK** (299 прежних + 8 новых: канонический URL чата, legacy-редирект, сброс New chat, гостевой новый диалог, cache-busting, no-cache/proxy dev-nginx, MCP-кнопка/роут → лендинг).
+- `python3 -m unittest discover -s tests/integration -p "test_*.py"` — **39 тестов, OK (skipped=2)** против живого dev-стека; skip — граф-фикстуры из дампа SO, отсутствующие в малом корпусе.
+- Ручная E2E-проверка через прокси :3000: регистрация/логин OK, `POST /api/v1/chats` → 201 (uuid), `POST /chats/{id}/messages` (SSE) → события `user_message`/`delta`/`done`; в логах gateway строки `HTTP POST /api/v1/chats -> 201 (10.6ms)`. MCP вручную: `GET /sse` + удерживаемое соединение, `initialize`/`tools/list`/`tools/call` → 202, ответы в SSE-потоке.
+- Ранжирование и токенизация не изменялись — бенчмарк не требовался.
+
+## [2026-11-20] — Аудит и фикс контракта переменных окружения (.env.example, docker-compose, gateway env_file)
+
+### Затронутые компоненты и спецификации:
+- `.env.example`
+- `docker-compose.yml`, `docker-compose.dev.yml`
+- `docs/Tech/02-running.md` (разделы 2, 3, 5.3)
+- `tests/unit/test_env_contract.py` (новый статический тест контракта)
+- `STATUS.md`
+
+### Суть изменений:
+1. **Исправлен рассинхрон имён переменных БД:** compose создаёт контейнер postgres из `POSTGRES_DB` / `POSTGRES_USER` / `POSTGRES_PASSWORD`, но в `.env.example` были только `DB_NAME` / `DB_USER` / `DB_PASSWORD` (читаются gateway). Прод-стек не стартовал (`POSTGRES_PASSWORD:?required`), смена `DB_PASSWORD` в `.env` игнорировалась. В `.env.example` добавлены `POSTGRES_*` как основные credentials; `DB_*` помечены как действующие только вне Docker (compose пробрасывает `POSTGRES_*` в gateway как `DB_*`).
+2. **Закрыт пробел проброса ключей в gateway:** в обоих compose у gateway не было `env_file`, поэтому `JWT_SECRET_KEY`, ключи SSO, GigaChat/OpenAI, SMTP, `FIRST_ADMIN_*`, `FRONTEND_URL`, `SSO_REDIRECT_BASE` и лимиты MCP не попадали в контейнер (gateway на Go читает только `os.Getenv`, dotenv отсутствует). Добавлен `env_file: .env` (явные `environment:` сохраняют приоритет) и монтирование `./deploy/certs:/app/certs:ro` для сертификата НУЦ.
+3. **`.env.example` приведён в соответствие с кодом:** добавлен `SSO_REDIRECT_BASE` (на проде `https://errorium.ru`), `FRONTEND_HTTP_PORT` / `FRONTEND_HTTPS_PORT`, комментарий `AUTO_MIGRATE`; `GIGACHAT_CA_CERT` переведён на контейнерный путь `/app/certs/russian_trusted_root_ca.crt`; `GATEWAY_API_URL` исправлен на `http://localhost:8000` (для `make dev` на хосте); устранён дубль `SEARCH_GRPC_PORT`; мёртвые `ENVIRONMENT` / `LOG_LEVEL` / `JWT_ALGORITHM` закомментированы с пояснением (HS256 зашит в `pkg/jwt`); уточнены комментарии `INDEX_DIR` / `CORE_INDEX_DIR`.
+4. **Спека синхронизирована:** `docs/Tech/02-running.md` — механика проброса env (env_file vs `${...}`), блок переменных, примечание о продакшн-портах 80/443, путь сертификата в п. 5.3.
+
+### Результаты тестов/бенчмарка:
+- `tests/unit/test_env_contract.py` — 10 новых тестов (имена переменных, env_file, монтирование сертификатов) — PASS.
+- `.venv/bin/python -m unittest discover -s tests/unit -p "test_*.py"` — **299 тестов, OK** (289 прежних + 10 новых).
+- `docker compose -f docker-compose.yml|dev|indexer config --quiet` — все три файла валидны.
+- Resolved-конфиг dev-стека подтверждает: `JWT_SECRET_KEY`, `YANDEX_CLIENT_ID`, `FIRST_ADMIN_EMAIL`, `LLM_PROVIDER` теперь присутствуют в environment gateway.
+- Ранжирование и токенизация не изменялись — бенчмарк не требовался.
+- Остаток на стороне окружения (не кода): в локальном/серверном `.env` нужно добавить отсутствующие `GIGACHAT_*`, `SMTP_*`, `SSO_REDIRECT_BASE`, `FRONTEND_URL` из `.env.example`; на проде `SSO_REDIRECT_BASE=https://errorium.ru`, `FRONTEND_URL=https://errorium.ru`.
+
 ## [2026-11-20] — Волна C: Web Frontend подключен к Gateway API, Star Map на реальных данных, открытый MCP и завершение КТ3 (C1–C5)
 
 ### Затронутые компоненты и спецификации:

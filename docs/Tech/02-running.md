@@ -31,6 +31,9 @@
 | `garage` (Admin) | `3903` | `GARAGE_ADMIN_PORT` | HTTP | Garage Admin & Metrics API |
 | `search_engine_core` | `50051` | `SEARCH_GRPC_PORT` | gRPC (HTTP/2) | Поисковое ядро и построение графа связей |
 
+> [!NOTE]
+> **Продакшн-фронтенд:** в `docker-compose.yml` nginx слушает порты `80`/`443`, они переопределяются переменными `FRONTEND_HTTP_PORT` / `FRONTEND_HTTPS_PORT`. Переменная `FRONTEND_PORT=3000` действует только в dev-стеке (`docker-compose.dev.yml`).
+
 > [!TIP]
 > **Конфликт портов на хост-машине:**  
 > Если порт (например, `3900` или `5432`) уже занят другим процессом на рабочей машине, переопределите его в файле `.env` (`GARAGE_PORT=3910`, `POSTGRES_PORT=5433`). Внутри Docker-сети сервисы продолжат общаться по внутренним портам по умолчанию, конфликты на хосте будут устранены.
@@ -39,12 +42,18 @@
 
 ## 3. Переменные окружения (`.env`)
 
-Создайте файл `.env` в корне репозитория (или используйте `.env.example`):
+Создайте файл `.env` в корне репозитория (или используйте `.env.example`).
+
+**Как переменные попадают в контейнеры:**
+- `gateway` получает весь `.env` через `env_file` (ключи SSO, LLM, SMTP, JWT, лимиты MCP); явные записи `environment:` в compose имеют приоритет над `env_file`.
+- `postgres`, `garage`, `search_engine_core` получают только свои переменные через подстановку `${...}` в compose.
+- Credentials БД задаются переменными `POSTGRES_DB` / `POSTGRES_USER` / `POSTGRES_PASSWORD` (их читает контейнер postgres); compose пробрасывает их в gateway как `DB_NAME` / `DB_USER` / `DB_PASSWORD`. Переменные `DB_*` в `.env` действуют только при запуске gateway вне Docker.
 
 ```bash
 # === Общие настройки системы ===
-ENVIRONMENT=development
-LOG_LEVEL=INFO
+# Зарезервировано: текущие сервисы не читают эти переменные
+# ENVIRONMENT=development
+# LOG_LEVEL=INFO
 
 # === Search Engine Indexer (Роль 1) ===
 RAW_DATA_PATH=/app/data/raw
@@ -67,11 +76,16 @@ SEARCH_ENGINE_PORT=50051
 
 # === Web Frontend (Роль 4) ===
 FRONTEND_PORT=3000
-GATEWAY_API_URL=http://gateway:8000
+FRONTEND_HTTP_PORT=80                       # Продакшн-порт HTTP (docker-compose.yml)
+FRONTEND_HTTPS_PORT=443                     # Продакшн-порт HTTPS (docker-compose.yml)
+GATEWAY_API_URL=http://localhost:8000       # Только для `make dev` вне Docker; в Docker nginx проксирует /api/ сам
 
 # === База данных Gateway (PostgreSQL 18+) ===
 POSTGRES_PORT=5432
-DB_HOST=postgres
+POSTGRES_DB=errorium                        # Основные credentials для контейнера postgres
+POSTGRES_USER=errorium_user
+POSTGRES_PASSWORD=errorium_password
+DB_HOST=postgres                            # DB_* — только для запуска gateway вне Docker
 DB_PORT=5432
 DB_NAME=errorium
 DB_USER=errorium_user
@@ -90,7 +104,7 @@ GARAGE_USE_SSL=false
 
 # === Аутентификация, JWT и SSO ===
 JWT_SECRET_KEY=change-this-in-production-to-strong-secret-key-64chars-min
-JWT_ALGORITHM=HS256
+# JWT_ALGORITHM не читается: gateway всегда подписывает HS256 (pkg/jwt)
 ACCESS_TOKEN_EXPIRE_MINUTES=60
 REFRESH_TOKEN_EXPIRE_DAYS=30
 
@@ -130,7 +144,7 @@ OPENAI_MODEL_NAME=gpt-4o-mini
 GIGACHAT_CLIENT_ID=
 GIGACHAT_CLIENT_SECRET=
 GIGACHAT_SCOPE=GIGACHAT_API_PERS
-GIGACHAT_CA_CERT=deploy/certs/russian_trusted_root_ca.crt
+GIGACHAT_CA_CERT=/app/certs/russian_trusted_root_ca.crt  # путь в контейнере; compose монтирует ./deploy/certs -> /app/certs
 
 # === Лимиты открытого MCP-сервера ===
 MCP_MAX_SESSIONS_PER_IP=100                  # Максимум одновременных сессий с одного IP (429)
@@ -242,9 +256,9 @@ make test
    curl -k -o deploy/certs/russian_trusted_root_ca.crt https://gu-st.ru/content/Other/doc/russian_trusted_root_ca.crt
    ```
 2. **Конфигурация:**
-   - Путь к файлу передается через переменную `GIGACHAT_CA_CERT`:
+   - Каталог `deploy/certs/` монтируется в контейнер gateway как `/app/certs` (read-only) в обоих compose-файлах. Путь к файлу передается через переменную `GIGACHAT_CA_CERT` **внутри контейнера**:
      ```bash
-     GIGACHAT_CA_CERT=deploy/certs/russian_trusted_root_ca.crt
+     GIGACHAT_CA_CERT=/app/certs/russian_trusted_root_ca.crt
      ```
    - При инициализации клиента `llm.NewGigaChat` Gateway загружает этот сертификат в системный пул `x509.CertPool` и безопасно валидирует TLS-соединение как к OAuth-шлюзу (`ngw.devices.sberbank.ru:9443`), так и к API чата (`api.giga.chat`).
    - Если сертификат не найден по указанному пути, провайдер `gigachat` завершает инициализацию с понятной ошибкой в логе и не выполняет небезопасных соединений.
@@ -298,6 +312,20 @@ LLM_MAX_CONCURRENT=8           # Глобальный семафор однов�
    python3 -m unittest tests/integration/test_frontend_e2e.py
    ```
    Сценарий автоматически верифицирует: регистрацию и логин пользователя, редактирование профиля и загрузку аватара, поиск ошибки и потоковый SSE RAG-синтез, получение графа Star Map (`/graph/threads`), полный CRUD чатов, гостевой поиск без токенов, прямое подключение к открытому Remote MCP (`/sse` + `errorium_search_solution`) и Admin API (stats, reload, rag config, блокировка).
+
+### 5.7. Логирование HTTP-запросов Gateway и отладка dev-стека
+
+1. **Журнал запросов:** каждый HTTP-запрос к Gateway (включая CORS-preflight и SSE-стримы) фиксируется middleware `middleware.RequestLogger` в stdout контейнера строкой формата:
+   ```text
+   2026/11/20 12:24:07 HTTP POST /api/v1/chats -> 201 (3.2ms) [172.18.0.1]
+   ```
+   Логируются метод, путь с query-строкой, итоговый статус, длительность и адрес клиента (`X-Real-IP` от nginx либо `RemoteAddr`). Тела запросов/ответов не логируются. Middleware прозрачен для SSE: обёртка `ResponseWriter` реализует `http.Flusher` и `http.Hijacker`, поэтому стриминг `/search/rag` и `/chats/{id}/messages` не буферизуется. Просмотр: `docker logs -f errorium_gateway_dev`.
+2. **Индекс для dev-стека:** `search_engine_core` читает индекс из `data/index/` (`INDEX_DIR`). Если каталог пуст (нет `metadata.json`), core стартует в состоянии unready, а Gateway отвечает `{"error":"search backend unavailable"}` на поисковые запросы и сообщения чатов. Для локальной разработки достаточно малого корпуса benchmark:
+   ```bash
+   docker compose -f docker-compose.indexer.yml run --rm indexer corpus
+   docker compose -f docker-compose.dev.yml restart search_engine_core
+   ```
+3. **Проксирование API во фронтенде:** dev-nginx (`nginx.dev.conf`) и prod-nginx (`nginx.conf`) проксируют `location /api/` в `http://gateway:8000/api/`; проверка доступности бэкенда через фронтенд: `curl -i http://localhost:3000/api/v1/chats` (ожидается `401` от Gateway без токена). Dev-nginx дополнительно отдаёт статику с `Cache-Control: no-cache`, исключая исполнение браузером устаревших версий `app.js`/`index.html`.
 
 
 

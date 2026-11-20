@@ -53,6 +53,8 @@ services:
     restart: unless-stopped
     ports:
       - "127.0.0.1:${GATEWAY_PORT:-8000}:8000"
+    # Ключи SSO/LLM/SMTP/JWT из .env; явные environment: ниже имеют приоритет
+    env_file: .env
     environment:
       - GATEWAY_PORT=8000
       - DB_HOST=postgres
@@ -72,6 +74,9 @@ services:
       - GARAGE_SECRET_KEY=${GARAGE_DEFAULT_SECRET_KEY:-garageadminpassword}
       - GARAGE_BUCKET_NAME=${GARAGE_DEFAULT_BUCKET:-errorium-avatars}
       - SEARCH_ENGINE_ADDR=search_engine_core:50051
+    volumes:
+      # Сертификат НУЦ для GigaChat (GIGACHAT_CA_CERT=/app/certs/...)
+      - ./deploy/certs:/app/certs:ro
     depends_on:
       postgres:
         condition: service_healthy
