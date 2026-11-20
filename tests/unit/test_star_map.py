@@ -104,14 +104,16 @@ class TestStarMap(unittest.TestCase):
         # На время карты маска нижнего затемнения view-content снимается
         self.assertIn("body.star-map-active .view-content", css)
 
-    def test_star_map_mock_data_contract(self):
-        """Мок-данные совместимы с ThreadGraphResponse / ThreadNode (FR-3.5, graph.proto)."""
+    def test_star_map_real_data_contract(self):
+        """Реальный контракт данных через GET /graph/threads без MOCK_RELATED_THREADS (C4, ADR-006)."""
         js = read_static("app.js")
 
-        self.assertIn("MOCK_RELATED_THREADS", js)
+        self.assertNotIn("MOCK_RELATED_THREADS", js, "MOCK_RELATED_THREADS должен быть полностью удален")
         self.assertIn("buildStarMapGraph", js)
+        self.assertIn("/graph/threads", js, "Должен быть вызов GET /graph/threads")
+        self.assertIn("ErroriumAPI.request", js, "Запрос к /graph/threads должен идти через ErroriumAPI.request")
 
-        # Категории узлов из NodeCategory (graph.proto)
+        # Категории узлов из NodeCategory (graph.proto / ADR-006)
         for category in ["PRIMARY_RESULT", "OTHER_RESULT", "DUPLICATE", "LINKED"]:
             self.assertIn(category, js, f"Категория узла не найдена: {category}")
 
@@ -126,6 +128,9 @@ class TestStarMap(unittest.TestCase):
         # Поля ThreadDetailsResponse (панель деталей по клику)
         self.assertIn("best_answer_body", js)
         self.assertIn("original_url", js)
+
+        # Обработка ошибок через showToast
+        self.assertIn("showToast", js)
 
     def test_star_map_canvas_engine_no_external_libs(self):
         """Canvas-движок с собственной force-симуляцией, без D3/Cytoscape/React Flow (ADR-006)."""

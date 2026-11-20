@@ -66,7 +66,7 @@
             "Паника Go / runtime": "Go panic / runtime",
             "Ошибка C++ / Segfault": "C++ / Segfault",
             "Вход в Errorium": "Log in to Errorium",
-            "Синхронизируйте историю ошибок, знания команды и создавайте токены MCP для Cursor и Claude Code.": "Sync your recent error history, team knowledge, and generate MCP API tokens for Cursor & Claude Code.",
+            "Синхронизируйте историю ошибок, знания команды и подключайте Errorium через MCP для Cursor и Claude Code.": "Sync your recent error history, team knowledge, and connect Errorium via MCP for Cursor & Claude Code.",
             "Продолжить через GitHub": "Continue with GitHub",
             "Продолжить через Google SSO": "Continue with Google SSO",
             "Пароль": "Password",
@@ -234,7 +234,7 @@
             "Go panic / runtime": "Паника Go / runtime",
             "C++ / Segfault": "Ошибка C++ / Segfault",
             "Log in to Errorium": "Вход в Errorium",
-            "Sync your recent error history, team knowledge, and generate MCP API tokens for Cursor & Claude Code.": "Синхронизируйте историю ошибок, знания команды и создавайте токены MCP для Cursor и Claude Code.",
+            "Sync your recent error history, team knowledge, and connect Errorium via MCP for Cursor & Claude Code.": "Синхронизируйте историю ошибок, знания команды и подключайте Errorium через MCP для Cursor и Claude Code.",
             "Continue with GitHub": "Продолжить через GitHub",
             "Continue with Google SSO": "Продолжить через Google SSO",
             "Password": "Пароль",
@@ -646,14 +646,18 @@
         modalResetPasswordAlert: document.getElementById('modal-reset-password-alert'),
         refBtnAlertSendReset: document.getElementById('ref-btn-alert-send-reset'),
 
-        btnCopyToken: document.getElementById('btn-copy-token'),
+        btnCopyUrl: document.getElementById('btn-copy-url'),
+        btnCopyToken: document.getElementById('btn-copy-url') || document.getElementById('btn-copy-token'),
         btnCopyMcpJson: document.getElementById('btn-copy-mcp-json'),
-        mcpTokenDisplay: document.getElementById('mcp-token-display'),
+        mcpUrlDisplay: document.getElementById('mcp-url-display'),
+        mcpTokenDisplay: document.getElementById('mcp-url-display') || document.getElementById('mcp-token-display'),
         mcpJsonSnippet: document.getElementById('mcp-json-snippet'),
 
-        btnLandingCopyToken: document.getElementById('btn-landing-copy-token'),
+        btnLandingCopyUrl: document.getElementById('btn-landing-copy-url'),
+        btnLandingCopyToken: document.getElementById('btn-landing-copy-url') || document.getElementById('btn-landing-copy-token'),
         btnLandingCopyJson: document.getElementById('btn-landing-copy-json'),
-        landingMcpToken: document.getElementById('landing-mcp-token'),
+        landingMcpUrl: document.getElementById('landing-mcp-url'),
+        landingMcpToken: document.getElementById('landing-mcp-url') || document.getElementById('landing-mcp-token'),
         landingMcpJsonSnippet: document.getElementById('landing-mcp-json-snippet'),
 
         btnLoginGithub: document.getElementById('btn-login-github'),
@@ -1063,7 +1067,7 @@
         }
 
         if (path === '/mcp') {
-            switchToLandingView(false, 'mcp');
+            openMcpModal();
             return;
         }
 
@@ -1109,6 +1113,8 @@
             modalEl.style.display = 'flex';
             if (modalEl === elements.modalSettings) {
                 loadStatus();
+            } else if (modalEl === elements.modalMcp) {
+                updateMcpSnippets();
             }
             if (updateRoute && !isNavigatingFromPopState) {
                 if (modalEl === elements.modalAuthRef || modalEl === elements.modalAuth) {
@@ -1281,7 +1287,7 @@
     // Modal & View Triggers
     elements.btnMcp?.addEventListener('click', (e) => {
         e.preventDefault();
-        switchToLandingView(true, 'mcp');
+        openMcpModal();
     });
 
     elements.btnAbout?.addEventListener('click', (e) => {
@@ -2099,39 +2105,71 @@
     elements.btnLoginGithub?.addEventListener('click', () => initiateSSO('github'));
     elements.btnLoginGoogle?.addEventListener('click', () => initiateSSO('google'));
 
+    // =========================================================================
+    // MCP Integration (ADR-012: Open MCP without tokens)
+    // =========================================================================
+    function getMcpSseUrl() {
+        const origin = (typeof window !== 'undefined' && window.location && window.location.origin)
+            ? window.location.origin
+            : 'https://errorium.ru';
+        return origin + '/sse';
+    }
+
+    function getMcpConfigJson() {
+        const sseUrl = getMcpSseUrl();
+        const config = {
+            mcpServers: {
+                errorium: {
+                    url: sseUrl
+                }
+            }
+        };
+        return JSON.stringify(config, null, 2);
+    }
+
+    function updateMcpSnippets() {
+        const sseUrl = getMcpSseUrl();
+        const configJson = getMcpConfigJson();
+        if (elements.mcpUrlDisplay) elements.mcpUrlDisplay.value = sseUrl;
+        if (elements.mcpJsonSnippet) elements.mcpJsonSnippet.textContent = configJson;
+        if (elements.landingMcpUrl) elements.landingMcpUrl.textContent = sseUrl;
+        if (elements.landingMcpJsonSnippet) elements.landingMcpJsonSnippet.textContent = configJson;
+    }
+
+    function openMcpModal() {
+        updateMcpSnippets();
+        showModal(elements.modalMcp);
+    }
+    window.openMcpModal = openMcpModal;
+
     // Copy to clipboard helpers
-    elements.btnCopyToken?.addEventListener('click', () => {
-        if (elements.mcpTokenDisplay) {
-            navigator.clipboard.writeText(elements.mcpTokenDisplay.value).then(() => {
-                showToast('Bearer token copied to clipboard!');
+    const handleCopyUrl = () => {
+        const url = getMcpSseUrl();
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).then(() => {
+                const isRu = getCurrentLanguage() === 'Русский';
+                showToast(isRu ? 'URL подключения MCP скопирован!' : 'MCP connection URL copied to clipboard!');
             });
         }
-    });
+    };
 
-    elements.btnCopyMcpJson?.addEventListener('click', () => {
-        if (elements.mcpJsonSnippet) {
-            navigator.clipboard.writeText(elements.mcpJsonSnippet.textContent).then(() => {
-                showToast('MCP configuration JSON copied!');
+    const handleCopyMcpJson = () => {
+        const json = getMcpConfigJson();
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(json).then(() => {
+                const isRu = getCurrentLanguage() === 'Русский';
+                showToast(isRu ? 'Конфигурация MCP JSON скопирована!' : 'MCP configuration JSON copied!');
             });
         }
-    });
+    };
 
-    // Landing Copy to clipboard helpers
-    elements.btnLandingCopyToken?.addEventListener('click', () => {
-        if (elements.landingMcpToken) {
-            navigator.clipboard.writeText(elements.landingMcpToken.textContent.trim()).then(() => {
-                showToast('Bearer token copied to clipboard!');
-            });
-        }
-    });
+    elements.btnCopyUrl?.addEventListener('click', handleCopyUrl);
+    elements.btnCopyToken?.addEventListener('click', handleCopyUrl);
+    elements.btnLandingCopyUrl?.addEventListener('click', handleCopyUrl);
+    elements.btnLandingCopyToken?.addEventListener('click', handleCopyUrl);
 
-    elements.btnLandingCopyJson?.addEventListener('click', () => {
-        if (elements.landingMcpJsonSnippet) {
-            navigator.clipboard.writeText(elements.landingMcpJsonSnippet.textContent).then(() => {
-                showToast('MCP configuration JSON copied!');
-            });
-        }
-    });
+    elements.btnCopyMcpJson?.addEventListener('click', handleCopyMcpJson);
+    elements.btnLandingCopyJson?.addEventListener('click', handleCopyMcpJson);
 
     // Toast helper
     let toastTimeout = null;
@@ -2294,6 +2332,7 @@
         const starMapTitle = isRu ? 'Открыть карту связей' : 'Open Star Map';
 
         const sources = assistantData.sources || [];
+        const hasGraphSources = sources.length > 0 && sources.some(s => /questions\/(\d+)/.test(s.url || ''));
         const sourcesText = isRu ? `Источники Stack Overflow (${sources.length})` : `Stack Overflow Sources (${sources.length})`;
         const solution = assistantData.solution || assistantData.content || '';
 
@@ -2303,7 +2342,7 @@
                     <img src="/mascot.png" alt="Mascot" width="22">
                 </div>
                 <span class="card-title">${cardTitle}</span>
-                <button class="star-map-open-btn" onclick="openStarMapFromCard()" title="${starMapTitle}" aria-label="${starMapTitle}">
+                <button class="star-map-open-btn"${hasGraphSources ? '' : ' disabled style="display: none;"'} onclick="openStarMapFromCard()" title="${starMapTitle}" aria-label="${starMapTitle}">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="5" cy="6" r="2.2"></circle>
                         <circle cx="19" cy="5" r="2.2"></circle>
@@ -2966,135 +3005,11 @@
         { k: 1.8, len: 48 }
     ];
 
-    // Mock pool of related Stack Overflow threads (FR-3.5)
-    const MOCK_RELATED_THREADS = [
-        {
-            doc_id: 1132941,
-            title: 'Least Astonishment and the Mutable Default Argument',
-            snippet: 'Why does a Python function with a default list argument keep values between calls? The default object is created once at definition time.',
-            tags: ['python', 'list', 'default-argument'],
-            score: 6890, accepted: true,
-            answer: 'Default arguments are evaluated once, when the function is defined — not on each call. A mutable default (list, dict) is therefore shared across all calls.\n\nUse None as the default and create the object inside the function:\n\ndef append_to(item, target=None):\n    if target is None:\n        target = []\n    target.append(item)\n    return target',
-            url: 'https://stackoverflow.com/questions/1132941'
-        },
-        {
-            doc_id: 53513,
-            title: 'How do I check if a list is empty?',
-            snippet: 'What is the most pythonic way to test whether a list has no elements? Comparing to [] or checking len() both feel verbose.',
-            tags: ['python', 'list'],
-            score: 4520, accepted: true,
-            answer: 'Empty sequences are falsy in Python, so the idiomatic check is:\n\nif not my_list:\n    print("list is empty")\n\nAvoid len(my_list) == 0 — it is slower and less readable. The same pattern works for strings, tuples and dicts.',
-            url: 'https://stackoverflow.com/questions/53513'
-        },
-        {
-            doc_id: 1720421,
-            title: 'How to concatenate two lists in Python?',
-            snippet: 'I want to merge list_a and list_b into a single list. What is the difference between +, extend() and unpacking?',
-            tags: ['python', 'list', 'concatenation'],
-            score: 3110, accepted: true,
-            answer: 'Use + to build a new list, or extend() to mutate in place:\n\nmerged = list_a + list_b      # new list\nlist_a.extend(list_b)         # modifies list_a\n\nSince Python 3.5 you can also unpack: merged = [*list_a, *list_b]. Note that + requires both operands to be lists, while extend() accepts any iterable.',
-            url: 'https://stackoverflow.com/questions/1720421'
-        },
-        {
-            doc_id: 38987,
-            title: 'How do I merge two dictionaries in a single expression?',
-            snippet: 'Merging dict x and dict y so that values from y win on key conflicts. Looking for a clean one-liner.',
-            tags: ['python', 'dictionary'],
-            score: 4860, accepted: true,
-            answer: 'Python 3.9+ supports the merge operator:\n\nz = x | y\n\nPython 3.5+: z = {**x, **y}\n\nOlder versions: z = dict(x, **y) — only works when y keys are strings. In all cases values from y override values from x on conflicts.',
-            url: 'https://stackoverflow.com/questions/38987'
-        },
-        {
-            doc_id: 176918,
-            title: 'Finding the index of an item in a list',
-            snippet: 'Given a list and a value, how do I get the position of the value? And what happens when the value is not present?',
-            tags: ['python', 'list', 'indexing'],
-            score: 3720, accepted: true,
-            answer: 'Use the built-in index() method:\n\nidx = my_list.index("foo")\n\nIt raises ValueError when the item is absent, so guard with a membership test or try/except. To get all positions use enumerate:\n\n[i for i, v in enumerate(my_list) if v == "foo"]',
-            url: 'https://stackoverflow.com/questions/176918'
-        },
-        {
-            doc_id: 231767,
-            title: "What does the 'yield' keyword do in Python?",
-            snippet: 'Confused about generators: how does yield differ from return, and what is the point of iterating over a generator?',
-            tags: ['python', 'generator', 'yield'],
-            score: 7340, accepted: true,
-            answer: 'yield turns a function into a generator. Each call to next() runs the function until the next yield, produces that value and suspends state — instead of computing everything upfront like return.\n\ndef countdown(n):\n    while n > 0:\n        yield n\n        n -= 1\n\nGenerators are lazy and memory-efficient: they produce items one at a time, which matters for large or infinite sequences.',
-            url: 'https://stackoverflow.com/questions/231767'
-        },
-        {
-            doc_id: 2052390,
-            title: 'Manually raising (throwing) an exception in Python',
-            snippet: 'How do I raise an exception on purpose so that callers can catch it? Which exception type should I pick?',
-            tags: ['python', 'exception', 'raise'],
-            score: 3280, accepted: true,
-            answer: 'Use the raise statement with an exception instance:\n\nraise ValueError("config must not be empty")\n\nPick the built-in type that matches the semantics (ValueError, TypeError, KeyError...). Inside an except block, bare raise re-raises the current exception preserving the traceback. Define custom types by subclassing Exception for domain errors.',
-            url: 'https://stackoverflow.com/questions/2052390'
-        },
-        {
-            doc_id: 1712227,
-            title: 'How do I get the number of elements in a list in Python?',
-            snippet: 'Looking for the equivalent of length/size methods from other languages to count items in a list.',
-            tags: ['python', 'list', 'len'],
-            score: 4210, accepted: true,
-            answer: 'Use the built-in len() function:\n\ncount = len(my_list)\n\nlen() is O(1) for lists — the size is stored, not counted. It works on any sized container: str, tuple, dict, set. For lazy iterators without a known size, consume them with sum(1 for _ in it) instead.',
-            url: 'https://stackoverflow.com/questions/1712227'
-        },
-        {
-            doc_id: 613183,
-            title: 'How do I sort a dictionary by value?',
-            snippet: 'I have a dict of word counts and want to order entries by value descending. dict itself has no sort method.',
-            tags: ['python', 'dictionary', 'sorting'],
-            score: 3540, accepted: true,
-            answer: 'Sort the items with a key function:\n\nsorted_items = sorted(d.items(), key=lambda kv: kv[1], reverse=True)\n\nSince Python 3.7 dicts preserve insertion order, so you can rebuild one: dict(sorted_items). For the top-n entries, collections.Counter(d).most_common(n) is even shorter.',
-            url: 'https://stackoverflow.com/questions/613183'
-        },
-        {
-            doc_id: 101268,
-            title: 'Hidden features of Python',
-            snippet: 'Community wiki of lesser-known language features: chained comparisons, argument unpacking, else on loops and more.',
-            tags: ['python', 'language-features'],
-            score: 5230, accepted: true,
-            answer: 'A few favorites:\n\n- Chained comparisons: 0 < x < 10\n- Argument unpacking: func(*args, **kwargs)\n- for/else: else runs when the loop was not broken\n- Conditional expressions: value = a if cond else b\n- Swapping without a temp: a, b = b, a\n\nMost of these remove boilerplate while keeping the code readable.',
-            url: 'https://stackoverflow.com/questions/101268'
-        },
-        {
-            doc_id: 26595,
-            title: "Is there any difference between 'foo is None' and 'foo == None'?",
-            snippet: 'Both checks seem to work. Is one of them preferred, and can == None ever give a wrong answer?',
-            tags: ['python', 'none', 'comparison'],
-            score: 1620, accepted: true,
-            answer: 'Use is None. None is a singleton, and identity comparison is exact and fast. == invokes __eq__, which a class can overload to return True for anything — so == None can lie. PEP 8 explicitly recommends is / is not for None checks.',
-            url: 'https://stackoverflow.com/questions/26595'
-        },
-        {
-            doc_id: 13076951,
-            title: "TypeError: 'int' object is not iterable when looping",
-            snippet: 'for i in 5: raises TypeError. I expected it to loop five times like range-based loops in other languages.',
-            tags: ['python', 'typeerror', 'list'],
-            score: 1240, accepted: true,
-            answer: 'An int is not iterable — Python has no implicit numeric range. Wrap the number in range():\n\nfor i in range(5):\n    print(i)\n\nThe same TypeError appears when unpacking or passing an int where a sequence is expected, e.g. list(5). Check that the object you iterate over is actually a collection.',
-            url: 'https://stackoverflow.com/questions/13076951'
-        },
-        {
-            doc_id: 419163,
-            title: "What does if __name__ == '__main__': do?",
-            snippet: 'Every script seems to end with this guard. What problem does it solve when a file is both imported and executed?',
-            tags: ['python', 'module', 'main'],
-            score: 4930, accepted: true,
-            answer: 'When a file runs as a script, Python sets __name__ to "__main__"; when it is imported, __name__ is the module name. The guard therefore runs code only on direct execution:\n\nif __name__ == "__main__":\n    main()\n\nThis lets a module expose reusable functions without side effects on import — essential for testable code.',
-            url: 'https://stackoverflow.com/questions/419163'
-        },
-        {
-            doc_id: 379906,
-            title: 'How do I convert a string to an integer in Python?',
-            snippet: 'Parsing numeric user input: int("42") works, but what about floats, whitespace and invalid strings?',
-            tags: ['python', 'string', 'type-conversion'],
-            score: 2860, accepted: true,
-            answer: 'Use int() for whole numbers and float() for decimals:\n\nn = int("42")        # 42\nx = float("3.14")    # 3.14\n\nint() tolerates surrounding whitespace but raises ValueError on invalid input ("4.2" is not an int string — go through float first). Wrap parsing in try/except ValueError when the source is user input.',
-            url: 'https://stackoverflow.com/questions/379906'
-        }
-    ];
+    // Edge types compatible with protos/graph.proto & openapi.yaml
+    const STAR_MAP_EDGE_TYPES = {
+        DUPLICATE_OF: 'DUPLICATE_OF',
+        LINKED_IN_ANSWER: 'LINKED_IN_ANSWER'
+    };
 
     function hashString(str) {
         let h = 2166136261;
@@ -3149,95 +3064,31 @@
     }
 
     // Builds a graph compatible with ThreadGraphResponse (protos/graph.proto)
-    // from the RAG answer sources plus the mock related-thread pool.
-    function buildStarMapGraph(assistantData, query) {
-        const rand = mulberry32(hashString(query || 'errorium'));
-        const nodes = [];
-        const edges = [];
-        const usedIds = new Set();
+    // by fetching real nodes and edges from /graph/threads via ErroriumAPI.
+    async function buildStarMapGraph(assistantData) {
+        const sources = (assistantData && assistantData.sources) || [];
+        const docIds = [];
 
-        const addNode = (n) => {
-            if (usedIds.has(n.doc_id)) return null;
-            usedIds.add(n.doc_id);
-            nodes.push(n);
-            return n;
-        };
-
-        const sourceTags = new Set();
-        const primaryAnswer = assistantData.solution + (assistantData.code ? '\n\n' + assistantData.code : '');
-
-        assistantData.sources.forEach((src, i) => {
+        sources.forEach((src) => {
             const urlMatch = /questions\/(\d+)/.exec(src.url || '');
-            const docId = urlMatch ? parseInt(urlMatch[1], 10) : 90000000 + i;
-            (src.tags || []).forEach(tag => sourceTags.add(tag));
-            addNode({
-                doc_id: docId,
-                category: i === 0 ? 'PRIMARY_RESULT' : 'OTHER_RESULT',
-                score: src.score || 1,
-                title: src.title,
-                snippet: src.snippet || truncateText(assistantData.solution, 150),
-                has_accepted_answer: !!src.accepted,
-                tags: src.tags || [],
-                best_answer_score: Math.max(1, Math.round((src.score || 1) * 0.4)),
-                best_answer_body: primaryAnswer,
-                original_url: src.url
-            });
+            if (urlMatch) {
+                const docId = parseInt(urlMatch[1], 10);
+                if (!isNaN(docId) && !docIds.includes(docId)) {
+                    docIds.push(docId);
+                }
+            }
         });
 
-        const primary = nodes[0];
-        const others = nodes.slice(1);
-
-        const queryWords = (query || '').toLowerCase().split(/[^a-zа-яё0-9_]+/i).filter(w => w.length > 3);
-        const ranked = MOCK_RELATED_THREADS
-            .filter(t => !usedIds.has(t.doc_id))
-            .map(t => {
-                let relevance = t.tags.filter(tag => sourceTags.has(tag)).length * 2;
-                const haystack = (t.title + ' ' + t.tags.join(' ')).toLowerCase();
-                queryWords.forEach(w => { if (haystack.includes(w)) relevance += 1; });
-                return { thread: t, relevance: relevance + rand() * 0.5 };
-            })
-            .sort((a, b) => b.relevance - a.relevance)
-            .slice(0, 12)
-            .map(entry => entry.thread);
-
-        const duplicates = [];
-        const linked = [];
-        ranked.forEach((t, i) => {
-            const node = addNode({
-                doc_id: t.doc_id,
-                category: i < 3 ? 'DUPLICATE' : 'LINKED',
-                score: t.score,
-                title: t.title,
-                snippet: t.snippet,
-                has_accepted_answer: t.accepted,
-                tags: t.tags,
-                best_answer_score: Math.max(1, Math.round(t.score * 0.6)),
-                best_answer_body: t.answer,
-                original_url: t.url
-            });
-            if (!node) return;
-            if (node.category === 'DUPLICATE') duplicates.push(node);
-            else linked.push(node);
-        });
-
-        const addEdge = (source, target, type) => {
-            if (!source || !target || source.doc_id === target.doc_id) return;
-            edges.push({ source_doc_id: source.doc_id, target_doc_id: target.doc_id, type });
-        };
-
-        others.forEach(o => addEdge(o, primary, 'LINKED_IN_ANSWER'));
-        duplicates.forEach(d => addEdge(d, primary, 'DUPLICATE_OF'));
-        linked.forEach(l => {
-            const anchor = others.length && rand() < 0.5 ? others[Math.floor(rand() * others.length)] : primary;
-            addEdge(l, anchor, 'LINKED_IN_ANSWER');
-        });
-        for (let i = 0; i + 1 < linked.length; i += 3) {
-            addEdge(linked[i], linked[i + 1], 'LINKED_IN_ANSWER');
+        if (docIds.length === 0) {
+            return { nodes: [], edges: [] };
         }
 
-        return { nodes, edges };
+        const data = await window.ErroriumAPI.request('GET', '/graph/threads?doc_ids=' + docIds.join(','));
+        return {
+            nodes: (data && data.nodes) || [],
+            edges: (data && data.edges) || []
+        };
     }
-
     // Canvas engine: custom force simulation (repulsion + springs + gravity + damping)
     const StarMap = {
         canvas: null, ctx: null, dpr: 1, w: 0, h: 0,
@@ -3267,10 +3118,19 @@
             const rand = mulberry32(hashString(currentQueryText || 'star-map'));
             const now = performance.now();
             this.nodeById = new Map();
-            this.nodes = graph.nodes.map((n, i) => {
+            this.nodes = (graph.nodes || []).map((n, i) => {
                 const angle = rand() * Math.PI * 2;
                 const radius = n.category === 'PRIMARY_RESULT' ? 0 : 130 + rand() * 170;
                 const runtime = Object.assign({}, n, {
+                    doc_id: n.doc_id,
+                    score: n.score || 1,
+                    title: n.title || '',
+                    snippet: n.snippet || '',
+                    has_accepted_answer: !!n.has_accepted_answer,
+                    tags: n.tags || [],
+                    best_answer_score: n.best_answer_score || 0,
+                    best_answer_body: n.best_answer_body || '',
+                    original_url: n.original_url || '',
                     x: Math.cos(angle) * radius,
                     y: Math.sin(angle) * radius,
                     vx: 0, vy: 0,
@@ -3284,7 +3144,7 @@
                 this.nodeById.set(n.doc_id, runtime);
                 return runtime;
             });
-            this.edges = graph.edges
+            this.edges = (graph.edges || [])
                 .map(e => ({ source: this.nodeById.get(e.source_doc_id), target: this.nodeById.get(e.target_doc_id), type: e.type }))
                 .filter(e => e.source && e.target);
 
@@ -3671,7 +3531,7 @@
             elements.starMapDetailCategory.textContent = categoryNames[node.category] || '';
             elements.starMapDetailCategory.style.setProperty('--cat-color', node.color);
             elements.starMapDetailTitle.textContent = node.title;
-            elements.starMapDetailTags.innerHTML = node.tags.map(tag => `<span class="star-map-detail-tag">#${escapeHtml(tag)}</span>`).join('');
+            elements.starMapDetailTags.innerHTML = (node.tags || []).map(tag => `<span class="star-map-detail-tag">#${escapeHtml(tag)}</span>`).join('');
             elements.starMapDetailAnswerLabel.textContent = node.has_accepted_answer ? acceptedText : bestText;
             elements.starMapDetailAnswer.textContent = node.best_answer_body || '';
             elements.starMapDetailLink.href = node.original_url || '#';
@@ -3827,14 +3687,39 @@
     };
 
     // Animated view transitions: chat + prompt bar leave, Star Map appears (FR-3.4)
-    function openStarMap(animate = true, updateRoute = true) {
+    async function openStarMap(animate = true, updateRoute = true) {
         if (!currentAssistantData || !elements.starMapView) return;
         if (document.body.classList.contains('star-map-active')) return;
+
+        const isRu = getCurrentLanguage() === 'Русский';
+        const sources = (currentAssistantData && currentAssistantData.sources) || [];
+        const hasGraphSources = sources.length > 0 && sources.some(s => /questions\/(\d+)/.test(s.url || ''));
+
+        if (!hasGraphSources) {
+            showToast(isRu ? 'Нет источников для построения карты связей' : 'No sources available for Star Map');
+            return;
+        }
+
+        let graph = null;
+        try {
+            graph = await buildStarMapGraph(currentAssistantData);
+        } catch (err) {
+            const errMsg = (err && (err.error || err.message)) || (isRu ? 'Ошибка загрузки графа связей' : 'Failed to load Star Map graph');
+            showToast(errMsg);
+            closeStarMap(false, updateRoute);
+            return;
+        }
+
+        if (!graph || !graph.nodes || graph.nodes.length === 0) {
+            showToast(isRu ? 'Граф связей пуст' : 'Star Map graph is empty');
+            closeStarMap(false, updateRoute);
+            return;
+        }
 
         if (updateRoute) {
             starMapReturnUrl = window.location.pathname + window.location.search;
         }
-        const graph = buildStarMapGraph(currentAssistantData, currentQueryText);
+
         if (elements.starMapSubtitle) {
             elements.starMapSubtitle.textContent = truncateText(currentQueryText, 64);
         }

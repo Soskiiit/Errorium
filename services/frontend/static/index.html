@@ -630,7 +630,7 @@
                         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                     </div>
                     <h2 id="auth-modal-title">Log in to Errorium</h2>
-                    <p class="modal-subtitle">Sync your recent error history, team knowledge, and generate MCP API tokens for Cursor & Claude Code.</p>
+                    <p class="modal-subtitle">Sync your recent error history, team knowledge, and connect Errorium via MCP for Cursor & Claude Code.</p>
                 </div>
                 <div class="auth-buttons-list">
                     <button class="auth-provider-btn github-btn" id="btn-login-github">
@@ -659,10 +659,10 @@
 
                 <div class="modal-body">
                     <div class="token-field-box">
-                        <label for="mcp-token-display">Your Remote MCP Bearer Token</label>
+                        <label for="mcp-url-display">Remote MCP Connection URL (SSE)</label>
                         <div class="copy-input-row">
-                            <input type="text" id="mcp-token-display" value="err_live_8f39a0c791b402e6e3c" readonly>
-                            <button id="btn-copy-token" class="action-btn copy-btn">Copy</button>
+                            <input type="text" id="mcp-url-display" value="https://errorium.ru/sse" readonly>
+                            <button id="btn-copy-url" class="action-btn copy-btn">Copy URL</button>
                         </div>
                     </div>
 
@@ -674,10 +674,7 @@
                         <pre class="code-content"><code id="mcp-json-snippet">{
   "mcpServers": {
     "errorium": {
-      "url": "https://errorium.ru/sse",
-      "headers": {
-        "Authorization": "Bearer err_live_8f39a0c791b402e6e3c"
-      }
+      "url": "https://errorium.ru/sse"
     }
   }
 }</code></pre>
@@ -1086,24 +1083,24 @@
                                     <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                                 </svg>
                             </div>
-                            <h3 class="landing-card-title">Secure Bearer Token</h3>
-                            <p class="landing-card-text">Every developer receives an authenticated personal token for rate-limited, private, and high-throughput query streaming.</p>
+                            <h3 class="landing-card-title">Open MCP Access</h3>
+                            <p class="landing-card-text">Direct integration without API tokens. Built-in rate limits protect against abuse while keeping setup instant and transparent.</p>
                         </div>
                     </div>
 
-                    <!-- Interactive MCP Token & JSON Config Snippet -->
+                    <!-- Interactive MCP URL & JSON Config Snippet -->
                     <div class="landing-mcp-box">
                         <div class="landing-mcp-token-row">
                             <div class="landing-mcp-token-left">
-                                <span class="mcp-token-label">Personal Remote MCP Bearer Token:</span>
-                                <code class="mcp-token-value" id="landing-mcp-token">err_live_8f39a0c791b402e6e3c</code>
+                                <span class="mcp-token-label">Remote MCP Connection URL:</span>
+                                <code class="mcp-token-value" id="landing-mcp-url">https://errorium.ru/sse</code>
                             </div>
-                            <button type="button" class="landing-copy-btn" id="btn-landing-copy-token">
+                            <button type="button" class="landing-copy-btn" id="btn-landing-copy-url">
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                                     <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                                 </svg>
-                                <span>Copy Token</span>
+                                <span>Copy URL</span>
                             </button>
                         </div>
 
@@ -1122,10 +1119,7 @@
                             <pre class="landing-code-block"><code id="landing-mcp-json-snippet">{
   "mcpServers": {
     "errorium": {
-      "url": "https://errorium.ru/sse",
-      "headers": {
-        "Authorization": "Bearer err_live_8f39a0c791b402e6e3c"
-      }
+      "url": "https://errorium.ru/sse"
     }
   }
 }</code></pre>
