@@ -278,4 +278,26 @@ LLM_MAX_CONCURRENT=8           # Глобальный семафор однов�
 - **Специфика бауманского контура:** лимиты наложены на количество одновременных сессий и частоту вызовов внутри сессии, а не на число HTTP-запросов с IP. Это гарантирует, что аудитория за общим NAT во время защиты проекта не будет заблокирована.
 - **Освобождение ресурсов:** при закрытии клиентом SSE-стрима (или разрыве сетевого соединения) счетчик активных сессий немедленно декрементируется, освобождая слот для новых подключений.
 
+### 5.6. Верификация Web Frontend и сквозное E2E тестирование (КТ3)
+
+Фронтенд выполнен в архитектуре Single Page Application (SPA) на чистом Vanilla JS (HTML5, CSS3, Canvas 2D) без внешних фреймворков и библиотек визуализации (D3/React Flow исключены по ADR-006):
+
+1. **Локальная проверка синтаксиса:**
+   ```bash
+   node --check services/frontend/static/app.js
+   node --check services/frontend/static/api.js
+   ```
+2. **Модульное и статическое тестирование фронтенда:**
+   ```bash
+   python3 -m unittest discover -s tests/unit -p "test_*.py"
+   ```
+   Включает проверку отсутствия сторонних библиотек, целостности CSS-модулей, клиентской логики авторизации (`test_frontend_api.py`), чатов (`test_frontend_chats.py`), профиля и аватара (`test_frontend_profile.py`), открытого MCP без токенов (`test_frontend_mcp.py`) и визуализации Star Map на Canvas (`test_star_map.py`).
+3. **Сквозное E2E тестирование (`tests/integration/test_frontend_e2e.py`):**
+   При запущенном стеке (`GATEWAY_URL=http://localhost:8000`):
+   ```bash
+   python3 -m unittest tests/integration/test_frontend_e2e.py
+   ```
+   Сценарий автоматически верифицирует: регистрацию и логин пользователя, редактирование профиля и загрузку аватара, поиск ошибки и потоковый SSE RAG-синтез, получение графа Star Map (`/graph/threads`), полный CRUD чатов, гостевой поиск без токенов, прямое подключение к открытому Remote MCP (`/sse` + `errorium_search_solution`) и Admin API (stats, reload, rag config, блокировка).
+
+
 

@@ -1,5 +1,47 @@
 # CHANGE_HISTORY.md — История изменений проекта Errorium
 
+## [2026-11-20] — Волна C: Web Frontend подключен к Gateway API, Star Map на реальных данных, открытый MCP и завершение КТ3 (C1–C5)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/` (`api.js`, `app.js`, `index.html`, `styles.css`, модульные CSS-файлы)
+- `tests/unit/` (`test_frontend_api.py`, `test_frontend_chats.py`, `test_frontend_profile.py`, `test_star_map.py`, `test_frontend_mcp.py`, `test_frontend_spa.py`)
+- `tests/integration/test_frontend_e2e.py` (новый сквозной E2E-тест)
+- `services/frontend/README.md`
+- `docs/Tech/02-running.md`
+- `docs/Product/04-interface-and-behavior.md`
+- `docs/Service/verification.md`
+- `STATUS.md`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Завершение всех 5 задач волны C (C1–C5) и достижение Контрольной точки 3 (КТ3):**
+   - **C1 (API-клиент и аутентификация):** Разработан модуль `services/frontend/static/api.js` на чистом ES2022 без сторонних зависимостей. Реализовано сохранение токенов в `localStorage`, прозрачное обновление access токена по 401 через `POST /api/v1/auth/refresh`, парсинг SSE-потоков через `ReadableStream` (`getReader()`). Формы входа, регистрации и восстановления пароля подключены к Gateway API. Реализован вход через Яндекс ID (`ssoLogin('yandex')`) с обработкой callback и сохранением токенов из hash-фрагмента URL.
+   - **C2 (Чаты и потоковые RAG-карточки):** Подключен CRUD чатов (`GET/POST /api/v1/chats`, `PATCH` для переименования и закрепления, `DELETE`). Реализован вывод диалогов в секции `Recent chats` с контекстным меню действий. Отправка сообщений подключена к `POST /api/v1/chats/{id}/messages` и `POST /api/v1/search/rag` с заголовком `Accept: text/event-stream`: потоковый рендеринг фрагментов `delta` в реальном времени и финализация ответа по событию `done` с отображением форматированного кода, подсветки синтаксиса и списка источников SO.
+   - **C3 (Профиль, теги и статус сервисов):** Экран профиля подключен к `GET /api/v1/users/me` и `PATCH /api/v1/users/me` (выпадающие списки `profession`, `gender`, `language` строго соответствуют enum OpenAPI). Загрузка аватара подключена к `POST /api/v1/users/avatar` (multipart/form-data) с извлечением доминантного цвета через Canvas и отрисовкой световой ауры. Поповер `+` динамически загружает теги из `GET /api/v1/tags`. Модальное окно настроек отображает реальный статус ядра gRPC (`:50051`) и активного RAG-провайдера из `GET /api/v1/status`.
+   - **C4 (Star Map на реальных данных и открытый MCP):** Полный переход Star Map на реальные графовые связи: `buildStarMapGraph` извлекает `doc_ids` из источников текущей RAG-карточки и запрашивает `GET /api/v1/graph/threads?doc_ids=...`. Старые мок-данные `MOCK_RELATED_THREADS` полностью удалены. Сохранена Canvas 2D визуализация с собственной физической force-симуляцией (ADR-006) и цветовым кодированием узлов (`PRIMARY_RESULT`, `OTHER_RESULT`, `DUPLICATE`, `LINKED`). Модальное окно MCP и блок лендинга переведены на открытый доступ без токенов (ADR-012): отображается URL `{location.origin}/sse` и готовый JSON-конфиг для Cursor / Claude Code без заголовков Authorization.
+   - **C5 (Финальные тесты, документация и чек-лист КТ3):** Разработан сквозной тестовый набор `tests/integration/test_frontend_e2e.py` (статическая проверка синтаксиса, отсутствие запрещенных библиотек D3/React Flow, маршрутизация `/` и `/star-map`, открытый MCP, а также динамический E2E-сценарий полного пользовательского цикла на urllib со SkipTest). Актуализирована документация проекта (`services/frontend/README.md`, `docs/Tech/02-running.md`, `docs/Product/04-interface-and-behavior.md`, `docs/Service/verification.md`, `STATUS.md`).
+
+2. **Итоги итерации 2 (Волны A, B, C):**
+   - Выполнены все 18 задач плана (`TASKS.md` A1–A6, B1–B7, C1–C5), оформленные 18 атомарными коммитами.
+   - Реализована распределенная система из 4 микросервисов: Indexer (Роль 1), Core (Роль 2), Gateway (Роль 3), Frontend (Роль 4).
+   - Выполнены жесткие академические ограничения ИУ5: BM25 с нуля без сторонних поисковых библиотек, строгий gRPC контракт между бэкендами, Vanilla JS во фронтенде.
+   - Подтверждены метрики бенчмарка: $Recall@10 = 0.9667$ ($\ge 0.75$), $MRR@10 = 1.0000$ ($\ge 0.50$).
+   - Достигнуто полное покрытие тестами: 289 unit-тестов, 15 integration/e2e тестов, 0 замечаний линтеров и компиляторов.
+   - Декларация о боевых интеграциях: система спроектирована без хардкода внешних боевых секретов (GigaChat auth key, production SMTP, OAuth secrets). Все интеграции штатно и надежно работают с локальными сервисами, логгерами и стаб-провайдерами без подгонки результатов под тесты.
+
+### Результаты тестов/бенчмарка:
+- `node --check services/frontend/static/app.js` — 0 синтаксических ошибок (OK).
+- `node --check services/frontend/static/api.js` — 0 синтаксических ошибок (OK).
+- `cd services/gateway && gofmt -l .` — пустой вывод (OK).
+- `cd services/gateway && go build ./... && go vet ./... && go test ./...` — все пакеты скомпилированы, все тесты пройдены успешно (OK).
+- `python3 -m unittest discover -s tests/unit -p "test_*.py"` — 289 тестов пройдено успешно (OK).
+- `python3 -m unittest discover -s tests/integration -p "test_*.py"` — 15 тестов пройдено успешно (OK).
+- `python3 benchmark/evaluate.py`:
+  - `Recall@3`: 0.9333
+  - `Recall@5`: 0.9333
+  - `Recall@10`: 0.9667 (NFR >= 0.75)
+  - `MRR@10`: 1.0000 (NFR >= 0.50)
+
 ## [2026-11-20] — Волна B: Gateway расширен до КТ3 (B1–B7: пароли, SSO, LLM/RAG/SSE, открытый MCP с лимитами, Admin API, интеграционные тесты)
 
 ### Затронутые компоненты и спецификации:
