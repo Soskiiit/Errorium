@@ -55,14 +55,15 @@ func (c *GRPCClient) Search(ctx context.Context, req SearchRequest) (*SearchResp
 	results := make([]Source, len(hits))
 	for i, hit := range hits {
 		results[i] = Source{
-			DocID:         hit.GetDocId(),
-			Title:         hit.GetTitle(),
-			URL:           fmt.Sprintf("https://stackoverflow.com/questions/%d", hit.GetDocId()),
-			Snippet:       hit.GetSnippet(),
-			Tags:          hit.GetTags(),
-			QuestionScore: int(hit.GetQuestionScore()),
-			BM25Score:     hit.GetScore(),
-			IsAccepted:    hit.GetAcceptedAnswerId() != 0,
+			DocID:          hit.GetDocId(),
+			Title:          hit.GetTitle(),
+			URL:            fmt.Sprintf("https://stackoverflow.com/questions/%d", hit.GetDocId()),
+			Snippet:        hit.GetSnippet(),
+			Tags:           hit.GetTags(),
+			QuestionScore:  int(hit.GetQuestionScore()),
+			BM25Score:      hit.GetScore(),
+			IsAccepted:     hit.GetAcceptedAnswerId() != 0,
+			BestAnswerBody: hit.GetBestAnswerBody(),
 		}
 	}
 

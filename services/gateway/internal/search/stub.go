@@ -299,14 +299,15 @@ func (s *Stub) Search(ctx context.Context, req SearchRequest) (*SearchResponse, 
 	results := make([]Source, len(candidates))
 	for i, c := range candidates {
 		results[i] = Source{
-			DocID:         c.fixture.DocID,
-			Title:         c.fixture.Title,
-			URL:           c.fixture.URL,
-			Snippet:       c.fixture.Snippet,
-			Tags:          c.fixture.Tags,
-			QuestionScore: c.fixture.QuestionScore,
-			BM25Score:     c.score,
-			IsAccepted:    c.fixture.IsAccepted,
+			DocID:          c.fixture.DocID,
+			Title:          c.fixture.Title,
+			URL:            c.fixture.URL,
+			Snippet:        c.fixture.Snippet,
+			Tags:           c.fixture.Tags,
+			QuestionScore:  c.fixture.QuestionScore,
+			BM25Score:      c.score,
+			IsAccepted:     c.fixture.IsAccepted,
+			BestAnswerBody: c.fixture.AnswerBody,
 		}
 	}
 

@@ -2,8 +2,10 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/google/uuid"
 )
@@ -37,4 +39,38 @@ func queryInt(r *http.Request, key string, def int) int {
 		return def
 	}
 	return n
+}
+
+// isSSE checks whether client requested SSE via Accept header.
+func isSSE(r *http.Request) bool {
+	accept := r.Header.Get("Accept")
+	return strings.Contains(accept, "text/event-stream")
+}
+
+// initSSE sets headers for SSE streaming and returns http.Flusher (or nil if unsupported).
+func initSSE(w http.ResponseWriter, status int) http.Flusher {
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("X-Accel-Buffering", "no")
+	w.WriteHeader(status)
+	flusher, _ := w.(http.Flusher)
+	if flusher != nil {
+		flusher.Flush()
+	}
+	return flusher
+}
+
+// writeSSE writes a single SSE event and flushes it immediately.
+func writeSSE(w http.ResponseWriter, flusher http.Flusher, event string, data any) error {
+	dataBytes, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+	if _, err := fmt.Fprintf(w, "event: %s\ndata: %s\n\n", event, string(dataBytes)); err != nil {
+		return err
+	}
+	if flusher != nil {
+		flusher.Flush()
+	}
+	return nil
 }

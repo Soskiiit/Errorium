@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"strconv"
@@ -11,18 +12,36 @@ import (
 	"github.com/soskiiit/errorium/services/gateway/internal/search"
 )
 
+// RAGSynthesizer defines the interface for RAG synthesis orchestration.
+type RAGSynthesizer interface {
+	Synthesize(ctx context.Context, query string, hits []search.Source) (*search.RAGResult, error)
+	SynthesizeStream(ctx context.Context, query string, hits []search.Source, onDelta func(string)) (*search.RAGResult, error)
+}
+
 // SearchHandler handles /api/v1/search and /api/v1/graph endpoints.
 type SearchHandler struct {
 	searchClient search.SearchClient
 	graphClient  graph.GraphClient
+	ragOrch      RAGSynthesizer
 }
 
 // NewSearchHandler constructs a SearchHandler with search and graph clients.
-func NewSearchHandler(searchClient search.SearchClient, graphClient graph.GraphClient) *SearchHandler {
+func NewSearchHandler(searchClient search.SearchClient, graphClient graph.GraphClient, ragOrch ...RAGSynthesizer) *SearchHandler {
+	var orch RAGSynthesizer
+	if len(ragOrch) > 0 {
+		orch = ragOrch[0]
+	}
 	return &SearchHandler{
 		searchClient: searchClient,
 		graphClient:  graphClient,
+		ragOrch:      orch,
 	}
+}
+
+// WithRAGOrchestrator attaches a RAG synthesizer orchestrator to the handler.
+func (h *SearchHandler) WithRAGOrchestrator(orch RAGSynthesizer) *SearchHandler {
+	h.ragOrch = orch
+	return h
 }
 
 // RegisterRoutes wires search and graph routes on mux.
@@ -98,18 +117,69 @@ func (h *SearchHandler) SearchRAG(w http.ResponseWriter, r *http.Request) {
 		topK = 50
 	}
 
-	resp, err := h.searchClient.RAG(r.Context(), search.SearchRequest{
+	searchReq := search.SearchRequest{
 		Query:    trimmedQuery,
 		TopK:     topK,
 		Tags:     body.Tags,
 		Language: body.Language,
-	})
+	}
+
+	if h.searchClient == nil {
+		respondError(w, http.StatusBadGateway, "search backend unavailable")
+		return
+	}
+
+	// 1. Retrieve search hits from core first (errors before streaming -> 502 JSON)
+	searchResp, err := h.searchClient.Search(r.Context(), searchReq)
 	if err != nil {
 		respondError(w, http.StatusBadGateway, "search backend unavailable")
 		return
 	}
 
-	respondJSON(w, http.StatusOK, resp)
+	// 2. Handle non-SSE vs SSE
+	if !isSSE(r) {
+		if h.ragOrch != nil {
+			ragResp, err := h.ragOrch.Synthesize(r.Context(), trimmedQuery, searchResp.Results)
+			if err != nil {
+				respondError(w, http.StatusBadGateway, "rag synthesis unavailable")
+				return
+			}
+			respondJSON(w, http.StatusOK, ragResp)
+			return
+		}
+
+		// Fallback to searchClient.RAG if no orchestrator provided
+		resp, err := h.searchClient.RAG(r.Context(), searchReq)
+		if err != nil {
+			respondError(w, http.StatusBadGateway, "search backend unavailable")
+			return
+		}
+		respondJSON(w, http.StatusOK, resp)
+		return
+	}
+
+	// SSE streaming mode
+	flusher := initSSE(w, http.StatusOK)
+	if h.ragOrch != nil {
+		ragResp, err := h.ragOrch.SynthesizeStream(r.Context(), trimmedQuery, searchResp.Results, func(delta string) {
+			_ = writeSSE(w, flusher, "delta", map[string]string{"text": delta})
+		})
+		if err != nil {
+			_ = writeSSE(w, flusher, "error", map[string]string{"error": err.Error()})
+			return
+		}
+		_ = writeSSE(w, flusher, "done", ragResp)
+		return
+	}
+
+	// Fallback streaming if no orchestrator configured
+	resp, err := h.searchClient.RAG(r.Context(), searchReq)
+	if err != nil {
+		_ = writeSSE(w, flusher, "error", map[string]string{"error": err.Error()})
+		return
+	}
+	_ = writeSSE(w, flusher, "delta", map[string]string{"text": resp.Synthesis})
+	_ = writeSSE(w, flusher, "done", resp)
 }
 
 // GetThreadGraph handles GET /api/v1/graph/threads?doc_ids=1,2.

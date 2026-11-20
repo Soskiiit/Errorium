@@ -172,3 +172,28 @@ func TestApp_Shutdown(t *testing.T) {
 		t.Fatalf("expected graceful shutdown without error, got: %v", err)
 	}
 }
+
+func TestApp_ServerTimeouts_WriteTimeoutZero(t *testing.T) {
+	cfg := &config.Config{
+		Port: "8000",
+		DB: config.DBConfig{
+			Host: "",
+		},
+	}
+
+	application := app.New(cfg)
+	server := application.Server()
+	if server == nil {
+		t.Fatal("expected non-nil server")
+	}
+
+	if server.WriteTimeout != 0 {
+		t.Errorf("expected WriteTimeout to be 0 (unlimited for SSE), got %v", server.WriteTimeout)
+	}
+	if server.ReadHeaderTimeout != 5*time.Second {
+		t.Errorf("expected ReadHeaderTimeout 5s, got %v", server.ReadHeaderTimeout)
+	}
+	if server.IdleTimeout != 60*time.Second {
+		t.Errorf("expected IdleTimeout 60s, got %v", server.IdleTimeout)
+	}
+}

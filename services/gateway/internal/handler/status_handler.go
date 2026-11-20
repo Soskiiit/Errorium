@@ -4,6 +4,8 @@ import (
 	"context"
 	"net/http"
 	"time"
+
+	"github.com/soskiiit/errorium/services/gateway/domain"
 )
 
 // CoreChecker checks whether search_engine_core is available.
@@ -11,10 +13,16 @@ type CoreChecker interface {
 	HealthCheck(ctx context.Context) (bool, error)
 }
 
+// RagConfigGetter retrieves RAG configuration.
+type RagConfigGetter interface {
+	Get(ctx context.Context) (*domain.RagConfig, error)
+}
+
 // StatusHandler handles GET /api/v1/status.
 type StatusHandler struct {
 	searchEngineAddr string
 	coreChecker      CoreChecker
+	ragStore         RagConfigGetter
 }
 
 // NewStatusHandler constructs a StatusHandler with search engine address and optional health checker.
@@ -27,6 +35,12 @@ func NewStatusHandler(searchEngineAddr string, checker ...CoreChecker) *StatusHa
 		searchEngineAddr: searchEngineAddr,
 		coreChecker:      c,
 	}
+}
+
+// WithRagConfigStore attaches a RAG config store to the handler.
+func (h *StatusHandler) WithRagConfigStore(store RagConfigGetter) *StatusHandler {
+	h.ragStore = store
+	return h
 }
 
 // RegisterRoutes wires the status route on mux.
@@ -67,6 +81,17 @@ func (h *StatusHandler) Status(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	ragEnabled := false
+	ragProvider := "stub"
+	if h.ragStore != nil {
+		if cfg, err := h.ragStore.Get(r.Context()); err == nil && cfg != nil {
+			if cfg.Provider != "" {
+				ragProvider = string(cfg.Provider)
+			}
+			ragEnabled = (cfg.Provider != domain.LLMProviderStub && cfg.Provider != "")
+		}
+	}
+
 	resp := statusResponse{
 		Gateway: gatewayStatus{
 			Status:  "ok",
@@ -77,8 +102,8 @@ func (h *StatusHandler) Status(w http.ResponseWriter, r *http.Request) {
 			Address:   h.searchEngineAddr,
 		},
 		RAG: ragStatus{
-			Enabled:  false,
-			Provider: "stub",
+			Enabled:  ragEnabled,
+			Provider: ragProvider,
 		},
 	}
 	respondJSON(w, http.StatusOK, resp)

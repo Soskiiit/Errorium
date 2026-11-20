@@ -60,6 +60,32 @@ type SSOConfig struct {
 	Yandex       SSOProviderConfig
 }
 
+type OpenAIConfig struct {
+	BaseURL   string
+	APIKey    string
+	ModelName string
+}
+
+type GigaChatConfig struct {
+	ClientID     string
+	ClientSecret string
+	Scope        string
+	OAuthURL     string
+	BaseURL      string
+	Model        string
+	CACert       string
+}
+
+type LLMConfig struct {
+	Provider      string
+	Temperature   float64
+	MaxTokens     int
+	MaxConcurrent int
+	SystemPrompt  string
+	OpenAI        OpenAIConfig
+	GigaChat      GigaChatConfig
+}
+
 type Config struct {
 	Port             string
 	SearchEngineAddr string
@@ -71,6 +97,7 @@ type Config struct {
 	SSO              SSOConfig
 	FrontendURL      string
 	AutoMigrate      bool
+	LLM              LLMConfig
 }
 
 func getEnv(key, defaultVal string) string {
@@ -145,6 +172,49 @@ func Load() *Config {
 		},
 	}
 
+	llmTemperature := 0.2
+	if v := getEnv("LLM_TEMPERATURE", ""); v != "" {
+		if f, err := strconv.ParseFloat(v, 64); err == nil {
+			llmTemperature = f
+		}
+	}
+
+	llmMaxTokens := 2048
+	if v := getEnv("LLM_MAX_TOKENS", ""); v != "" {
+		if n, err := strconv.Atoi(v); err == nil {
+			llmMaxTokens = n
+		}
+	}
+
+	llmMaxConcurrent := 8
+	if v := getEnv("LLM_MAX_CONCURRENT", ""); v != "" {
+		if n, err := strconv.Atoi(v); err == nil {
+			llmMaxConcurrent = n
+		}
+	}
+
+	llmCfg := LLMConfig{
+		Provider:      getEnv("LLM_PROVIDER", "stub"),
+		Temperature:   llmTemperature,
+		MaxTokens:     llmMaxTokens,
+		MaxConcurrent: llmMaxConcurrent,
+		SystemPrompt:  getEnv("RAG_SYSTEM_PROMPT", "Ты — Errorium AI, ассистент-эксперт по разработке и отладке ПО. Анализируй контекст из базы знаний Stack Overflow и отвечай чётко, структурированно и только по существу ошибки."),
+		OpenAI: OpenAIConfig{
+			BaseURL:   getEnv("OPENAI_BASE_URL", "https://api.openai.com/v1"),
+			APIKey:    getEnv("OPENAI_API_KEY", ""),
+			ModelName: getEnv("OPENAI_MODEL_NAME", "gpt-4o-mini"),
+		},
+		GigaChat: GigaChatConfig{
+			ClientID:     getEnv("GIGACHAT_CLIENT_ID", ""),
+			ClientSecret: getEnv("GIGACHAT_CLIENT_SECRET", ""),
+			Scope:        getEnv("GIGACHAT_SCOPE", "GIGACHAT_API_PERS"),
+			OAuthURL:     getEnv("GIGACHAT_OAUTH_URL", "https://ngw.devices.sberbank.ru:9443/api/v2/oauth"),
+			BaseURL:      getEnv("GIGACHAT_BASE_URL", "https://api.giga.chat/v1"),
+			Model:        getEnv("GIGACHAT_MODEL", "GigaChat"),
+			CACert:       getEnv("GIGACHAT_CA_CERT", ""),
+		},
+	}
+
 	return &Config{
 		Port:             getEnv("GATEWAY_PORT", "8000"),
 		SearchEngineAddr: searchEngineAddr,
@@ -152,6 +222,7 @@ func Load() *Config {
 		FrontendURL:      getEnv("FRONTEND_URL", "http://localhost:3000"),
 		SMTP:             smtpCfg,
 		SSO:              ssoCfg,
+		LLM:              llmCfg,
 		JWT: JWTConfig{
 			SecretKey:              getEnv("JWT_SECRET_KEY", "change-this-in-production"),
 			AccessTokenExpireMin:   accessExpMin,

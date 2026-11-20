@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/soskiiit/errorium/services/gateway/domain"
 	"github.com/soskiiit/errorium/services/gateway/internal/handler"
 )
 
@@ -148,5 +149,98 @@ func TestStatusHandler_NotServingOrError(t *testing.T) {
 	_ = json.Unmarshal(rec3.Body.Bytes(), &resp3)
 	if resp3.SearchCore.Connected {
 		t.Errorf("expected search_core.connected == false when address is empty")
+	}
+}
+
+type mockRagGetter struct {
+	cfg *domain.RagConfig
+	err error
+}
+
+func (m *mockRagGetter) Get(ctx context.Context) (*domain.RagConfig, error) {
+	return m.cfg, m.err
+}
+
+func TestStatusHandler_RAGStatus(t *testing.T) {
+	tests := []struct {
+		name         string
+		store        *mockRagGetter
+		wantEnabled  bool
+		wantProvider string
+	}{
+		{
+			name:         "no store defaults to stub/disabled",
+			store:        nil,
+			wantEnabled:  false,
+			wantProvider: "stub",
+		},
+		{
+			name: "store with openai returns enabled true and openai provider",
+			store: &mockRagGetter{
+				cfg: &domain.RagConfig{Provider: domain.LLMProviderOpenAI},
+			},
+			wantEnabled:  true,
+			wantProvider: "openai",
+		},
+		{
+			name: "store with gigachat returns enabled true and gigachat provider",
+			store: &mockRagGetter{
+				cfg: &domain.RagConfig{Provider: domain.LLMProviderGigaChat},
+			},
+			wantEnabled:  true,
+			wantProvider: "gigachat",
+		},
+		{
+			name: "store with stub returns enabled false and stub provider",
+			store: &mockRagGetter{
+				cfg: &domain.RagConfig{Provider: domain.LLMProviderStub},
+			},
+			wantEnabled:  false,
+			wantProvider: "stub",
+		},
+		{
+			name: "store error falls back to stub/disabled",
+			store: &mockRagGetter{
+				err: errors.New("db error"),
+			},
+			wantEnabled:  false,
+			wantProvider: "stub",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := handler.NewStatusHandler("addr")
+			if tt.store != nil {
+				h.WithRagConfigStore(tt.store)
+			}
+			mux := http.NewServeMux()
+			h.RegisterRoutes(mux)
+
+			req := httptest.NewRequest(http.MethodGet, "/api/v1/status", nil)
+			rec := httptest.NewRecorder()
+			mux.ServeHTTP(rec, req)
+
+			if rec.Code != http.StatusOK {
+				t.Fatalf("expected 200, got %d", rec.Code)
+			}
+
+			var resp struct {
+				RAG struct {
+					Enabled  bool   `json:"enabled"`
+					Provider string `json:"provider"`
+				} `json:"rag"`
+			}
+			if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+				t.Fatalf("failed to decode json: %v", err)
+			}
+
+			if resp.RAG.Enabled != tt.wantEnabled {
+				t.Errorf("expected RAG.Enabled %v, got %v", tt.wantEnabled, resp.RAG.Enabled)
+			}
+			if resp.RAG.Provider != tt.wantProvider {
+				t.Errorf("expected RAG.Provider %q, got %q", tt.wantProvider, resp.RAG.Provider)
+			}
+		})
 	}
 }

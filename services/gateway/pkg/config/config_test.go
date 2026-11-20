@@ -154,3 +154,108 @@ func TestLoadSSOConfig(t *testing.T) {
 		t.Errorf("unexpected Yandex config: %+v", cfg.SSO.Yandex)
 	}
 }
+
+func TestLoadLLMConfigDefaults(t *testing.T) {
+	os.Clearenv()
+
+	cfg := config.Load()
+	if cfg.LLM.Provider != "stub" {
+		t.Errorf("expected LLM.Provider stub, got %s", cfg.LLM.Provider)
+	}
+	if cfg.LLM.OpenAI.BaseURL != "https://api.openai.com/v1" {
+		t.Errorf("expected default OpenAI BaseURL, got %s", cfg.LLM.OpenAI.BaseURL)
+	}
+	if cfg.LLM.OpenAI.ModelName != "gpt-4o-mini" {
+		t.Errorf("expected default OpenAI ModelName gpt-4o-mini, got %s", cfg.LLM.OpenAI.ModelName)
+	}
+	if cfg.LLM.GigaChat.Scope != "GIGACHAT_API_PERS" {
+		t.Errorf("expected default GigaChat Scope GIGACHAT_API_PERS, got %s", cfg.LLM.GigaChat.Scope)
+	}
+	if cfg.LLM.GigaChat.OAuthURL != "https://ngw.devices.sberbank.ru:9443/api/v2/oauth" {
+		t.Errorf("expected default GigaChat OAuthURL, got %s", cfg.LLM.GigaChat.OAuthURL)
+	}
+	if cfg.LLM.GigaChat.BaseURL != "https://api.giga.chat/v1" {
+		t.Errorf("expected default GigaChat BaseURL, got %s", cfg.LLM.GigaChat.BaseURL)
+	}
+	if cfg.LLM.GigaChat.Model != "GigaChat" {
+		t.Errorf("expected default GigaChat Model GigaChat, got %s", cfg.LLM.GigaChat.Model)
+	}
+	if cfg.LLM.Temperature != 0.2 {
+		t.Errorf("expected default LLM Temperature 0.2, got %f", cfg.LLM.Temperature)
+	}
+	if cfg.LLM.MaxTokens != 2048 {
+		t.Errorf("expected default LLM MaxTokens 2048, got %d", cfg.LLM.MaxTokens)
+	}
+	if cfg.LLM.MaxConcurrent != 8 {
+		t.Errorf("expected default LLM MaxConcurrent 8, got %d", cfg.LLM.MaxConcurrent)
+	}
+	if cfg.LLM.SystemPrompt == "" {
+		t.Errorf("expected non-empty default SystemPrompt")
+	}
+}
+
+func TestLoadLLMConfigCustom(t *testing.T) {
+	os.Clearenv()
+	t.Setenv("LLM_PROVIDER", "openai")
+	t.Setenv("OPENAI_BASE_URL", "https://custom-openai.com/v1")
+	t.Setenv("OPENAI_API_KEY", "sk-testkey")
+	t.Setenv("OPENAI_MODEL_NAME", "gpt-4o")
+	t.Setenv("GIGACHAT_CLIENT_ID", "gc-client")
+	t.Setenv("GIGACHAT_CLIENT_SECRET", "gc-secret")
+	t.Setenv("GIGACHAT_SCOPE", "GIGACHAT_API_CORP")
+	t.Setenv("GIGACHAT_OAUTH_URL", "https://custom-oauth.ru/oauth")
+	t.Setenv("GIGACHAT_BASE_URL", "https://custom-gigachat.ru/v1")
+	t.Setenv("GIGACHAT_MODEL", "GigaChat-Pro")
+	t.Setenv("GIGACHAT_CA_CERT", "/path/to/cert.pem")
+	t.Setenv("LLM_TEMPERATURE", "0.7")
+	t.Setenv("LLM_MAX_TOKENS", "4096")
+	t.Setenv("LLM_MAX_CONCURRENT", "16")
+	t.Setenv("RAG_SYSTEM_PROMPT", "Custom prompt")
+
+	cfg := config.Load()
+	if cfg.LLM.Provider != "openai" {
+		t.Errorf("expected LLM.Provider openai, got %s", cfg.LLM.Provider)
+	}
+	if cfg.LLM.OpenAI.BaseURL != "https://custom-openai.com/v1" {
+		t.Errorf("expected custom OpenAI BaseURL, got %s", cfg.LLM.OpenAI.BaseURL)
+	}
+	if cfg.LLM.OpenAI.APIKey != "sk-testkey" {
+		t.Errorf("expected custom OpenAI APIKey sk-testkey, got %s", cfg.LLM.OpenAI.APIKey)
+	}
+	if cfg.LLM.OpenAI.ModelName != "gpt-4o" {
+		t.Errorf("expected custom OpenAI ModelName gpt-4o, got %s", cfg.LLM.OpenAI.ModelName)
+	}
+	if cfg.LLM.GigaChat.ClientID != "gc-client" {
+		t.Errorf("expected custom GigaChat ClientID gc-client, got %s", cfg.LLM.GigaChat.ClientID)
+	}
+	if cfg.LLM.GigaChat.ClientSecret != "gc-secret" {
+		t.Errorf("expected custom GigaChat ClientSecret gc-secret, got %s", cfg.LLM.GigaChat.ClientSecret)
+	}
+	if cfg.LLM.GigaChat.Scope != "GIGACHAT_API_CORP" {
+		t.Errorf("expected custom GigaChat Scope GIGACHAT_API_CORP, got %s", cfg.LLM.GigaChat.Scope)
+	}
+	if cfg.LLM.GigaChat.OAuthURL != "https://custom-oauth.ru/oauth" {
+		t.Errorf("expected custom GigaChat OAuthURL, got %s", cfg.LLM.GigaChat.OAuthURL)
+	}
+	if cfg.LLM.GigaChat.BaseURL != "https://custom-gigachat.ru/v1" {
+		t.Errorf("expected custom GigaChat BaseURL, got %s", cfg.LLM.GigaChat.BaseURL)
+	}
+	if cfg.LLM.GigaChat.Model != "GigaChat-Pro" {
+		t.Errorf("expected custom GigaChat Model GigaChat-Pro, got %s", cfg.LLM.GigaChat.Model)
+	}
+	if cfg.LLM.GigaChat.CACert != "/path/to/cert.pem" {
+		t.Errorf("expected custom GigaChat CACert /path/to/cert.pem, got %s", cfg.LLM.GigaChat.CACert)
+	}
+	if cfg.LLM.Temperature != 0.7 {
+		t.Errorf("expected custom LLM Temperature 0.7, got %f", cfg.LLM.Temperature)
+	}
+	if cfg.LLM.MaxTokens != 4096 {
+		t.Errorf("expected custom LLM MaxTokens 4096, got %d", cfg.LLM.MaxTokens)
+	}
+	if cfg.LLM.MaxConcurrent != 16 {
+		t.Errorf("expected custom LLM MaxConcurrent 16, got %d", cfg.LLM.MaxConcurrent)
+	}
+	if cfg.LLM.SystemPrompt != "Custom prompt" {
+		t.Errorf("expected custom SystemPrompt, got %s", cfg.LLM.SystemPrompt)
+	}
+}
