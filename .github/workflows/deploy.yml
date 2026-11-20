@@ -46,9 +46,15 @@ jobs:
         service:
           - name: gateway
             context: ./services/gateway
+            dockerfile: services/gateway/Dockerfile
             image: gateway
+          - name: search_engine_core
+            context: .
+            dockerfile: services/search_engine_core/Dockerfile
+            image: search-engine-core
           - name: frontend
             context: ./services/frontend
+            dockerfile: services/frontend/Dockerfile
             image: frontend
     steps:
       - name: Checkout repository
@@ -74,6 +80,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ${{ matrix.service.context }}
+          file: ${{ matrix.service.dockerfile }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -101,6 +108,13 @@ jobs:
             if [ -d ~/Errorium/deploy/garage/garage.toml ]; then
               rm -rf ~/Errorium/deploy/garage/garage.toml
             fi
+            # Docker мог создать пустой deploy/certs от root при старте gateway —
+            # scp не запишет туда сертификат; убираем пустой каталог (родитель доступен на запись)
+            if [ -d ~/Errorium/deploy/certs ] && [ -z "$(ls -A ~/Errorium/deploy/certs 2>/dev/null)" ]; then
+              rmdir ~/Errorium/deploy/certs 2>/dev/null || true
+            fi
+            # Каталоги данных ядра: без них Docker создаст их от root, и индекс не положить обычным scp
+            mkdir -p ~/Errorium/data/index ~/Errorium/data/index-benchmark ~/Errorium/benchmark
 
       - name: Copy docker-compose.yml and deploy configs to remote server
         uses: appleboy/scp-action@v0.1.7

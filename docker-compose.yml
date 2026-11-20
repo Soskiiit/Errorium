@@ -91,6 +91,7 @@ services:
       - errorium_net
 
   search_engine_core:
+    image: ghcr.io/soskiiit/errorium-search-engine-core:develop
     build:
       context: .
       dockerfile: services/search_engine_core/Dockerfile

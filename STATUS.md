@@ -7,7 +7,7 @@
   - Все сетевые порты вынесены в переменные `.env` (`FRONTEND_PORT=3000`, `GATEWAY_PORT=8000`, `SEARCH_GRPC_PORT=50051`, `POSTGRES_PORT=5432`, `GARAGE_PORT=3900`).
   - Контракт переменных окружения выверен (2026-11-20): `.env.example` синхронизирован с compose и `pkg/config` gateway (credentials `POSTGRES_*`, `SSO_REDIRECT_BASE`, порты продакшн-фронтенда); gateway получает ключи SSO/LLM/SMTP/JWT через `env_file: .env`, сертификат НУЦ монтируется в `/app/certs`. Регрессия закрыта тестом `tests/unit/test_env_contract.py` (307 unit-тестов OK).
   - Наблюдаемость и dev-среда (2026-11-20): каждый HTTP-запрос Gateway логируется middleware `RequestLogger` (`docker logs -f errorium_gateway_dev`); dev-nginx отдаёт статику с `Cache-Control: no-cache`, скрипты SPA подключены с версионным `?v=`; для dev-поиска построен индекс малого корпуса в `data/index/` (без индекса core отвечает `search backend unavailable`).
-  - Пайплайн автодеплоя `.github/workflows/deploy.yml` готов к выкатке на `errorium.ru`.
+  - Пайплайн автодеплоя `.github/workflows/deploy.yml` исправлен (2026-11-20, ADR-013): CI собирает все три образа (gateway, search-engine-core, frontend) и публикует в GHCR с тегом `:develop`; сервер получает только `docker-compose.yml` + `deploy/` (включая сертификат НУЦ Минцифры `deploy/certs/russian_trusted_root_ca.crt`) и ничего не собирает локально. Регрессия закрыта контрактом `tests/unit/test_deploy_contract.py` (317 unit-тестов OK).
 - **Сквозная интеграция:**
   - Web Frontend (:3000) $\to$ Gateway (:8000) по REST API и SSE.
   - Gateway (:8000) $\to$ Search Engine Core (:50051) исключительно по gRPC (SearchService, GraphService).
@@ -28,11 +28,15 @@
 
 ## 3. Следующий шаг (Next Step)
 
-1. **Защита проекта НИРС:**
+1. **Запуск прода на errorium.ru (остаток на стороне сервера, не кода):**
+   - Заполнить `~/Errorium/.env` по `.env.example`: `GIGACHAT_CLIENT_ID/SECRET`, `LLM_PROVIDER=gigachat`, `GIGACHAT_CA_CERT=/app/certs/russian_trusted_root_ca.crt`, `SSO_REDIRECT_BASE=https://errorium.ru`, `FRONTEND_URL=https://errorium.ru`, SMTP (деплой `.env` не доставляет).
+   - Положить поисковый индекс в `~/Errorium/data/index/` (без него core стартует unready, поиск недоступен).
+   - Влить ветку в `main` — деплой триггерится только на push в `main` (или `workflow_dispatch`).
+2. **Защита проекта НИРС:**
    - Демонстрация поиска решений и стектрейсов через Web UI (`http://localhost:3000`).
    - Демонстрация интерактивного графа связей Star Map на Canvas 2D.
    - Демонстрация работы открытого Remote MCP сервера через внешнюю IDE (Cursor / Claude Code) по SSE-протоколу.
    - Подготовка финальной презентации и отчета по ГОСТ.
-2. **Дальнейшее развитие (после КТ3):**
+3. **Дальнейшее развитие (после КТ3):**
    - Перевод индексатора (Роль 1) в режим `full` на полный 100 ГБ архив Stack Overflow с хеш-шардированием.
    - Расширение панели администратора во фронтенде (графики задержек, управление RAG-конфигом через Web UI).
