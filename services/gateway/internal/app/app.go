@@ -13,6 +13,7 @@ import (
 	"github.com/soskiiit/errorium/services/gateway/internal/graph"
 	"github.com/soskiiit/errorium/services/gateway/internal/handler"
 	"github.com/soskiiit/errorium/services/gateway/internal/llm"
+	"github.com/soskiiit/errorium/services/gateway/internal/mcp"
 	"github.com/soskiiit/errorium/services/gateway/internal/middleware"
 	"github.com/soskiiit/errorium/services/gateway/internal/rag"
 	"github.com/soskiiit/errorium/services/gateway/internal/repository"
@@ -126,6 +127,15 @@ func New(cfg *config.Config) *App {
 
 	statusHandler := handler.NewStatusHandler(cfg.SearchEngineAddr, coreChecker).WithRagConfigStore(ragConfigRepo)
 	statusHandler.RegisterRoutes(mux)
+
+	mcpServer := mcp.NewServer(searchClient, graphClient, ragOrch)
+	mcpLimiter := mcp.NewLimiter(mcp.LimiterConfig{
+		MaxSessionsPerIP: cfg.MCP.MaxSessionsPerIP,
+		MaxSessions:      cfg.MCP.MaxSessions,
+		CallsPerMin:      cfg.MCP.CallsPerMin,
+	})
+	mcpHandler := handler.NewMCPHandler(mcpServer, mcpLimiter)
+	mcpHandler.RegisterRoutes(mux)
 
 	if database != nil {
 		userRepo := repository.NewUserRepository(database)

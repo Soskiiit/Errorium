@@ -131,6 +131,43 @@ func TestApp_CORS_Headers(t *testing.T) {
 	}
 }
 
+func TestApp_MCP_RoutesRegistered(t *testing.T) {
+	cfg := &config.Config{
+		Port: "8000",
+	}
+
+	application := app.New(cfg)
+	handler := application.Handler()
+
+	// 1. POST /mcp/messages without sessionId should return 404 {"error":"session not found"} (route is registered!)
+	reqMessages := httptest.NewRequest(http.MethodPost, "/mcp/messages", strings.NewReader(`{}`))
+	recMessages := httptest.NewRecorder()
+	handler.ServeHTTP(recMessages, reqMessages)
+
+	if recMessages.Code != http.StatusNotFound {
+		t.Errorf("expected POST /mcp/messages to return 404, got %d", recMessages.Code)
+	}
+
+	// 2. GET /sse opens stream with endpoint event
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	reqSSE := httptest.NewRequest(http.MethodGet, "/sse", nil).WithContext(ctx)
+	recSSE := httptest.NewRecorder()
+	go func() {
+		time.Sleep(20 * time.Millisecond)
+		cancel()
+	}()
+	handler.ServeHTTP(recSSE, reqSSE)
+
+	if recSSE.Code != http.StatusOK {
+		t.Errorf("expected GET /sse to return 200, got %d", recSSE.Code)
+	}
+	if !strings.Contains(recSSE.Body.String(), "event: endpoint") {
+		t.Errorf("expected event: endpoint in /sse body, got %s", recSSE.Body.String())
+	}
+}
+
 func TestApp_CORS_OPTIONS_204(t *testing.T) {
 	cfg := &config.Config{
 		Port: "8000",

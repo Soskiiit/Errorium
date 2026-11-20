@@ -50,6 +50,33 @@ func TestLoadDefaults(t *testing.T) {
 	if cfg.SSO.GitHub.ClientID != "" || cfg.SSO.Google.ClientID != "" || cfg.SSO.Yandex.ClientID != "" {
 		t.Errorf("expected empty default SSO client IDs")
 	}
+	if cfg.MCP.MaxSessionsPerIP != 100 {
+		t.Errorf("expected default MCP.MaxSessionsPerIP 100, got %d", cfg.MCP.MaxSessionsPerIP)
+	}
+	if cfg.MCP.MaxSessions != 200 {
+		t.Errorf("expected default MCP.MaxSessions 200, got %d", cfg.MCP.MaxSessions)
+	}
+	if cfg.MCP.CallsPerMin != 60 {
+		t.Errorf("expected default MCP.CallsPerMin 60, got %d", cfg.MCP.CallsPerMin)
+	}
+}
+
+func TestLoadMCPOptions(t *testing.T) {
+	os.Clearenv()
+	t.Setenv("MCP_MAX_SESSIONS_PER_IP", "50")
+	t.Setenv("MCP_MAX_SESSIONS", "150")
+	t.Setenv("MCP_CALLS_PER_MIN", "30")
+
+	cfg := config.Load()
+	if cfg.MCP.MaxSessionsPerIP != 50 {
+		t.Errorf("expected MCP.MaxSessionsPerIP 50, got %d", cfg.MCP.MaxSessionsPerIP)
+	}
+	if cfg.MCP.MaxSessions != 150 {
+		t.Errorf("expected MCP.MaxSessions 150, got %d", cfg.MCP.MaxSessions)
+	}
+	if cfg.MCP.CallsPerMin != 30 {
+		t.Errorf("expected MCP.CallsPerMin 30, got %d", cfg.MCP.CallsPerMin)
+	}
 }
 
 func TestLoadSearchEngineAddrOverride(t *testing.T) {

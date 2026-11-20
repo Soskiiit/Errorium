@@ -86,6 +86,12 @@ type LLMConfig struct {
 	GigaChat      GigaChatConfig
 }
 
+type MCPConfig struct {
+	MaxSessionsPerIP int
+	MaxSessions      int
+	CallsPerMin      int
+}
+
 type Config struct {
 	Port             string
 	SearchEngineAddr string
@@ -98,6 +104,7 @@ type Config struct {
 	FrontendURL      string
 	AutoMigrate      bool
 	LLM              LLMConfig
+	MCP              MCPConfig
 }
 
 func getEnv(key, defaultVal string) string {
@@ -215,6 +222,33 @@ func Load() *Config {
 		},
 	}
 
+	maxSessionsPerIP := 100
+	if v := getEnv("MCP_MAX_SESSIONS_PER_IP", ""); v != "" {
+		if n, err := strconv.Atoi(v); err == nil {
+			maxSessionsPerIP = n
+		}
+	}
+
+	maxSessions := 200
+	if v := getEnv("MCP_MAX_SESSIONS", ""); v != "" {
+		if n, err := strconv.Atoi(v); err == nil {
+			maxSessions = n
+		}
+	}
+
+	callsPerMin := 60
+	if v := getEnv("MCP_CALLS_PER_MIN", ""); v != "" {
+		if n, err := strconv.Atoi(v); err == nil {
+			callsPerMin = n
+		}
+	}
+
+	mcpCfg := MCPConfig{
+		MaxSessionsPerIP: maxSessionsPerIP,
+		MaxSessions:      maxSessions,
+		CallsPerMin:      callsPerMin,
+	}
+
 	return &Config{
 		Port:             getEnv("GATEWAY_PORT", "8000"),
 		SearchEngineAddr: searchEngineAddr,
@@ -223,6 +257,7 @@ func Load() *Config {
 		SMTP:             smtpCfg,
 		SSO:              ssoCfg,
 		LLM:              llmCfg,
+		MCP:              mcpCfg,
 		JWT: JWTConfig{
 			SecretKey:              getEnv("JWT_SECRET_KEY", "change-this-in-production"),
 			AccessTokenExpireMin:   accessExpMin,
