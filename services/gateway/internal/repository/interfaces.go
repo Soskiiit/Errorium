@@ -4,6 +4,8 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
+	"net/netip"
 	"time"
 
 	"github.com/google/uuid"
@@ -20,6 +22,8 @@ type UserStore interface {
 	UpdateProfile(ctx context.Context, u *domain.User) error
 	UpdatePasswordHash(ctx context.Context, id uuid.UUID, hash string) error
 	UpdateLastLogin(ctx context.Context, id uuid.UUID, t time.Time) error
+	List(ctx context.Context, limit, offset int, search string) ([]*domain.User, int, error)
+	UpdateRoleAndStatus(ctx context.Context, id uuid.UUID, role *domain.Role, isActive *bool) (*domain.User, error)
 }
 
 // SessionStore is the interface auth-layer uses to manage refresh-token sessions.
@@ -27,6 +31,7 @@ type SessionStore interface {
 	Create(ctx context.Context, s *domain.UserSession) error
 	GetByTokenHash(ctx context.Context, hash string) (*domain.UserSession, error)
 	RevokeByTokenHash(ctx context.Context, hash string) error
+	RevokeByUser(ctx context.Context, userID uuid.UUID) error
 	CleanupExpired(ctx context.Context) error
 }
 
@@ -47,4 +52,37 @@ type TagStore interface {
 	GetOrCreate(ctx context.Context, name string) (*domain.Tag, error)
 	AttachToMessage(ctx context.Context, chatMessageID uuid.UUID, tagNames []string) error
 	GetByMessage(ctx context.Context, chatMessageID uuid.UUID) ([]*domain.Tag, error)
+}
+
+// PasswordResetStore manages password reset tokens in storage.
+type PasswordResetStore interface {
+	Create(ctx context.Context, token *domain.PasswordResetToken) error
+	GetByTokenHash(ctx context.Context, tokenHash string) (*domain.PasswordResetToken, error)
+	MarkUsed(ctx context.Context, id uuid.UUID) error
+	DeleteExpired(ctx context.Context) error
+}
+
+// SsoStateStore persists OAuth2 authorization flow state strings.
+type SsoStateStore interface {
+	Create(ctx context.Context, state *domain.SSOAuthState) error
+	Get(ctx context.Context, state string) (*domain.SSOAuthState, error)
+	Delete(ctx context.Context, state string) error
+}
+
+// RagConfigStore manages the RAG/LLM runtime configuration singleton.
+type RagConfigStore interface {
+	Get(ctx context.Context) (*domain.RagConfig, error)
+	Update(ctx context.Context, cfg *domain.RagConfig) error
+}
+
+// SSOAccountStore manages linked third-party SSO accounts in storage.
+type SSOAccountStore interface {
+	Create(ctx context.Context, account *domain.UserSSOAccount) error
+	GetByProviderAndUserID(ctx context.Context, provider domain.SSOProvider, providerUserID string) (*domain.UserSSOAccount, error)
+}
+
+// AuditStore manages audit logging for security and administrative events.
+type AuditStore interface {
+	Create(ctx context.Context, entry *domain.AuditLog) error
+	Log(ctx context.Context, userID *uuid.UUID, action string, clientIP *netip.Addr, details json.RawMessage) error
 }

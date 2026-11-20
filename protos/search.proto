@@ -20,6 +20,9 @@ service SearchService {
   // Получить системную статистику инвертированного индекса (N, avgdl, размер словаря)
   rpc GetStats(GetStatsRequest) returns (GetStatsResponse);
 
+  // Горячая перезагрузка файлов индекса без рестарта сервиса (Admin API)
+  rpc ReloadIndex(ReloadIndexRequest) returns (ReloadIndexResponse);
+
   // Проверка жизнеспособности сервиса (Health Check)
   rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse);
 }
@@ -132,6 +135,20 @@ message GetStatsResponse {
 
   // Временная метка построения индекса
   int64 build_timestamp = 6;
+}
+
+// Запрос горячей перезагрузки индекса
+message ReloadIndexRequest {}
+
+message ReloadIndexResponse {
+  // Перезагрузка выполнена успешно
+  bool ok = 1;
+
+  // Сообщение об ошибке (пусто при ok = true)
+  string message = 2;
+
+  // Временная метка построения перезагруженного индекса
+  int64 build_timestamp = 3;
 }
 
 // Health Check

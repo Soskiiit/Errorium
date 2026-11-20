@@ -1,5 +1,208 @@
 # CHANGE_HISTORY.md — История изменений проекта Errorium
 
+## [2026-11-20] — Уникальные адреса чатов /chats/<uuid>, MCP-кнопка как якорь лендинга, логирование запросов Gateway, dev-индекс и антикеширование SPA
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/app.js`, `services/frontend/static/index.html`
+- `services/frontend/nginx.dev.conf`, `services/frontend/nginx.conf`
+- `services/gateway/internal/middleware/logging.go` (новый), `services/gateway/internal/app/app.go`
+- `docs/Product/03-requirements.md` (FR-3.4), `docs/Product/04-interface-and-behavior.md` (новый Экран 1.2, поведение кнопок MCP/About us)
+- `docs/Tech/02-running.md` (новый раздел 5.7)
+- `tests/unit/test_frontend_chats.py`, `tests/unit/test_frontend_mcp.py`, `tests/unit/test_frontend_api.py`
+- `tests/integration/test_gateway_api.py`, `tests/integration/test_frontend_e2e.py`
+- `STATUS.md`
+
+### Суть изменений:
+1. **Уникальный адрес каждого чата:** канонический SPA-маршрут `/chats/<uuid>` (идентификатор выдаёт `POST /api/v1/chats`); устаревшие `/chat` и `/chat/<id>` перенаправляются через `history.replaceState`. Кнопка `New chat` сбрасывает `currentChatId`, первое сообщение авторизованного пользователя создаёт новый чат и меняет URL; гостевая отправка (включая клик по референсному чату сайдбара) теперь начинает новый диалог с чистым контейнером сообщений, а не дописывает текущий.
+2. **Кнопка MCP — как в `main`:** клик по `MCP` в сайдбаре и прямой переход на `/mcp` открывают лендинг с плавной прокруткой к секции `#mcp` (`switchToLandingView`), а не модальное окно. Поведение приведено к уже описанному в спецификации (Экран 1.1).
+3. **Логирование HTTP-запросов Gateway:** новый middleware `RequestLogger` (метод, URI с query, статус, длительность, клиентский IP из `X-Real-IP`/`RemoteAddr`) подключён внешним слоем к CORS+роутеру. Обёртка `ResponseWriter` сохраняет `http.Flusher`/`http.Hijacker` — SSE-стримы не буферизуются. Запросы теперь видны в `docker logs errorium_gateway_dev` (ранее логировались только старт/ошибки, из-за чего бэкенд «не было видно» в логах при работающем прокси).
+4. **Антикеширование SPA:** `index.html` подключает `api.js`/`app.js` с версионным параметром `?v=20261120_1`; dev-nginx отдаёт статику с `Cache-Control: no-cache`, prod-nginx — `no-cache` для `/index.html`. Устраняет исполнение браузером устаревшей версии `app.js` (симптомы: моковые чаты «в одну кучу», отсутствие запросов к API).
+5. **Dev-индекс и интеграционные тесты:** `data/index/` был пуст — core стартовал в unready, сообщения чатов падали с `search backend unavailable`; построен индекс малого корпуса (`docker compose -f docker-compose.indexer.yml run --rm indexer corpus`, 30 документов). Интеграционные тесты приведены к openapi.yaml: MCP-флоу удерживает SSE-соединение открытым и ожидает `202` + JSON-RPC ответ в SSE-потоке (ранее тест закрывал стрим до POST и ждал `200` с телом); вход заблокированного пользователя ожидается `403` (ранее `401`); граф-тесты с SO-фикстурами 27539308/15478423 пропускаются (SkipTest), если в текущем индексе нет выборки из дампа (`make index-sample`).
+
+### Результаты тестов/бенчмарка:
+- `cd services/gateway && go test -race ./...` — все пакеты OK, включая 5 новых тестов `logging_test.go` (статусы, X-Real-IP, Flusher для SSE, первый WriteHeader).
+- `python3 -m unittest discover -s tests/unit -p "test_*.py"` — **307 тестов, OK** (299 прежних + 8 новых: канонический URL чата, legacy-редирект, сброс New chat, гостевой новый диалог, cache-busting, no-cache/proxy dev-nginx, MCP-кнопка/роут → лендинг).
+- `python3 -m unittest discover -s tests/integration -p "test_*.py"` — **39 тестов, OK (skipped=2)** против живого dev-стека; skip — граф-фикстуры из дампа SO, отсутствующие в малом корпусе.
+- Ручная E2E-проверка через прокси :3000: регистрация/логин OK, `POST /api/v1/chats` → 201 (uuid), `POST /chats/{id}/messages` (SSE) → события `user_message`/`delta`/`done`; в логах gateway строки `HTTP POST /api/v1/chats -> 201 (10.6ms)`. MCP вручную: `GET /sse` + удерживаемое соединение, `initialize`/`tools/list`/`tools/call` → 202, ответы в SSE-потоке.
+- Ранжирование и токенизация не изменялись — бенчмарк не требовался.
+
+## [2026-11-20] — Аудит и фикс контракта переменных окружения (.env.example, docker-compose, gateway env_file)
+
+### Затронутые компоненты и спецификации:
+- `.env.example`
+- `docker-compose.yml`, `docker-compose.dev.yml`
+- `docs/Tech/02-running.md` (разделы 2, 3, 5.3)
+- `tests/unit/test_env_contract.py` (новый статический тест контракта)
+- `STATUS.md`
+
+### Суть изменений:
+1. **Исправлен рассинхрон имён переменных БД:** compose создаёт контейнер postgres из `POSTGRES_DB` / `POSTGRES_USER` / `POSTGRES_PASSWORD`, но в `.env.example` были только `DB_NAME` / `DB_USER` / `DB_PASSWORD` (читаются gateway). Прод-стек не стартовал (`POSTGRES_PASSWORD:?required`), смена `DB_PASSWORD` в `.env` игнорировалась. В `.env.example` добавлены `POSTGRES_*` как основные credentials; `DB_*` помечены как действующие только вне Docker (compose пробрасывает `POSTGRES_*` в gateway как `DB_*`).
+2. **Закрыт пробел проброса ключей в gateway:** в обоих compose у gateway не было `env_file`, поэтому `JWT_SECRET_KEY`, ключи SSO, GigaChat/OpenAI, SMTP, `FIRST_ADMIN_*`, `FRONTEND_URL`, `SSO_REDIRECT_BASE` и лимиты MCP не попадали в контейнер (gateway на Go читает только `os.Getenv`, dotenv отсутствует). Добавлен `env_file: .env` (явные `environment:` сохраняют приоритет) и монтирование `./deploy/certs:/app/certs:ro` для сертификата НУЦ.
+3. **`.env.example` приведён в соответствие с кодом:** добавлен `SSO_REDIRECT_BASE` (на проде `https://errorium.ru`), `FRONTEND_HTTP_PORT` / `FRONTEND_HTTPS_PORT`, комментарий `AUTO_MIGRATE`; `GIGACHAT_CA_CERT` переведён на контейнерный путь `/app/certs/russian_trusted_root_ca.crt`; `GATEWAY_API_URL` исправлен на `http://localhost:8000` (для `make dev` на хосте); устранён дубль `SEARCH_GRPC_PORT`; мёртвые `ENVIRONMENT` / `LOG_LEVEL` / `JWT_ALGORITHM` закомментированы с пояснением (HS256 зашит в `pkg/jwt`); уточнены комментарии `INDEX_DIR` / `CORE_INDEX_DIR`.
+4. **Спека синхронизирована:** `docs/Tech/02-running.md` — механика проброса env (env_file vs `${...}`), блок переменных, примечание о продакшн-портах 80/443, путь сертификата в п. 5.3.
+
+### Результаты тестов/бенчмарка:
+- `tests/unit/test_env_contract.py` — 10 новых тестов (имена переменных, env_file, монтирование сертификатов) — PASS.
+- `.venv/bin/python -m unittest discover -s tests/unit -p "test_*.py"` — **299 тестов, OK** (289 прежних + 10 новых).
+- `docker compose -f docker-compose.yml|dev|indexer config --quiet` — все три файла валидны.
+- Resolved-конфиг dev-стека подтверждает: `JWT_SECRET_KEY`, `YANDEX_CLIENT_ID`, `FIRST_ADMIN_EMAIL`, `LLM_PROVIDER` теперь присутствуют в environment gateway.
+- Ранжирование и токенизация не изменялись — бенчмарк не требовался.
+- Остаток на стороне окружения (не кода): в локальном/серверном `.env` нужно добавить отсутствующие `GIGACHAT_*`, `SMTP_*`, `SSO_REDIRECT_BASE`, `FRONTEND_URL` из `.env.example`; на проде `SSO_REDIRECT_BASE=https://errorium.ru`, `FRONTEND_URL=https://errorium.ru`.
+
+## [2026-11-20] — Волна C: Web Frontend подключен к Gateway API, Star Map на реальных данных, открытый MCP и завершение КТ3 (C1–C5)
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/` (`api.js`, `app.js`, `index.html`, `styles.css`, модульные CSS-файлы)
+- `tests/unit/` (`test_frontend_api.py`, `test_frontend_chats.py`, `test_frontend_profile.py`, `test_star_map.py`, `test_frontend_mcp.py`, `test_frontend_spa.py`)
+- `tests/integration/test_frontend_e2e.py` (новый сквозной E2E-тест)
+- `services/frontend/README.md`
+- `docs/Tech/02-running.md`
+- `docs/Product/04-interface-and-behavior.md`
+- `docs/Service/verification.md`
+- `STATUS.md`
+- `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Завершение всех 5 задач волны C (C1–C5) и достижение Контрольной точки 3 (КТ3):**
+   - **C1 (API-клиент и аутентификация):** Разработан модуль `services/frontend/static/api.js` на чистом ES2022 без сторонних зависимостей. Реализовано сохранение токенов в `localStorage`, прозрачное обновление access токена по 401 через `POST /api/v1/auth/refresh`, парсинг SSE-потоков через `ReadableStream` (`getReader()`). Формы входа, регистрации и восстановления пароля подключены к Gateway API. Реализован вход через Яндекс ID (`ssoLogin('yandex')`) с обработкой callback и сохранением токенов из hash-фрагмента URL.
+   - **C2 (Чаты и потоковые RAG-карточки):** Подключен CRUD чатов (`GET/POST /api/v1/chats`, `PATCH` для переименования и закрепления, `DELETE`). Реализован вывод диалогов в секции `Recent chats` с контекстным меню действий. Отправка сообщений подключена к `POST /api/v1/chats/{id}/messages` и `POST /api/v1/search/rag` с заголовком `Accept: text/event-stream`: потоковый рендеринг фрагментов `delta` в реальном времени и финализация ответа по событию `done` с отображением форматированного кода, подсветки синтаксиса и списка источников SO.
+   - **C3 (Профиль, теги и статус сервисов):** Экран профиля подключен к `GET /api/v1/users/me` и `PATCH /api/v1/users/me` (выпадающие списки `profession`, `gender`, `language` строго соответствуют enum OpenAPI). Загрузка аватара подключена к `POST /api/v1/users/avatar` (multipart/form-data) с извлечением доминантного цвета через Canvas и отрисовкой световой ауры. Поповер `+` динамически загружает теги из `GET /api/v1/tags`. Модальное окно настроек отображает реальный статус ядра gRPC (`:50051`) и активного RAG-провайдера из `GET /api/v1/status`.
+   - **C4 (Star Map на реальных данных и открытый MCP):** Полный переход Star Map на реальные графовые связи: `buildStarMapGraph` извлекает `doc_ids` из источников текущей RAG-карточки и запрашивает `GET /api/v1/graph/threads?doc_ids=...`. Старые мок-данные `MOCK_RELATED_THREADS` полностью удалены. Сохранена Canvas 2D визуализация с собственной физической force-симуляцией (ADR-006) и цветовым кодированием узлов (`PRIMARY_RESULT`, `OTHER_RESULT`, `DUPLICATE`, `LINKED`). Модальное окно MCP и блок лендинга переведены на открытый доступ без токенов (ADR-012): отображается URL `{location.origin}/sse` и готовый JSON-конфиг для Cursor / Claude Code без заголовков Authorization.
+   - **C5 (Финальные тесты, документация и чек-лист КТ3):** Разработан сквозной тестовый набор `tests/integration/test_frontend_e2e.py` (статическая проверка синтаксиса, отсутствие запрещенных библиотек D3/React Flow, маршрутизация `/` и `/star-map`, открытый MCP, а также динамический E2E-сценарий полного пользовательского цикла на urllib со SkipTest). Актуализирована документация проекта (`services/frontend/README.md`, `docs/Tech/02-running.md`, `docs/Product/04-interface-and-behavior.md`, `docs/Service/verification.md`, `STATUS.md`).
+
+2. **Итоги итерации 2 (Волны A, B, C):**
+   - Выполнены все 18 задач плана (`TASKS.md` A1–A6, B1–B7, C1–C5), оформленные 18 атомарными коммитами.
+   - Реализована распределенная система из 4 микросервисов: Indexer (Роль 1), Core (Роль 2), Gateway (Роль 3), Frontend (Роль 4).
+   - Выполнены жесткие академические ограничения ИУ5: BM25 с нуля без сторонних поисковых библиотек, строгий gRPC контракт между бэкендами, Vanilla JS во фронтенде.
+   - Подтверждены метрики бенчмарка: $Recall@10 = 0.9667$ ($\ge 0.75$), $MRR@10 = 1.0000$ ($\ge 0.50$).
+   - Достигнуто полное покрытие тестами: 289 unit-тестов, 15 integration/e2e тестов, 0 замечаний линтеров и компиляторов.
+   - Декларация о боевых интеграциях: система спроектирована без хардкода внешних боевых секретов (GigaChat auth key, production SMTP, OAuth secrets). Все интеграции штатно и надежно работают с локальными сервисами, логгерами и стаб-провайдерами без подгонки результатов под тесты.
+
+### Результаты тестов/бенчмарка:
+- `node --check services/frontend/static/app.js` — 0 синтаксических ошибок (OK).
+- `node --check services/frontend/static/api.js` — 0 синтаксических ошибок (OK).
+- `cd services/gateway && gofmt -l .` — пустой вывод (OK).
+- `cd services/gateway && go build ./... && go vet ./... && go test ./...` — все пакеты скомпилированы, все тесты пройдены успешно (OK).
+- `python3 -m unittest discover -s tests/unit -p "test_*.py"` — 289 тестов пройдено успешно (OK).
+- `python3 -m unittest discover -s tests/integration -p "test_*.py"` — 15 тестов пройдено успешно (OK).
+- `python3 benchmark/evaluate.py`:
+  - `Recall@3`: 0.9333
+  - `Recall@5`: 0.9333
+  - `Recall@10`: 0.9667 (NFR >= 0.75)
+  - `MRR@10`: 1.0000 (NFR >= 0.50)
+
+## [2026-11-20] — Волна B: Gateway расширен до КТ3 (B1–B7: пароли, SSO, LLM/RAG/SSE, открытый MCP с лимитами, Admin API, интеграционные тесты)
+
+### Затронутые компоненты и спецификации:
+- `services/gateway/migrations/` (`000003_iteration2.up.sql`, `000003_iteration2.down.sql`, `migrations_test.go`)
+- `services/gateway/domain/` (`password_reset.go`, `sso_state.go`, `rag_config.go`, unit-тесты моделей)
+- `services/gateway/internal/repository/` (`password_reset_repo.go`, `sso_state_repo.go`, `sso_account_repo.go`, `rag_config_repo.go`, `audit_repo.go`, `session_repo.go`, `user_repo.go`, `repository_test.go`)
+- `services/gateway/pkg/mailer/` (`mailer.go`, `mailer_test.go` — LogMailer, SMTPMailer с TLS/STARTTLS)
+- `services/gateway/internal/sso/` (`sso.go`, `sso_test.go` — провайдеры GitHub, Google, Yandex на Go stdlib)
+- `services/gateway/internal/llm/` (`client.go`, `openai.go`, `gigachat.go`, `llm_test.go` — OpenAI-совместимый и GigaChat с сертификатом НУЦ Минцифры)
+- `services/gateway/internal/rag/` (`rag.go`, `rag_test.go` — оркестратор RAG, семафор LLM_MAX_CONCURRENT=8, деградация)
+- `services/gateway/internal/mcp/` (`server.go`, `limits.go`, `tools.go`, unit-тесты — открытый MCP сервер без токенов, in-memory rate limiting)
+- `services/gateway/internal/metrics/` (`metrics.go`, `metrics_test.go` — перцентили задержек p50, p95, p99)
+- `services/gateway/internal/middleware/` (`admin.go`, `admin_test.go` — RBAC middleware RequireAdmin)
+- `services/gateway/internal/handler/` (`password_reset_handler.go`, `sso_handler.go`, `search_handler.go`, `chat_handler.go`, `mcp_handler.go`, `admin_handler.go`, `helpers.go`, тесты хендлеров)
+- `services/gateway/internal/app/` (`app.go`, `app_test.go`, `app_integration_test.go` — bootstrap первого администратора, WriteTimeout=0, сквозные интеграционные тесты)
+- `services/gateway/pkg/config/` (`config.go`, `config_test.go`)
+- `tests/integration/test_gateway_api.py` (e2e тесты волны B: forgot 202, анонимный MCP flow, admin flow, SSE search/rag)
+- `services/gateway/README.md`, `docs/Tech/02-running.md`, `STATUS.md`, `CHANGE_HISTORY.md`
+- Спецификации: `docs/Tech/04-api-and-access.md`, `docs/Tech/03-data.md`, `docs/Service/decisions.md` (ADR-011, ADR-012), `services/gateway/api/openapi.yaml`
+
+### Суть изменений:
+1. **Завершение всех 7 задач волны B (B1–B7):**
+   - **B1 (Схема и репозитории):** Разработана миграция `000003_iteration2` (таблицы `password_resets`, `sso_states`, `user_sso_accounts`, `rag_configs`). Реализованы потокобезопасные репозитории PostgreSQL на чистом `database/sql` с покрытием тестами.
+   - **B2 (Сброс и смена пароля):** Реализованы эндпоинты `POST /api/v1/auth/password/forgot` (всегда 202 Accepted против enumeration-атак), `POST /api/v1/auth/password/reset` (токен с SHA-256 хэшированием и сроком 1 час), `POST /api/v1/auth/password/change`. Разработан модуль `mailer` (`LogMailer` для dev-логирования ссылки, `SMTPMailer` с поддержкой TLS port 465 и STARTTLS port 587). Сброс или смена пароля немедленно отзывают все активные refresh-сессии пользователя.
+   - **B3 (SSO GitHub/Google/Яндекс):** Реализована OAuth2/OIDC аутентификация на Go stdlib (`net/http`) без сторонних библиотек. Поддержаны провайдеры GitHub, Google, Yandex. Генерируется одноразовый криптографический `state` в БД (TTL 10 мин, удаление при первом чтении). При первом входе создается учетная запись `User` и связь в `user_sso_accounts`; при повторных входах возвращается существующий пользователь. Браузер перенаправляется на `{FRONTEND_URL}/auth/callback#access_token=...&refresh_token=...`.
+   - **B4 (LLM-провайдеры, RAG и SSE):** Реализованы клиенты `OpenAICompat` (OpenAI, vLLM, Ollama) и `GigaChat` (SberDevices OAuth2, scope `GIGACHAT_API_PERS`, обязательный публичный корневой сертификат НУЦ Минцифры `russian_trusted_root_ca.crt`, запрет `InsecureSkipVerify`). Реализован `rag.Orchestrator` с глобальным семафором `LLM_MAX_CONCURRENT=8` (ожидание 2 с с последующей деградацией до шаблона без прерывания поиска). В `http.Server` установлен `WriteTimeout = 0` для сохранения долгоживущих стримов. Эндпоинты `/api/v1/search/rag` и `/api/v1/chats/{id}/messages` при наличии заголовка `Accept: text/event-stream` отдают поток событий (`event: user_message`, `event: delta`, `event: done`), сохраняя JSON-режим без Accept.
+   - **B5 (Открытый MCP сервер с лимитами по ADR-012):** Реализован Model Context Protocol сервер (`GET /sse` и `POST /mcp/messages`) без токенов. Первым событием SSE передается `endpoint` с `sessionId`. Доступны 3 инструмента: `errorium_search_solution`, `errorium_explain_error`, `errorium_get_related_errors`. Внедрен in-memory rate limiter: $\le 60$ вызовов `tools/call`/мин на сессию (429 + `Retry-After: 5`), $\le 100$ сессий с одного IP (429, общий NAT зала на защите не блокируется), $\le 200$ сессий глобально (503). Закрытие сессии освобождает слоты и счетчики.
+   - **B6 (Admin API и Bootstrap):** Реализован `BootstrapFirstAdmin`: идемпотентная инициализация учетной записи администратора при старте по `FIRST_ADMIN_EMAIL`/`FIRST_ADMIN_PASSWORD` с bcrypt (cost 12). Реализован `AdminHandler`: статистика ядра и задержки `GET /api/v1/admin/stats` (p50, p95, p99 от `metrics.Metrics`), горячая перезагрузка индекса ядра `POST /api/v1/admin/index/reload` через gRPC `SearchService.ReloadIndex`, блокировка и смена ролей `PATCH /api/v1/admin/users/{id}`, настройка RAG на лету `GET/PUT /api/v1/admin/rag/config` с аудитом в `admin_audit_logs`.
+   - **B7 (Интеграционные тесты и документация):**
+     * Go сквозной интеграционный тест (`services/gateway/internal/app/app_integration_test.go`): 18 последовательных шагов жизненного цикла на реальной БД PostgreSQL при наличии `TEST_DB_DSN` (честный skip без него). Доказаны сценарии: password forgot (LogMailer) -> reset -> 401 старых сессий -> change -> revoke; SSO mock-IdP -> создание пользователя -> повторный вход тем же ID возвращает того же пользователя; MCP open /sse -> initialize -> tools/list -> tools/call -> 429/503 limits -> освобождение счетчиков при закрытии; Admin bootstrap -> stats (mock gRPC) -> patch user (деактивация с 403) -> put rag config -> поиск с обновленным конфигом; SSE search/rag (delta/done) и чат (user_message/delta/done) с сохранением JSON-режима.
+     * Python e2e тест (`tests/integration/test_gateway_api.py`): честный skip при недоступности `GATEWAY_URL`, forgot 202, анонимный MCP flow через urllib, admin flow, SSE-поток search/rag.
+     * Документация: обновлены `services/gateway/README.md`, `docs/Tech/02-running.md` (SSO, SMTP/LogMailer, сертификат НУЦ Минцифры, FIRST_ADMIN, MCP лимиты), `STATUS.md`.
+
+### Результаты тестов/бенчмарка:
+- `cd services/gateway && gofmt -l .` — вывод пуст (форматирование строго по стандарту).
+- `cd services/gateway && go build ./... && go vet ./... && go test ./...` — все пакеты скомпилированы успешно, все unit и интеграционные тесты зелёные.
+- `python3 -m unittest discover -s tests/unit -p "test_*.py"` — 262 unit-теста пройдены успешно.
+- `python3 -m unittest tests/integration/test_gateway_api.py` — корректный skip при недоступности живого шлюза.
+
+## [2026-11-20] — Волна A: Поисковое ядро BM25, gRPC Search/Graph сервисы, benchmark evaluate.py и подключение Gateway
+
+### Затронутые компоненты и спецификации:
+- `services/search_engine_core/` (src/core/, server.py, search_servicer.py, graph_servicer.py, engine.py, config.py, smoke.py, Dockerfile, requirements.txt, сгенерированные search_pb2/graph_pb2)
+- `services/gateway/internal/search/` (grpc_client.go, template.go, stub.go, grpc_client_test.go)
+- `services/gateway/internal/graph/` (grpc_client.go, grpc_client_test.go)
+- `services/gateway/internal/app/app.go` (переключение grpc/stub по SEARCH_ENGINE_ADDR, graceful shutdown)
+- `services/gateway/internal/handler/` (search_handler.go, status_handler.go, status_handler_test.go, search_handler_test.go)
+- `benchmark/evaluate.py`, `tests/unit/test_benchmark_metrics.py`, `tests/integration/test_core_gateway_e2e.py`
+- `Makefile` (цели proto, benchmark, index-corpus), `docker-compose.yml`, `docker-compose.dev.yml`
+- `docs/Tech/02-running.md`, `services/search_engine_core/README.md`, `services/gateway/README.md`, `STATUS.md`, `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Завершение задач волны A (A1–A6):**
+   - **A1:** Реализован движок BM25 с нуля в `search_engine_core/src/core/engine.py` строго по методическим указаниям кафедры ИУ5 ($k_1=1.5, b=0.75$). Токенизация и бинарное чтение индекса v1 переиспользуют пакет `indexer`. Реализован `ThreadStore` для работы с `graph.db` в режиме SQLite `mode=ro`.
+   - **A2:** Разработан gRPC-сервис `SearchService` (Search, GetDocument, BatchGetDocuments, GetStats, ReloadIndex, HealthCheck) на порту `:50051`. Реализована потокобезопасная атомарная замена индекса при горячей перезагрузке. Написан скрипт проверки `smoke.py`. Сформирован легковесный `Dockerfile` на базе `python:3.13-slim`.
+   - **A3:** Разработан gRPC-сервис `GraphService` (GetThreadGraph, GetThreadDetails) по контракту `protos/graph.proto`. Поддержаны категории узлов (`PRIMARY_RESULT`, `OTHER_RESULT`, `DUPLICATE`, `LINKED`), отбор до 20 соседей с дедупликацией и сортировкой по весу связей.
+   - **A4:** Разработан скрипт оценки качества `benchmark/evaluate.py` для 15 тестовых вопросов (10 answerable + 5 trap). Зафиксированы метрики бенчмарка: $Recall@3=0.9333$, $Recall@5=0.9333$, $Recall@10=0.9667$ ($\ge 0.75$), $MRR@10=1.0000$ ($\ge 0.50$). Все NFR кафедры выполнены.
+   - **A5:** Настроен воспроизводимый кодоген `make proto` (Go + Python). Сервис `search_engine_core` подключен в `docker-compose.yml` и `docker-compose.dev.yml`. Введена цель `make benchmark`.
+   - **A6:** В Gateway разработаны gRPC-адаптеры `search.GRPCClient` и `graph.GRPCClient`, реализующие интерфейсы `SearchClient` и `GraphClient`. Метод `RAG` использует шаблонный синтез `SynthesizeTemplate` (служащий деградацией для LLM). В `app.go` внедрен динамический выбор gRPC/стаб в зависимости от `SEARCH_ENGINE_ADDR`. Сбои ядра транслируются хендлерами в 502 Bad Gateway (`search backend unavailable`). Эндпоинт `/api/v1/status` отражает реальный статус `search_core.connected` через HealthCheck SERVING (таймаут 1 с). Разработан e2e тест `test_core_gateway_e2e.py`.
+
+### Результаты тестов/бенчмарка:
+- `cd services/gateway && gofmt -l .` — вывод пуст.
+- `cd services/gateway && go build ./... && go vet ./... && go test -v -race ./...` — все тесты пройдены успешно (0 data races).
+- `python3 -m unittest discover -s tests/unit -p "test_*.py"` — 262 unit-теста пройдены успешно.
+- `make test-unit` — успешно.
+- `core.smoke localhost:50051`: HealthCheck `SERVING` (v1.0.0), `Search` (21 hits, 2.90 ms), `GetStats` (N=30, avgdl=249.67, vocab=1569), `GetThreadGraph` (1 node) — смоук пройден успешно.
+- `benchmark/evaluate.py`:
+  - `Recall@3`: 0.9333
+  - `Recall@5`: 0.9333
+  - `Recall@10`: 0.9667 (порог NFR >= 0.75 пройден)
+  - `MRR@10`: 1.0000 (порог NFR >= 0.50 пройден)
+- `tests.integration.test_core_gateway_e2e`: 4 из 4 тестов пройдены успешно (status.connected=True, детерминизм поиска по индексу ядра, категории и ребра графа, details 404).
+
+## [2026-11-19] — ADR-012: MCP-токены убраны, открытый доступ с лимитами (правка контракта и пакета до реализации)
+
+### Затронутые компоненты и спецификации:
+- `docs/Service/decisions.md` (ADR-012, п.2 ADR-011 помечен заменённым), `docs/Product/03-requirements.md` (FR-4.4 переписан), `docs/Product/02-users-and-scenarios.md` (роль MCP-клиента, сценарий 3), `docs/Product/04-interface-and-behavior.md` (лендинг и модалка MCP без токенов), `docs/Tech/03-data.md` (§3.4 открытый доступ + лимиты, §3.5 миграция 000003 из трёх таблиц), `docs/Tech/04-api-and-access.md` (MCP-секция, карта эндпоинтов)
+- `services/gateway/api/openapi.yaml` — удалены `/api/v1/mcp/token`, `/api/v1/mcp/token/regenerate` и схема `McpTokenResponse` (32 пути); `/sse` и `/mcp/messages` — открытый доступ, ответы 429/503 + Retry-After, компонент RateLimited
+- `handoff/gateway-final/TASKS.md`, `PROMPTS.md` — B1 (3 таблицы вместо 4), B4 (глобальный семафор LLM_MAX_CONCURRENT=8), B5 (переписан: открытый MCP + limits.go), B7/C4/C5 (сценарии без токенов), сообщения коммитов B1/B5/C4
+- `.env.example` (MCP_MAX_SESSIONS_PER_IP=100, MCP_MAX_SESSIONS=200, MCP_CALLS_PER_MIN=60, LLM_MAX_CONCURRENT=8), `STATUS.md`
+
+### Суть изменений:
+1. Владелец поставил под вопрос ценность MCP-токена в гибридной схеме: анонимный доступ разрешён, токен ничего не запирает — только атрибутция ценой таблицы `mcp_tokens`, AES-GCM, двух эндпоинтов и усложнения B5/C4. Решение: **убрать токены полностью** (ADR-012 заменяет п.2 ADR-011 до реализации).
+2. Защита публичного `/sse` — лимиты, выбранные с учётом защиты в Бауманке: весь зал за одним NAT не должен блокироваться, поэтому лимиты НЕ по IP-запросам: ≤100 одновременных SSE-сессий с IP (429), ≤200 сессий глобально (503), ≤60 tools/call/мин на сессию (429), ≤8 одновременных LLM-вызовов глобально (ожидание 2 с → деградация до шаблонного синтеза). Счётчики in-memory, без схемы БД.
+3. Модалка MCP и лендинг фронта: URL `{origin}/sse` + JSON-конфиг без заголовков авторизации (конфиг строится на клиенте); FR-4.4 переписан под открытый доступ с лимитами.
+
+### Результаты тестов/бенчмарка:
+- openapi.yaml: YAML валиден, все `$ref` разрешаются, 32 пути, токен-эндпоинтов и McpTokenResponse нет.
+- Код сервисов не менялся; гейты итерации 1 остаются зелёными (проверялись ранее в этот день). Бенчмарк не запускался (evaluate.py — задача A4).
+
+## [2026-11-19] — Итерация 2 «Финал до КТ3»: контракт обновлён, подготовлен пакет из 18 задач (волны A/B/C)
+
+### Затронутые компоненты и спецификации:
+- `services/gateway/api/openapi.yaml` — все 14 planned-операций переведены в `core` (34 пути): SSE-формат в info.description, MCP-гибрид (`/sse` + новый `POST /mcp/messages`), `RagConfig.provider: openai|gigachat|stub` + base_url, `admin/index/reload` через gRPC ReloadIndex (200 вместо 202), описания search/graph переведены на gRPC
+- `protos/search.proto` — добавлен rpc `ReloadIndex` + сообщения (горячая перезагрузка индекса для Admin API)
+- `docs/Service/decisions.md` (ADR-011), `docs/Tech/04-api-and-access.md` (статусы, §2.3 LLM-провайдеры, MCP-гибрид, SSE), `docs/Tech/03-data.md` (§3.4 гибрид + mcp_tokens с token_encrypted, §3.5 миграция 000003), `.env.example` (LLM/GigaChat/SMTP/FRONTEND_URL/SEARCH_ENGINE_ADDR/BM25)
+- `handoff/gateway-final/TASKS.md`, `handoff/gateway-final/PROMPTS.md` (новые) — пакет для внешней команды: 18 задач + промпты (оркестратор /teamwork и ручной режим)
+- `STATUS.md`
+
+### Суть изменений:
+1. **Аудит после итерации 1:** T1–T8 выполнены и влиты (мердж e134fa4), гейты зелёные (go build/vet/test, 213 unit-тестов). Остаток до КТ3: пустой search_engine_core, нет benchmark/evaluate.py, make proto устарел (Python-кодоген в Go-gateway), planned-часть gateway, фронтенд на моках.
+2. **Решения владельца (ADR-011):** объём — всё до КТ3 тремя линейными волнами (A: ядро Python + benchmark + кодоген/compose + gRPC-адаптеры gateway; B: миграция 000003, пароли+SMTP, SSO GitHub/Google/Yandex на stdlib, LLM+RAG+SSE, MCP-гибрид+токены, Admin API; C: интеграция фронтенда Vanilla JS). **MCP — гибрид** (анонимный /sse + персональный токен err_live_ с привязкой и аудитом; прежнее противоречие FR-4.4/§3.4 снято). **LLM — OpenAI-совместимый + GigaChat + stub**: GigaChat бесплатный scope GIGACHAT_API_PERS, OAuth ngw.devices.sberbank.ru:9443/api/v2/oauth (токен 30 мин), API https://api.giga.chat/v1 (новый адрес после 17.07.2026, старый gigachat.devices.sberbank.ru выводится), TLS через сертификат НУЦ Минцифры (InsecureSkipVerify запрещён). SSO/SMTP — полный код, ключи владелец подставит позже (dev-отправитель пишет ссылку в лог).
+3. **Контракт:** единый SSE-формат (delta/done/error, для чатов первым user_message, X-Accel-Buffering: no против буферизации nginx); WriteTimeout=0 в gateway (иначе SSE рвётся); деградация LLM до шаблонного синтеза без поломки поиска (NFR); ядро переиспользует токенизатор и читатели формата индексатора (ADR-008, §5.6), BM25 с нуля по методичке; кодоген Go (protoc-gen-go v1.36.6 / go-grpc v1.5.1, module-опция) + Python (grpcio-tools 1.76.0), сгенерированное коммитится.
+4. **Пакет:** 18 задач (A1–A6, B1–B7, C1–C5) с точными файлами, TDD-тестами, гейтами по волнам, критериями готовности и простыми сообщениями коммитов; зависимости core пинованы (grpcio==1.76.0, grpcio-tools==1.76.0, protobuf==5.29.5), gateway — grpc v1.76.0/protobuf v1.36.6; benchmark-пороги NFR (Recall@10≥0.75, MRR≥0.50) с запретом подгонки корпуса; лимит ретраев 3, эскалация.
+
+### Результаты тестов/бенчмарка:
+- `python3 -m unittest discover -s tests/unit`: 213 тестов OK (код сервисов не менялся).
+- `cd services/gateway && go build ./... && go vet ./...` — зелёные.
+- `protoc --descriptor_set_out=/dev/null protos/search.proto protos/graph.proto` — синтаксис валиден (предупреждение о deprecated py_generic_services — существовало ранее).
+- openapi.yaml: YAML валиден, все `$ref` разрешаются, 34 пути, planned-операций не осталось.
+- Бенчмарк не запускался: evaluate.py ещё не существует (задача A4); ранжирование не затрагивалось.
+
 ## [2026-11-19] — Gateway: Интеграционные тесты, документация и завершение пакета «Ядро + стабы» (T1–T8)
 
 ### Затронутые компоненты и спецификации:

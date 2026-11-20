@@ -2,7 +2,9 @@ package handler_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -203,5 +205,89 @@ func TestSearchHandler_GetThreadDetails(t *testing.T) {
 
 	if recBadID.Code != http.StatusBadRequest {
 		t.Errorf("expected 400 for non-integer doc_id path, got %d", recBadID.Code)
+	}
+}
+
+type errSearchClient struct{}
+
+func (e *errSearchClient) Search(ctx context.Context, req search.SearchRequest) (*search.SearchResponse, error) {
+	return nil, errors.New("backend down")
+}
+
+func (e *errSearchClient) RAG(ctx context.Context, req search.SearchRequest) (*search.RAGResult, error) {
+	return nil, errors.New("backend down")
+}
+
+type errGraphClient struct{}
+
+func (e *errGraphClient) GetThreadGraph(ctx context.Context, docIDs []int64) (*graph.ThreadGraph, error) {
+	return nil, errors.New("backend down")
+}
+
+func (e *errGraphClient) GetThreadDetails(ctx context.Context, docID int64) (*graph.ThreadDetails, error) {
+	return nil, graph.ErrNotFound
+}
+
+func TestSearchHandler_BackendError_502(t *testing.T) {
+	h := handler.NewSearchHandler(&errSearchClient{}, &errGraphClient{})
+	mux := http.NewServeMux()
+	h.RegisterRoutes(mux)
+
+	// 1. Search returns 502
+	reqSearch := httptest.NewRequest(http.MethodPost, "/api/v1/search", bytes.NewBufferString(`{"query":"test"}`))
+	recSearch := httptest.NewRecorder()
+	mux.ServeHTTP(recSearch, reqSearch)
+	if recSearch.Code != http.StatusBadGateway {
+		t.Errorf("expected 502 for search backend error, got %d", recSearch.Code)
+	}
+
+	// 2. RAG returns 502
+	reqRAG := httptest.NewRequest(http.MethodPost, "/api/v1/search/rag", bytes.NewBufferString(`{"query":"test"}`))
+	recRAG := httptest.NewRecorder()
+	mux.ServeHTTP(recRAG, reqRAG)
+	if recRAG.Code != http.StatusBadGateway {
+		t.Errorf("expected 502 for rag backend error, got %d", recRAG.Code)
+	}
+
+	// 3. Graph returns 502
+	reqGraph := httptest.NewRequest(http.MethodGet, "/api/v1/graph/threads?doc_ids=1,2", nil)
+	recGraph := httptest.NewRecorder()
+	mux.ServeHTTP(recGraph, reqGraph)
+	if recGraph.Code != http.StatusBadGateway {
+		t.Errorf("expected 502 for graph backend error, got %d", recGraph.Code)
+	}
+}
+
+type mockLatencyRecorder struct {
+	recorded []float64
+}
+
+func (m *mockLatencyRecorder) Record(durationMs float64) {
+	m.recorded = append(m.recorded, durationMs)
+}
+
+func TestSearchHandler_MetricsRecorded(t *testing.T) {
+	searchStub := search.NewStub()
+	graphStub := graph.NewStub()
+	recorder := &mockLatencyRecorder{}
+
+	h := handler.NewSearchHandler(searchStub, graphStub).WithMetrics(recorder)
+	mux := http.NewServeMux()
+	h.RegisterRoutes(mux)
+
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/search", bytes.NewBufferString(`{"query":"python error"}`))
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+	mux.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rec.Code)
+	}
+
+	if len(recorder.recorded) != 1 {
+		t.Fatalf("expected 1 recorded latency, got %d", len(recorder.recorded))
+	}
+	if recorder.recorded[0] < 0 {
+		t.Errorf("expected non-negative duration, got %f", recorder.recorded[0])
 	}
 }

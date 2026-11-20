@@ -7,122 +7,11 @@
     'use strict';
 
     // =========================================================================
-    // Preset Knowledge Base for Default Recent Chats
+    // Chat State & Real API Integration (Wave C - Task C2)
     // =========================================================================
-    const KNOWLEDGE_BASE = {
-        'chat-1': {
-            title: 'SyntaxError: invalid syntax',
-            query: 'SyntaxError: invalid syntax',
-            solution: 'This error occurs when Python parser encounters code that violates language grammar rules. The most common causes are missing colons after control flow statements (`if`, `for`, `def`), unclosed parentheses or quotes, or using reserved keywords as identifiers.',
-            code: '# ❌ Incorrect:\ndef calculate_total(items)\n    total = 0\n    return total\n\n# ✅ Fixed (add colon and check matching braces):\ndef calculate_total(items):\n    total = 0\n    return total',
-            sources: [
-                {
-                    title: 'SyntaxError: invalid syntax in Python (Top causes & fixes)',
-                    score: 4180,
-                    accepted: true,
-                    tags: ['python', 'syntax-error', 'python-3.x'],
-                    url: 'https://stackoverflow.com/questions/27539308'
-                },
-                {
-                    title: 'Why am I getting SyntaxError on the line after my print statement?',
-                    score: 1240,
-                    accepted: true,
-                    tags: ['python', 'print-statement'],
-                    url: 'https://stackoverflow.com/questions/15478423'
-                }
-            ]
-        },
-        'chat-2': {
-            title: 'IndentationError: unexpected indent',
-            query: 'IndentationError: unexpected indent',
-            solution: 'Python uses indentation to define code blocks. An `unexpected indent` occurs when a line has more leading whitespace or tabs than expected, or when spaces and tabs are mixed within the same file.',
-            code: '# ❌ Incorrect:\ndef process_data():\n    step1 = True\n      step2 = False  # Unexpected indentation level\n\n# ✅ Fixed (use consistent 4 spaces per block):\ndef process_data():\n    step1 = True\n    step2 = False',
-            sources: [
-                {
-                    title: 'How to fix Python IndentationError: unexpected indent',
-                    score: 2890,
-                    accepted: true,
-                    tags: ['python', 'indentation', 'pep8'],
-                    url: 'https://stackoverflow.com/questions/11256501'
-                }
-            ]
-        },
-        'chat-3': {
-            title: 'TypeError: ‘list’ object cannot be interpre...',
-            query: "TypeError: 'list' object cannot be interpreted as an integer",
-            solution: 'This error happens when passing a list to a function or slice index that expects an integer (e.g. `range(my_list)` instead of `range(len(my_list))` or passing an array into `int()` conversion).',
-            code: '# ❌ Incorrect:\nitems = [10, 20, 30]\nfor i in range(items):  # Passing list instead of length\n    print(i)\n\n# ✅ Fixed:\nfor i in range(len(items)):\n    print(items[i])\n\n# Or idiomatically:\nfor item in items:\n    print(item)',
-            sources: [
-                {
-                    title: 'TypeError: \'list\' object cannot be interpreted as an integer in range()',
-                    score: 1950,
-                    accepted: true,
-                    tags: ['python', 'list', 'typeerror'],
-                    url: 'https://stackoverflow.com/questions/35593121'
-                }
-            ]
-        },
-        'chat-4': {
-            title: 'NameError: name ‘foobar’ is not defined',
-            query: "NameError: name 'foobar' is not defined",
-            solution: 'A variable, function, or module name was referenced before it was declared, imported, or within an inaccessible scope.',
-            code: '# ❌ Incorrect:\nprint(foobar)\nfoobar = "active"\n\n# ✅ Fixed:\nfoobar = "active"\nprint(foobar)',
-            sources: [
-                {
-                    title: 'NameError: name is not defined in Python',
-                    score: 3410,
-                    accepted: true,
-                    tags: ['python', 'scope', 'name-error'],
-                    url: 'https://stackoverflow.com/questions/14872225'
-                }
-            ]
-        },
-        'chat-5': {
-            title: 'UnboundLocalError: local variable ‘foobar’...',
-            query: "UnboundLocalError: local variable 'foobar' referenced before assignment",
-            solution: 'Occurs inside a function when assigning to a variable that has the same name as an outer/global variable, making Python treat it as local throughout the function before its assignment statement is reached.',
-            code: 'foobar = 10\n\ndef increment():\n    # ❌ foobar += 1  # Raises UnboundLocalError\n    global foobar     # ✅ Explicitly declare global or return new value\n    foobar += 1\n\nincrement()',
-            sources: [
-                {
-                    title: 'UnboundLocalError: local variable referenced before assignment',
-                    score: 5120,
-                    accepted: true,
-                    tags: ['python', 'variable-assignment', 'scope'],
-                    url: 'https://stackoverflow.com/questions/10851906'
-                }
-            ]
-        },
-        'chat-6': {
-            title: 'TypeError: ‘str’ object does not support it...',
-            query: "TypeError: 'str' object does not support item assignment",
-            solution: 'Strings in Python are immutable objects. You cannot modify an individual character in-place using indexing (`s[0] = "x"`). You must construct a new string or convert to a mutable sequence like a list.',
-            code: 'text = "hello"\n\n# ❌ text[0] = "H"  # TypeError\n\n# ✅ Fixed (slice and concatenate):\ntext = "H" + text[1:]\n\n# Or using list conversion:\nchars = list(text)\nchars[0] = "H"\ntext = "".join(chars)',
-            sources: [
-                {
-                    title: 'How to replace a character in a Python string by index?',
-                    score: 3740,
-                    accepted: true,
-                    tags: ['python', 'string', 'immutability'],
-                    url: 'https://stackoverflow.com/questions/4175294'
-                }
-            ]
-        },
-        'chat-7': {
-            title: 'KeyError: ‘spam’',
-            query: "KeyError: 'spam'",
-            solution: 'Raised when trying to access a dictionary key that does not exist. Use the `.get(key, default)` method or `in` operator to safely verify membership before reading.',
-            code: 'data = {"name": "Alice"}\n\n# ❌ value = data["spam"]  # Raises KeyError\n\n# ✅ Fixed:\nvalue = data.get("spam", "default_val")\n\n# Or with membership check:\nif "spam" in data:\n    print(data["spam"])',
-            sources: [
-                {
-                    title: 'How to handle KeyError exceptions when accessing Python dictionaries',
-                    score: 2210,
-                    accepted: true,
-                    tags: ['python', 'dictionary', 'keyerror'],
-                    url: 'https://stackoverflow.com/questions/11041405'
-                }
-            ]
-        }
-    };
+    let currentChatId = null;
+    let chatsList = [];
+    let initialGuestRecentChatsHtml = '';
 
     // =========================================================================
     // Multi-Language Localization System (EN <-> RU)
@@ -134,6 +23,8 @@
             "Новый чат": "New chat",
             "О нас": "About us",
             "Войти": "Log in",
+            "Выйти": "Log out",
+            "Log out": "Log out",
             "Встречайте новые функции!": "Meet new features!",
             "Бэкенд-разработчик": "Backend developer",
             "Фронтенд-разработчик": "Frontend developer",
@@ -175,7 +66,7 @@
             "Паника Go / runtime": "Go panic / runtime",
             "Ошибка C++ / Segfault": "C++ / Segfault",
             "Вход в Errorium": "Log in to Errorium",
-            "Синхронизируйте историю ошибок, знания команды и создавайте токены MCP для Cursor и Claude Code.": "Sync your recent error history, team knowledge, and generate MCP API tokens for Cursor & Claude Code.",
+            "Синхронизируйте историю ошибок, знания команды и подключайте Errorium через MCP для Cursor и Claude Code.": "Sync your recent error history, team knowledge, and connect Errorium via MCP for Cursor & Claude Code.",
             "Продолжить через GitHub": "Continue with GitHub",
             "Продолжить через Google SSO": "Continue with Google SSO",
             "Пароль": "Password",
@@ -301,6 +192,8 @@
             "New chat": "Новый чат",
             "About us": "О нас",
             "Log in": "Войти",
+            "Log out": "Выйти",
+            "Выйти": "Выйти",
             "Meet new features!": "Встречайте новые функции!",
             "Backend developer": "Бэкенд-разработчик",
             "Frontend developer": "Фронтенд-разработчик",
@@ -341,7 +234,7 @@
             "Go panic / runtime": "Паника Go / runtime",
             "C++ / Segfault": "Ошибка C++ / Segfault",
             "Log in to Errorium": "Вход в Errorium",
-            "Sync your recent error history, team knowledge, and generate MCP API tokens for Cursor & Claude Code.": "Синхронизируйте историю ошибок, знания команды и создавайте токены MCP для Cursor и Claude Code.",
+            "Sync your recent error history, team knowledge, and connect Errorium via MCP for Cursor & Claude Code.": "Синхронизируйте историю ошибок, знания команды и подключайте Errorium через MCP для Cursor и Claude Code.",
             "Continue with GitHub": "Продолжить через GitHub",
             "Continue with Google SSO": "Продолжить через Google SSO",
             "Password": "Пароль",
@@ -710,6 +603,9 @@
         modalMcp: document.getElementById('modal-mcp'),
         modalAbout: document.getElementById('modal-about'),
         modalSettings: document.getElementById('modal-settings'),
+        settingCoreStatus: document.getElementById('setting-core-status'),
+        settingRagDesc: document.getElementById('setting-rag-desc'),
+        settingRagProviderBadge: document.getElementById('setting-rag-provider-badge'),
         userDisplayName: document.getElementById('user-display-name'),
 
         // Reference Modals (services/frontend/references/)
@@ -750,21 +646,33 @@
         modalResetPasswordAlert: document.getElementById('modal-reset-password-alert'),
         refBtnAlertSendReset: document.getElementById('ref-btn-alert-send-reset'),
 
-        btnCopyToken: document.getElementById('btn-copy-token'),
+        btnCopyUrl: document.getElementById('btn-copy-url'),
+        btnCopyToken: document.getElementById('btn-copy-url') || document.getElementById('btn-copy-token'),
         btnCopyMcpJson: document.getElementById('btn-copy-mcp-json'),
-        mcpTokenDisplay: document.getElementById('mcp-token-display'),
+        mcpUrlDisplay: document.getElementById('mcp-url-display'),
+        mcpTokenDisplay: document.getElementById('mcp-url-display') || document.getElementById('mcp-token-display'),
         mcpJsonSnippet: document.getElementById('mcp-json-snippet'),
 
-        btnLandingCopyToken: document.getElementById('btn-landing-copy-token'),
+        btnLandingCopyUrl: document.getElementById('btn-landing-copy-url'),
+        btnLandingCopyToken: document.getElementById('btn-landing-copy-url') || document.getElementById('btn-landing-copy-token'),
         btnLandingCopyJson: document.getElementById('btn-landing-copy-json'),
-        landingMcpToken: document.getElementById('landing-mcp-token'),
+        landingMcpUrl: document.getElementById('landing-mcp-url'),
+        landingMcpToken: document.getElementById('landing-mcp-url') || document.getElementById('landing-mcp-token'),
         landingMcpJsonSnippet: document.getElementById('landing-mcp-json-snippet'),
 
         btnLoginGithub: document.getElementById('btn-login-github'),
         btnLoginGoogle: document.getElementById('btn-login-google'),
 
+        btnSidebarLogout: document.getElementById('btn-sidebar-logout'),
+        btnProfileLogout: document.getElementById('btn-profile-logout'),
+        profileRowLogout: document.getElementById('profile-row-logout'),
+
         toast: document.getElementById('toast')
     };
+
+    if (elements.recentChatsList) {
+        initialGuestRecentChatsHtml = elements.recentChatsList.innerHTML;
+    }
 
     // =========================================================================
     // Image Dominant Color Extractor (Canvas sampling with saturation boost)
@@ -937,18 +845,31 @@
         closeAllModals();
     });
 
-    // Recent chats search filter
+    // Debounce helper (300 ms for recent chats search)
+    function debounce(fn, delay) {
+        let timeoutId;
+        return function (...args) {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => fn.apply(this, args), delay);
+        };
+    }
+
+    // Recent chats search filter (debounced 300 ms, API-backed)
+    const debouncedSearchRecentChats = debounce(function (query) {
+        const tokens = window.ErroriumAPI ? window.ErroriumAPI.getTokens() : null;
+        if (tokens && tokens.access_token) {
+            loadRecentChats(query);
+        } else {
+            const items = elements.recentChatsList ? elements.recentChatsList.querySelectorAll('.recent-chat-item') : [];
+            items.forEach(item => {
+                const title = item.querySelector('.chat-item-title')?.textContent.toLowerCase() || '';
+                item.style.display = title.includes(query.toLowerCase()) ? 'flex' : 'none';
+            });
+        }
+    }, 300);
+
     elements.searchRecentChats?.addEventListener('input', function (e) {
-        const query = e.target.value.toLowerCase().trim();
-        const items = elements.recentChatsList ? elements.recentChatsList.querySelectorAll('.recent-chat-item') : [];
-        items.forEach(item => {
-            const title = item.querySelector('.chat-item-title').textContent.toLowerCase();
-            if (title.includes(query)) {
-                item.style.display = 'flex';
-            } else {
-                item.style.display = 'none';
-            }
-        });
+        debouncedSearchRecentChats(e.target.value.trim());
     });
 
     // Recent chats collapse toggle
@@ -976,7 +897,22 @@
     function setAuthUser(user) {
         try {
             if (user) {
-                localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
+                const username = user.username || '';
+                const profession = user.profession || user.role || 'Backend developer';
+                const normalized = {
+                    id: user.id || null,
+                    username: username,
+                    email: user.email || '',
+                    role: profession,
+                    profession: profession,
+                    userRole: user.role || 'user',
+                    gender: user.gender || 'Not specified',
+                    language: user.language || 'English',
+                    avatarUrl: user.avatar_url || user.avatarUrl || null,
+                    avatarLetter: (username && username[0] ? username[0] : 'U').toUpperCase(),
+                    avatarGlow: user.avatarGlow || null
+                };
+                localStorage.setItem(AUTH_USER_KEY, JSON.stringify(normalized));
             } else {
                 localStorage.removeItem(AUTH_USER_KEY);
             }
@@ -987,6 +923,7 @@
     function updateAuthUI() {
         const user = getAuthUser();
         if (user) {
+            loadRecentChats();
             if (elements.sidebarUserGuest) elements.sidebarUserGuest.style.display = 'none';
             if (elements.sidebarUserAuth) elements.sidebarUserAuth.style.display = 'flex';
             if (elements.headerAvatarGuest) elements.headerAvatarGuest.style.display = 'none';
@@ -995,7 +932,7 @@
                 if (user.avatarUrl) {
                     elements.headerAvatarAuth.innerHTML = `<img src="${user.avatarUrl}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" alt="Avatar" />`;
                 } else {
-                    elements.headerAvatarAuth.textContent = (user.avatarLetter || user.username[0] || 'T').toUpperCase();
+                    elements.headerAvatarAuth.textContent = (user.avatarLetter || user.username[0] || 'U').toUpperCase();
                 }
             }
 
@@ -1003,7 +940,7 @@
                 if (user.avatarUrl) {
                     elements.sidebarAuthAvatar.innerHTML = `<img src="${user.avatarUrl}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" alt="Avatar" />`;
                 } else {
-                    elements.sidebarAuthAvatar.textContent = (user.avatarLetter || user.username[0] || 'T').toUpperCase();
+                    elements.sidebarAuthAvatar.textContent = (user.avatarLetter || user.username[0] || 'U').toUpperCase();
                 }
             }
             const targetLangCode = (getCurrentLanguage() === 'Русский') ? 'ru' : 'en';
@@ -1012,7 +949,7 @@
             if (elements.sidebarAuthRole) elements.sidebarAuthRole.textContent = userRoleLocalized;
 
             if (elements.profileAvatarLetter) {
-                elements.profileAvatarLetter.textContent = (user.avatarLetter || user.username[0] || 'T').toUpperCase();
+                elements.profileAvatarLetter.textContent = (user.avatarLetter || user.username[0] || 'U').toUpperCase();
             }
             if (elements.profileAvatarImg) {
                 if (user.avatarUrl) {
@@ -1034,8 +971,8 @@
                 elements.profileInfoUsername.textContent = user.username;
             }
             if (elements.profileInfoEmail) {
-                elements.profileInfoEmail.value = user.email || 'Test_user@mail.ru';
-                elements.profileInfoEmail.textContent = user.email || 'Test_user@mail.ru';
+                elements.profileInfoEmail.value = user.email || '';
+                elements.profileInfoEmail.textContent = user.email || '';
             }
             if (elements.profileInfoRole) {
                 elements.profileInfoRole.textContent = userRoleLocalized;
@@ -1070,6 +1007,8 @@
             if (elements.sidebarUserAuth) elements.sidebarUserAuth.style.display = 'none';
             if (elements.headerAvatarGuest) elements.headerAvatarGuest.style.display = 'inline-block';
             if (elements.headerAvatarAuth) elements.headerAvatarAuth.style.display = 'none';
+            currentChatId = null;
+            renderRecentChats([]);
         }
         applyLanguage(getCurrentLanguage());
     }
@@ -1088,6 +1027,11 @@
 
     function renderCurrentRoute() {
         const path = window.location.pathname;
+
+        if (path === '/auth/callback') {
+            handleAuthCallback();
+            return;
+        }
 
         if (path === '/profile') {
             if (getAuthUser()) {
@@ -1141,16 +1085,23 @@
             return;
         }
 
-        const chatMatch = path.match(/^\/chat(?:\/([a-zA-Z0-9_\-]+))?$/);
+        const chatMatch = path.match(/^\/chats(?:\/([a-zA-Z0-9_\-]+))?$/);
         if (chatMatch) {
             const chatId = chatMatch[1];
-            if (chatId && KNOWLEDGE_BASE[chatId]) {
-                loadChatByQuery(KNOWLEDGE_BASE[chatId].query || KNOWLEDGE_BASE[chatId].title, chatId, false);
-            } else if (chatId) {
-                loadChatByQuery(decodeURIComponent(chatId.replace(/-/g, ' ')), chatId, false);
+            if (chatId) {
+                loadChatById(chatId, false);
             } else {
-                switchToChatView(false);
+                switchToHeroView(false);
             }
+            return;
+        }
+
+        // Legacy /chat[/<id>] addresses redirect to canonical /chats[/<id>]
+        const legacyChatMatch = path.match(/^\/chat(?:\/([a-zA-Z0-9_\-]+))?$/);
+        if (legacyChatMatch) {
+            const target = legacyChatMatch[1] ? `/chats/${legacyChatMatch[1]}` : '/chats';
+            window.history.replaceState({ view: 'chat' }, '', target);
+            renderCurrentRoute();
             return;
         }
 
@@ -1169,6 +1120,11 @@
         closeAllModals(false);
         if (modalEl) {
             modalEl.style.display = 'flex';
+            if (modalEl === elements.modalSettings) {
+                loadStatus();
+            } else if (modalEl === elements.modalMcp) {
+                updateMcpSnippets();
+            }
             if (updateRoute && !isNavigatingFromPopState) {
                 if (modalEl === elements.modalAuthRef || modalEl === elements.modalAuth) {
                     if (window.location.pathname !== '/login') window.history.pushState({ modal: 'login' }, '', '/login');
@@ -1447,6 +1403,171 @@
         showModal(elements.modalResetPasswordAlert);
     });
 
+    // =========================================================================
+    // User Profile API Integration (Wave C - Task C3)
+    // =========================================================================
+    async function loadUserProfile() {
+        if (!window.ErroriumAPI) return;
+        const tokens = window.ErroriumAPI.getTokens();
+        if (!tokens || !tokens.access_token) return;
+
+        try {
+            const user = await window.ErroriumAPI.request('GET', '/users/me');
+            if (user) {
+                setAuthUser(user);
+            }
+        } catch (err) {
+            console.error('Failed to load user profile', err);
+            const status = err && err.status;
+            if (status !== 401) {
+                showToast(getCurrentLanguage() === 'Русский' ? 'Ошибка загрузки профиля' : 'Failed to load profile');
+            }
+        }
+    }
+
+    async function patchUserProfile(patchData) {
+        if (!window.ErroriumAPI) return { ok: false };
+        try {
+            const updated = await window.ErroriumAPI.request('PATCH', '/users/me', {
+                body: patchData
+            });
+            if (updated) {
+                setAuthUser(updated);
+            }
+            return { ok: true, user: updated };
+        } catch (err) {
+            console.error('Failed to update profile', err);
+            const status = err && err.status;
+            let errMsg = (err && err.error) || '';
+            if (status === 409) {
+                errMsg = getCurrentLanguage() === 'Русский' ? 'Email уже занят другим пользователем' : 'Email is already in use';
+            } else if (status === 400) {
+                errMsg = errMsg || (getCurrentLanguage() === 'Русский' ? 'Некорректные данные профиля' : 'Invalid profile data');
+            } else {
+                errMsg = errMsg || (getCurrentLanguage() === 'Русский' ? 'Ошибка обновления профиля' : 'Failed to update profile');
+            }
+            showToast(errMsg);
+            return { ok: false, error: err, status: status, message: errMsg };
+        }
+    }
+
+    // =========================================================================
+    // Tags API & Status API (Wave C - Task C3)
+    // =========================================================================
+    function getTagClass(name) {
+        const map = {
+            'Go': 'tag-go',
+            'Python': 'tag-python',
+            'Java': 'tag-java',
+            'C#': 'tag-csharp',
+            'C++': 'tag-cpp',
+            'JS': 'tag-js',
+            'SQL': 'tag-sql',
+            'Rust': 'tag-rust',
+            'TypeScript': 'tag-ts',
+            'Docker': 'tag-docker',
+            'Linux': 'tag-linux',
+            'Kubernetes': 'tag-k8s',
+            'PostgreSQL': 'tag-postgres',
+            'Redis': 'tag-redis',
+            'GraphQL': 'tag-graphql',
+            'React': 'tag-react',
+            'Vue': 'tag-vue',
+            'Swift': 'tag-swift',
+            'Kotlin': 'tag-kotlin',
+            'PHP': 'tag-php',
+            'Git': 'tag-git',
+            'Nginx': 'tag-nginx',
+            'gRPC': 'tag-grpc'
+        };
+        return map[name] || `tag-${(name || '').toLowerCase().replace(/[^a-z0-9]/g, '')}`;
+    }
+
+    let tagsLoaded = false;
+    async function loadTags() {
+        if (!window.ErroriumAPI) return;
+        try {
+            const data = await window.ErroriumAPI.request('GET', '/tags', { auth: false });
+            if (data && Array.isArray(data.items)) {
+                renderTagPills(data.items);
+                tagsLoaded = true;
+            }
+        } catch (err) {
+            console.warn('Failed to load tags from API, keeping fallback pills', err);
+        }
+    }
+
+    function renderTagPills(items) {
+        if (!elements.tagsPopover) return;
+        const grid = elements.tagsPopover.querySelector('.tags-grid');
+        if (!grid) return;
+
+        grid.innerHTML = '';
+        const row = document.createElement('div');
+        row.className = 'tags-row';
+        row.style.flexWrap = 'wrap';
+        row.style.gap = '6px';
+
+        items.forEach(item => {
+            const tagName = typeof item === 'string' ? item : item.name;
+            if (!tagName) return;
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = `tag-pill ${getTagClass(tagName)}`;
+            btn.setAttribute('data-tag', tagName);
+            btn.textContent = tagName;
+            row.appendChild(btn);
+        });
+        grid.appendChild(row);
+    }
+
+    async function loadStatus() {
+        if (!window.ErroriumAPI) return;
+        try {
+            const data = await window.ErroriumAPI.request('GET', '/status', { auth: false });
+            updateStatusUI(data);
+        } catch (err) {
+            console.error('Failed to load status', err);
+            updateStatusUI(null);
+        }
+    }
+
+    function updateStatusUI(data) {
+        const isRu = getCurrentLanguage() === 'Русский';
+        const coreBadge = elements.settingCoreStatus || document.getElementById('setting-core-status') || document.querySelector('#modal-settings .badge');
+        const isConnected = !!(data && data.search_core && data.search_core.connected);
+        const addr = (data && data.search_core && data.search_core.address) ? data.search_core.address : ':50051';
+        const port = addr.includes(':') ? addr.substring(addr.lastIndexOf(':')) : ':50051';
+
+        if (coreBadge) {
+            if (isConnected) {
+                coreBadge.className = 'badge active-badge';
+                coreBadge.textContent = isRu ? `Подключено (${port})` : `Connected (${port})`;
+                coreBadge.style.color = '#10b981';
+                coreBadge.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+                coreBadge.style.background = 'rgba(16, 185, 129, 0.1)';
+            } else {
+                coreBadge.className = 'badge inactive-badge';
+                coreBadge.textContent = isRu ? 'Недоступно' : 'Unavailable';
+                coreBadge.style.color = '#9ca3af';
+                coreBadge.style.borderColor = 'rgba(156, 163, 175, 0.3)';
+                coreBadge.style.background = 'rgba(156, 163, 175, 0.1)';
+            }
+        }
+
+        const provider = (data && data.rag && data.rag.provider) ? data.rag.provider : 'stub';
+        const ragBadge = elements.settingRagProviderBadge || document.getElementById('setting-rag-provider-badge');
+        if (ragBadge) {
+            ragBadge.textContent = `Provider: ${provider}`;
+        }
+        const ragDesc = elements.settingRagDesc || document.getElementById('setting-rag-desc');
+        if (ragDesc) {
+            ragDesc.textContent = isRu
+                ? `Потоковая передача синтезированных ответов в реальном времени через SSE (${provider})`
+                : `Stream synthesized answers in real time via SSE (${provider})`;
+        }
+    }
+
     // Profile Gender Dropdown Logic
     elements.profileInfoGenderRow?.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -1469,21 +1590,18 @@
     });
 
     document.querySelectorAll('#gender-dropdown-popover .profile-dropdown-item').forEach(item => {
-        item.addEventListener('click', function (e) {
+        item.addEventListener('click', async function (e) {
             e.stopPropagation();
             const selectedGender = this.getAttribute('data-gender');
             if (!selectedGender) return;
-            const user = getAuthUser() || {
-                username: 'Test_user',
-                email: 'Test_user@mail.ru',
-                role: 'Backend developer',
-                gender: 'Male',
-                language: 'English',
-                avatarLetter: 'T'
-            };
-            user.gender = selectedGender;
-            setAuthUser(user);
-            showToast(`Gender set to ${selectedGender}`);
+            const apiGender = (selectedGender === 'Not selected' || selectedGender === 'Not specified')
+                ? 'Not specified'
+                : selectedGender;
+
+            const res = await patchUserProfile({ gender: apiGender });
+            if (res.ok) {
+                showToast(getCurrentLanguage() === 'Русский' ? `Пол: ${selectedGender}` : `Gender set to ${selectedGender}`);
+            }
 
             if (elements.genderDropdownPopover) elements.genderDropdownPopover.style.display = 'none';
             elements.profileInfoGenderRow?.classList.remove('open');
@@ -1513,17 +1631,16 @@
     });
 
     document.querySelectorAll('#lang-dropdown-popover .profile-dropdown-item').forEach(item => {
-        item.addEventListener('click', function (e) {
+        item.addEventListener('click', async function (e) {
             e.stopPropagation();
             const selectedLang = this.getAttribute('data-lang');
             if (!selectedLang) return;
-            const user = getAuthUser();
-            if (user) {
-                user.language = selectedLang;
-                setAuthUser(user);
-            }
-            applyLanguage(selectedLang);
-            showToast(selectedLang === 'Русский' ? 'Язык переключён на Русский' : 'Language switched to English');
+            const apiLang = (selectedLang === 'Русский' || selectedLang === 'Russian') ? 'Русский' : 'English';
+
+            applyLanguage(apiLang);
+            showToast(apiLang === 'Русский' ? 'Язык переключён на Русский' : 'Language switched to English');
+
+            await patchUserProfile({ language: apiLang });
 
             if (elements.langDropdownPopover) elements.langDropdownPopover.style.display = 'none';
             elements.profileInfoLangRow?.classList.remove('open');
@@ -1536,69 +1653,97 @@
         elements.profileAvatarFileInput?.click();
     });
 
-    elements.profileAvatarFileInput?.addEventListener('change', (e) => {
+    elements.profileAvatarFileInput?.addEventListener('change', async (e) => {
         const file = e.target.files && e.target.files[0];
         if (!file) return;
 
         // Check if file is an image
         if (!file.type.startsWith('image/')) {
-            showToast('Please select a valid image file');
+            showToast(getCurrentLanguage() === 'Русский' ? 'Пожалуйста, выберите файл изображения' : 'Please select a valid image file');
             return;
         }
 
-        const reader = new FileReader();
-        reader.onload = function (event) {
-            const dataUrl = event.target.result;
-            extractDominantColor(dataUrl, (glowColor) => {
-                const user = getAuthUser() || {
-                    username: 'Test_user',
-                    email: 'Test_user@mail.ru',
-                    role: 'Backend developer',
-                    gender: 'Male',
-                    language: 'English',
-                    avatarLetter: 'T'
-                };
-                user.avatarUrl = dataUrl;
-                user.avatarGlow = glowColor;
-                setAuthUser(user);
-                showToast('Avatar photo and glow color updated');
+        // Maximum size: 5 MiB
+        if (file.size > 5 * 1024 * 1024) {
+            showToast(getCurrentLanguage() === 'Русский' ? 'Размер файла превышает 5 МБ' : 'File size exceeds 5 MB');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('avatar', file);
+
+        try {
+            const resp = await window.ErroriumAPI.request('POST', '/users/avatar', {
+                body: formData,
+                multipart: true,
+                auth: true
             });
-        };
-        reader.readAsDataURL(file);
+
+            const avatarUrl = resp && resp.avatar_url;
+            if (avatarUrl) {
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    const dataUrl = event.target.result;
+                    extractDominantColor(dataUrl, (glowColor) => {
+                        const user = getAuthUser();
+                        if (user) {
+                            user.avatarUrl = avatarUrl;
+                            user.avatarGlow = glowColor;
+                            setAuthUser(user);
+                        }
+                        showToast(getCurrentLanguage() === 'Русский' ? 'Аватар успешно обновлен' : 'Avatar photo and glow color updated');
+                    });
+                };
+                reader.readAsDataURL(file);
+            }
+        } catch (err) {
+            console.error('Failed to upload avatar', err);
+            const status = err && err.status;
+            let errMsg = (err && err.error) || '';
+            if (status === 400) {
+                errMsg = errMsg || (getCurrentLanguage() === 'Русский' ? 'Неверный формат или размер файла (400)' : 'Invalid image file or size (400)');
+            } else if (status === 502) {
+                errMsg = errMsg || (getCurrentLanguage() === 'Русский' ? 'Хранилище S3 недоступно (502)' : 'S3 storage unavailable (502)');
+            } else {
+                errMsg = errMsg || (getCurrentLanguage() === 'Русский' ? 'Ошибка загрузки аватара' : 'Failed to upload avatar');
+            }
+            showToast(errMsg);
+        }
     });
 
     // Profile input change listeners (Username, Email, Role)
-    elements.profileInfoUsername?.addEventListener('change', (e) => {
+    elements.profileInfoUsername?.addEventListener('change', async (e) => {
         const val = e.target.value.trim();
-        if (!val) return;
-        const user = getAuthUser() || {
-            username: 'Test_user',
-            email: 'Test_user@mail.ru',
-            role: 'Backend developer',
-            gender: 'Male',
-            language: 'English',
-            avatarLetter: 'T'
-        };
-        user.username = val;
-        user.avatarLetter = val[0].toUpperCase();
-        setAuthUser(user);
-        showToast('Username updated');
+        const user = getAuthUser();
+        if (!val) {
+            if (user && elements.profileInfoUsername) elements.profileInfoUsername.value = user.username;
+            return;
+        }
+        if (user && val === user.username) return;
+
+        const res = await patchUserProfile({ username: val });
+        if (res.ok) {
+            showToast(getCurrentLanguage() === 'Русский' ? 'Имя пользователя обновлено' : 'Username updated');
+        } else {
+            if (user && elements.profileInfoUsername) elements.profileInfoUsername.value = user.username;
+        }
     });
 
-    elements.profileInfoEmail?.addEventListener('change', (e) => {
+    elements.profileInfoEmail?.addEventListener('change', async (e) => {
         const val = e.target.value.trim();
-        if (!val) return;
-        const user = getAuthUser() || {
-            username: 'Test_user',
-            email: 'Test_user@mail.ru',
-            role: 'Backend developer',
-            gender: 'Male',
-            language: 'English',
-            avatarLetter: 'T'
-        };
-        user.email = val;
-        setAuthUser(user);
-        showToast('Email updated');
+        const user = getAuthUser();
+        if (!val) {
+            if (user && elements.profileInfoEmail) elements.profileInfoEmail.value = user.email;
+            return;
+        }
+        if (user && val === user.email) return;
+
+        const res = await patchUserProfile({ email: val });
+        if (res.ok) {
+            showToast(getCurrentLanguage() === 'Русский' ? 'Email обновлен' : 'Email updated');
+        } else {
+            if (user && elements.profileInfoEmail) elements.profileInfoEmail.value = user.email;
+        }
     });
 
     // Profile Role Dropdown Logic
@@ -1623,21 +1768,15 @@
     });
 
     document.querySelectorAll('.role-dropdown-item').forEach(item => {
-        item.addEventListener('click', function (e) {
+        item.addEventListener('click', async function (e) {
             e.stopPropagation();
             const selectedRole = this.getAttribute('data-role');
             if (!selectedRole) return;
-            const user = getAuthUser() || {
-                username: 'Test_user',
-                email: 'Test_user@mail.ru',
-                role: 'Backend developer',
-                gender: 'Male',
-                language: 'English',
-                avatarLetter: 'T'
-            };
-            user.role = selectedRole;
-            setAuthUser(user);
-            showToast(`Role updated to ${selectedRole}`);
+
+            const res = await patchUserProfile({ profession: selectedRole });
+            if (res.ok) {
+                showToast(getCurrentLanguage() === 'Русский' ? `Роль обновлена: ${selectedRole}` : `Role updated to ${selectedRole}`);
+            }
 
             if (elements.roleDropdownPopover) elements.roleDropdownPopover.style.display = 'none';
             elements.profileInfoRoleRow?.classList.remove('open');
@@ -1663,37 +1802,153 @@
         }
     });
 
+    // SSO helper
+    function initiateSSO(provider) {
+        const prov = (provider || '').toLowerCase();
+        if (prov === 'yandex') {
+            if (window.ErroriumAPI && typeof window.ErroriumAPI.ssoLogin === 'function') {
+                window.ErroriumAPI.ssoLogin('yandex');
+            } else {
+                // Redirect to /api/v1/auth/sso/login/yandex or /auth/sso/yandex/login
+                window.location.href = '/api/v1/auth/sso/login/yandex';
+            }
+            return;
+        }
+        // Redirect to /auth/sso/yandex/login is active.
+        // Google, GitHub, etc. remain inactive placeholders for now.
+        showToast(getCurrentLanguage() === 'Русский'
+            ? 'Авторизация через этот сервис находится в разработке'
+            : 'Sign in via this provider is in development');
+    }
+
+    async function handleAuthCallback() {
+        try {
+            // 1. Check hash for tokens (redirected from gateway SSO callback)
+            const hash = window.location.hash.startsWith('#') ? window.location.hash.slice(1) : window.location.hash;
+            const hashParams = new URLSearchParams(hash);
+            let accessToken = hashParams.get('access_token');
+            let refreshToken = hashParams.get('refresh_token');
+
+            // 2. Check query params for code and state
+            if (!accessToken) {
+                const searchParams = new URLSearchParams(window.location.search);
+                const code = searchParams.get('code');
+                const state = searchParams.get('state');
+                if (code && state && window.ErroriumAPI) {
+                    try {
+                        const res = await window.ErroriumAPI.request('GET', `/auth/sso/callback/yandex?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`, { auth: false });
+                        if (res && res.access_token) {
+                            accessToken = res.access_token;
+                            refreshToken = res.refresh_token;
+                        }
+                    } catch (e) {
+                        console.warn('SSO callback exchange error', e);
+                    }
+                }
+            }
+
+            if (accessToken && window.ErroriumAPI) {
+                window.ErroriumAPI.setTokens({
+                    access_token: accessToken,
+                    refresh_token: refreshToken || ''
+                });
+                try {
+                    const me = await window.ErroriumAPI.request('GET', '/auth/me');
+                    if (me) {
+                        setAuthUser(me);
+                    }
+                } catch (e) {
+                    console.error('Failed to load user profile after SSO', e);
+                }
+                showToast(getCurrentLanguage() === 'Русский' ? 'Вход через Яндекс ID выполнен успешно!' : 'Signed in with Yandex ID successfully!');
+                navigateTo('/', true);
+            } else {
+                showToast(getCurrentLanguage() === 'Русский' ? 'Не удалось выполнить авторизацию' : 'Failed to authorize');
+                navigateTo('/', true);
+            }
+        } catch (err) {
+            console.error('SSO callback handling error', err);
+            showToast(getCurrentLanguage() === 'Русский' ? 'Ошибка обработки авторизации' : 'Authorization callback error');
+            navigateTo('/', true);
+        }
+    }
+
+    // Logout helper
+    async function handleLogout() {
+        const tokens = window.ErroriumAPI ? window.ErroriumAPI.getTokens() : null;
+        const refreshToken = tokens ? tokens.refresh_token : null;
+        try {
+            if (window.ErroriumAPI && refreshToken) {
+                await window.ErroriumAPI.request('POST', '/auth/logout', {
+                    body: { refresh_token: refreshToken },
+                    auth: true
+                });
+            }
+        } catch (_) {
+            // Ignore API network errors during logout and finish client cleanup
+        } finally {
+            if (window.ErroriumAPI) {
+                window.ErroriumAPI.clearTokens();
+            }
+            setAuthUser(null);
+            closeAllModals();
+            switchToHeroView();
+            showToast(getCurrentLanguage() === 'Русский' ? 'Вы вышли из системы' : 'Successfully logged out');
+        }
+    }
+
     // Reference Modal Handlers
     // 1. Auth Reference Modal (Auth-screen.png)
-    elements.refAuthForm?.addEventListener('submit', (e) => {
+    elements.refAuthForm?.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const email = elements.refAuthEmail?.value || 'Test_user@mail.ru';
-        const user = {
-            username: 'Test_user',
-            email: email,
-            role: 'Backend developer',
-            gender: 'Male',
-            language: 'English',
-            avatarLetter: 'T'
-        };
-        setAuthUser(user);
-        closeAllModals();
-        showToast('Successfully logged in!');
+        const email = elements.refAuthEmail?.value.trim() || '';
+        const password = elements.refAuthPassword?.value || '';
+        const rememberMe = elements.refAuthRemember ? elements.refAuthRemember.checked : true;
+
+        if (!email || !password) {
+            showToast(getCurrentLanguage() === 'Русский' ? 'Заполните email и пароль' : 'Please enter email and password');
+            return;
+        }
+
+        try {
+            const data = await window.ErroriumAPI.request('POST', '/auth/login', {
+                body: {
+                    email: email,
+                    password: password,
+                    remember_me: rememberMe
+                },
+                auth: false
+            });
+
+            if (data && data.access_token) {
+                window.ErroriumAPI.setTokens({
+                    access_token: data.access_token,
+                    refresh_token: data.refresh_token || ''
+                });
+            }
+
+            if (data && data.user) {
+                setAuthUser(data.user);
+            } else {
+                const me = await window.ErroriumAPI.request('GET', '/auth/me');
+                setAuthUser(me);
+            }
+
+            closeAllModals();
+            showToast(getCurrentLanguage() === 'Русский' ? 'Успешный вход в систему!' : 'Successfully logged in!');
+        } catch (err) {
+            const status = err && err.status;
+            let errMsg = (err && err.error) || '';
+            if (status === 401) {
+                errMsg = getCurrentLanguage() === 'Русский' ? 'Неверный email или пароль' : 'Invalid email or password';
+                elements.refAuthEmail?.style.setProperty('border-color', '#ef4444');
+                elements.refAuthPassword?.style.setProperty('border-color', '#ef4444');
+            }
+            showToast(errMsg || (getCurrentLanguage() === 'Русский' ? 'Ошибка входа' : 'Login failed'));
+        }
     });
 
-    elements.refBtnYandex?.addEventListener('click', () => {
-        const user = {
-            username: 'Test_user',
-            email: 'Test_user@mail.ru',
-            role: 'Backend developer',
-            gender: 'Male',
-            language: 'English',
-            avatarLetter: 'T'
-        };
-        setAuthUser(user);
-        closeAllModals();
-        showToast('Logged in via Yandex ID');
-    });
+    elements.refBtnYandex?.addEventListener('click', () => initiateSSO('yandex'));
 
     elements.refAuthForgot?.addEventListener('click', () => {
         showModal(elements.modalChangePasswordEmail);
@@ -1707,43 +1962,106 @@
         showModal(elements.modalAuthRef);
     });
 
-    elements.refRegisterForm?.addEventListener('submit', (e) => {
+    elements.refRegisterForm?.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const username = elements.refRegisterUsername?.value.trim() || 'New_user';
-        const email = elements.refRegisterEmail?.value.trim() || 'user@example.com';
+        const username = elements.refRegisterUsername?.value.trim() || '';
+        const email = elements.refRegisterEmail?.value.trim() || '';
         const password = elements.refRegisterPassword?.value || '';
         const confirm = elements.refRegisterConfirm?.value || '';
+        const terms = elements.refRegisterTerms ? elements.refRegisterTerms.checked : false;
 
-        if (password !== confirm) {
-            showToast('Passwords do not match');
+        if (!terms) {
+            showToast(getCurrentLanguage() === 'Русский' ? 'Примите условия использования' : 'Please accept terms & conditions');
             return;
         }
 
-        const user = {
-            username: username,
-            email: email,
-            role: 'Backend developer',
-            gender: 'Male',
-            language: 'English',
-            avatarLetter: (username[0] || 'U').toUpperCase()
-        };
-        setAuthUser(user);
-        closeAllModals();
-        showToast('Account created successfully!');
+        if (password !== confirm) {
+            showToast(getCurrentLanguage() === 'Русский' ? 'Пароли не совпадают' : 'Passwords do not match');
+            elements.refRegisterConfirm?.style.setProperty('border-color', '#ef4444');
+            return;
+        }
+
+        if (password.length < 8) {
+            showToast(getCurrentLanguage() === 'Русский' ? 'Пароль должен содержать не менее 8 символов' : 'Password must be at least 8 characters');
+            elements.refRegisterPassword?.style.setProperty('border-color', '#ef4444');
+            return;
+        }
+
+        try {
+            const data = await window.ErroriumAPI.request('POST', '/auth/register', {
+                body: {
+                    username: username,
+                    email: email,
+                    password: password
+                },
+                auth: false
+            });
+
+            if (data && data.access_token) {
+                window.ErroriumAPI.setTokens({
+                    access_token: data.access_token,
+                    refresh_token: data.refresh_token || ''
+                });
+            }
+
+            if (data && data.user) {
+                setAuthUser(data.user);
+            } else {
+                const me = await window.ErroriumAPI.request('GET', '/auth/me');
+                setAuthUser(me);
+            }
+
+            closeAllModals();
+            showToast(getCurrentLanguage() === 'Русский' ? 'Аккаунт успешно создан!' : 'Account created successfully!');
+        } catch (err) {
+            const status = err && err.status;
+            let errMsg = (err && err.error) || '';
+            if (status === 409) {
+                errMsg = getCurrentLanguage() === 'Русский' ? 'Email уже зарегистрирован' : 'Email is already registered';
+                elements.refRegisterEmail?.style.setProperty('border-color', '#ef4444');
+            }
+            showToast(errMsg || (getCurrentLanguage() === 'Русский' ? 'Ошибка регистрации' : 'Registration failed'));
+        }
     });
 
-    elements.refBtnRegisterYandex?.addEventListener('click', () => {
-        const user = {
-            username: 'Yandex_user',
-            email: 'yandex_user@yandex.ru',
-            role: 'Backend developer',
-            gender: 'Male',
-            language: 'English',
-            avatarLetter: 'Y'
-        };
-        setAuthUser(user);
-        closeAllModals();
-        showToast('Signed up via Yandex ID');
+    elements.refBtnRegisterYandex?.addEventListener('click', () => initiateSSO('yandex'));
+
+    ['input', 'focus'].forEach(ev => {
+        elements.refAuthEmail?.addEventListener(ev, () => {
+            elements.refAuthEmail?.style.removeProperty('border-color');
+        });
+        elements.refAuthPassword?.addEventListener(ev, () => {
+            elements.refAuthPassword?.style.removeProperty('border-color');
+        });
+        elements.refRegisterEmail?.addEventListener(ev, () => {
+            elements.refRegisterEmail?.style.removeProperty('border-color');
+        });
+        elements.refRegisterPassword?.addEventListener(ev, () => {
+            elements.refRegisterPassword?.style.removeProperty('border-color');
+        });
+        elements.refRegisterConfirm?.addEventListener(ev, () => {
+            elements.refRegisterConfirm?.style.removeProperty('border-color');
+        });
+    });
+
+    elements.btnSidebarLogout?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        handleLogout();
+    });
+
+    elements.btnProfileLogout?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        handleLogout();
+    });
+
+    elements.profileRowLogout?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        handleLogout();
+    });
+
+    window.addEventListener('errorium:logout', () => {
+        setAuthUser(null);
+        updateAuthUI();
     });
 
     // 2. Reset Password Alert Modal (Reset-password-alert.png)
@@ -1792,57 +2110,75 @@
         showToast('Password updated successfully!');
     });
 
-    // Fast Auth Demo
-    elements.btnLoginGithub?.addEventListener('click', () => handleLogin('GitHub'));
-    elements.btnLoginGoogle?.addEventListener('click', () => handleLogin('Google'));
+    // SSO Buttons
+    elements.btnLoginGithub?.addEventListener('click', () => initiateSSO('github'));
+    elements.btnLoginGoogle?.addEventListener('click', () => initiateSSO('google'));
 
-    function handleLogin(provider) {
-        const user = {
-            username: 'Test_user',
-            email: 'dev@errorium.ru',
-            role: 'Backend developer',
-            gender: 'Male',
-            language: 'English',
-            avatarLetter: 'T'
-        };
-        setAuthUser(user);
-        closeAllModals();
-        showToast(`Signed in via ${provider} SSO! MCP tokens active.`);
+    // =========================================================================
+    // MCP Integration (ADR-012: Open MCP without tokens)
+    // =========================================================================
+    function getMcpSseUrl() {
+        const origin = (typeof window !== 'undefined' && window.location && window.location.origin)
+            ? window.location.origin
+            : 'https://errorium.ru';
+        return origin + '/sse';
     }
 
+    function getMcpConfigJson() {
+        const sseUrl = getMcpSseUrl();
+        const config = {
+            mcpServers: {
+                errorium: {
+                    url: sseUrl
+                }
+            }
+        };
+        return JSON.stringify(config, null, 2);
+    }
+
+    function updateMcpSnippets() {
+        const sseUrl = getMcpSseUrl();
+        const configJson = getMcpConfigJson();
+        if (elements.mcpUrlDisplay) elements.mcpUrlDisplay.value = sseUrl;
+        if (elements.mcpJsonSnippet) elements.mcpJsonSnippet.textContent = configJson;
+        if (elements.landingMcpUrl) elements.landingMcpUrl.textContent = sseUrl;
+        if (elements.landingMcpJsonSnippet) elements.landingMcpJsonSnippet.textContent = configJson;
+    }
+
+    function openMcpModal() {
+        updateMcpSnippets();
+        showModal(elements.modalMcp);
+    }
+    window.openMcpModal = openMcpModal;
+
     // Copy to clipboard helpers
-    elements.btnCopyToken?.addEventListener('click', () => {
-        if (elements.mcpTokenDisplay) {
-            navigator.clipboard.writeText(elements.mcpTokenDisplay.value).then(() => {
-                showToast('Bearer token copied to clipboard!');
+    const handleCopyUrl = () => {
+        const url = getMcpSseUrl();
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).then(() => {
+                const isRu = getCurrentLanguage() === 'Русский';
+                showToast(isRu ? 'URL подключения MCP скопирован!' : 'MCP connection URL copied to clipboard!');
             });
         }
-    });
+    };
 
-    elements.btnCopyMcpJson?.addEventListener('click', () => {
-        if (elements.mcpJsonSnippet) {
-            navigator.clipboard.writeText(elements.mcpJsonSnippet.textContent).then(() => {
-                showToast('MCP configuration JSON copied!');
+    const handleCopyMcpJson = () => {
+        const json = getMcpConfigJson();
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(json).then(() => {
+                const isRu = getCurrentLanguage() === 'Русский';
+                showToast(isRu ? 'Конфигурация MCP JSON скопирована!' : 'MCP configuration JSON copied!');
             });
         }
-    });
+    };
 
-    // Landing Copy to clipboard helpers
-    elements.btnLandingCopyToken?.addEventListener('click', () => {
-        if (elements.landingMcpToken) {
-            navigator.clipboard.writeText(elements.landingMcpToken.textContent.trim()).then(() => {
-                showToast('Bearer token copied to clipboard!');
-            });
-        }
-    });
+    elements.btnCopyUrl?.addEventListener('click', handleCopyUrl);
+    elements.btnCopyToken?.addEventListener('click', handleCopyUrl);
+    elements.btnLandingCopyUrl?.addEventListener('click', handleCopyUrl);
+    elements.btnLandingCopyToken?.addEventListener('click', handleCopyUrl);
 
-    elements.btnLandingCopyJson?.addEventListener('click', () => {
-        if (elements.landingMcpJsonSnippet) {
-            navigator.clipboard.writeText(elements.landingMcpJsonSnippet.textContent).then(() => {
-                showToast('MCP configuration JSON copied!');
-            });
-        }
-    });
+    elements.btnCopyMcpJson?.addEventListener('click', handleCopyMcpJson);
+    elements.btnLandingCopyJson?.addEventListener('click', handleCopyMcpJson);
 
     // Toast helper
     let toastTimeout = null;
@@ -1893,27 +2229,45 @@
             const willShow = !isShown;
             elements.tagsPopover.style.display = willShow ? 'flex' : 'none';
             elements.btnAttach.classList.toggle('active', willShow);
+            if (willShow && !tagsLoaded) {
+                loadTags();
+            }
         }
         if (elements.attachPopover) {
             elements.attachPopover.style.display = 'none';
         }
     });
 
-    // Tag pills click listeners
+    function handleTagPillClick(tag) {
+        if (!tag) return;
+        if (elements.promptInput) {
+            const current = elements.promptInput.value;
+            elements.promptInput.value = current ? `${current} [${tag}] ` : `[${tag}] `;
+        }
+        if (elements.tagsPopover) {
+            elements.tagsPopover.style.display = 'none';
+            elements.btnAttach?.classList.remove('active');
+        }
+        adjustTextareaHeight();
+        elements.promptInput?.focus();
+    }
+
+    // Dynamic tag clicks via event delegation on #tags-popover
+    elements.tagsPopover?.addEventListener('click', function (e) {
+        const pill = e.target.closest('.tag-pill');
+        if (pill) {
+            e.stopPropagation();
+            const tag = pill.getAttribute('data-tag');
+            handleTagPillClick(tag);
+        }
+    });
+
+    // Tag pills click listeners (fallback/initial pills)
     document.querySelectorAll('.tag-pill').forEach(pill => {
         pill.addEventListener('click', function (e) {
             e.stopPropagation();
             const tag = this.getAttribute('data-tag');
-            if (elements.promptInput) {
-                const current = elements.promptInput.value;
-                elements.promptInput.value = current ? `${current} [${tag}] ` : `[${tag}] `;
-            }
-            if (elements.tagsPopover) {
-                elements.tagsPopover.style.display = 'none';
-                elements.btnAttach?.classList.remove('active');
-            }
-            adjustTextareaHeight();
-            elements.promptInput?.focus();
+            handleTagPillClick(tag);
         });
     });
 
@@ -1946,14 +2300,611 @@
     // =========================================================================
     // Core Chat / Query Interaction
     // =========================================================================
-    function submitCurrentQuery() {
+    // Escape HTML helper (XSS protection)
+    function escapeHtml(text) {
+        if (text === null || text === undefined) return '';
+        const div = document.createElement('div');
+        div.textContent = String(text);
+        return div.innerHTML;
+    }
+
+    function scrollChatToBottom() {
+        if (elements.messagesContainer) {
+            elements.messagesContainer.scrollTop = elements.messagesContainer.scrollHeight;
+        }
+    }
+
+    function normalizeSources(rawSources) {
+        if (!Array.isArray(rawSources)) return [];
+        return rawSources.map(src => {
+            if (!src) return { score: 0, question_score: 0, title: '', url: '#', tags: [] };
+            const scoreVal = src.question_score !== undefined ? src.question_score : (src.score !== undefined ? src.score : 0);
+            return {
+                doc_id: src.doc_id || null,
+                score: scoreVal,
+                question_score: scoreVal,
+                title: src.title || (src.doc_id ? `Question #${src.doc_id}` : 'Stack Overflow Source'),
+                url: src.url || (src.doc_id ? `https://stackoverflow.com/questions/${src.doc_id}` : '#'),
+                is_accepted: src.is_accepted !== undefined ? src.is_accepted : (src.accepted || false),
+                accepted: src.is_accepted !== undefined ? src.is_accepted : (src.accepted || false),
+                tags: Array.isArray(src.tags) ? src.tags : []
+            };
+        });
+    }
+
+    function renderAssistantCardInner(assistantData, isStreaming = false) {
+        const isRu = getCurrentLanguage() === 'Русский';
+        const cardTitle = isRu ? 'Errorium RAG-синтез (BM25 Ядро)' : 'Errorium RAG Synthesis (BM25 Core)';
+        const solutionCodeText = isRu ? 'Код решения' : 'Solution Code';
+        const copyCodeText = isRu ? 'Скопировать код' : 'Copy code';
+        const starMapText = isRu ? 'Карта связей' : 'Star Map';
+        const starMapTitle = isRu ? 'Открыть карту связей' : 'Open Star Map';
+
+        const sources = assistantData.sources || [];
+        const hasGraphSources = sources.length > 0 && sources.some(s => /questions\/(\d+)/.test(s.url || ''));
+        const sourcesText = isRu ? `Источники Stack Overflow (${sources.length})` : `Stack Overflow Sources (${sources.length})`;
+        const solution = assistantData.solution || assistantData.content || '';
+
+        return `
+            <div class="card-top-bar">
+                <div class="badge-mascot">
+                    <img src="/mascot.png" alt="Mascot" width="22">
+                </div>
+                <span class="card-title">${cardTitle}</span>
+                <button class="star-map-open-btn"${hasGraphSources ? '' : ' disabled style="display: none;"'} onclick="openStarMapFromCard()" title="${starMapTitle}" aria-label="${starMapTitle}">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="5" cy="6" r="2.2"></circle>
+                        <circle cx="19" cy="5" r="2.2"></circle>
+                        <circle cx="12" cy="12" r="2.6"></circle>
+                        <circle cx="6" cy="19" r="2.2"></circle>
+                        <circle cx="19" cy="18" r="2.2"></circle>
+                        <path d="M7 7.5 10 10.5M14 10.5 17.2 6.6M10 14 7.3 17.4M14.2 13.8 17.3 16.6"></path>
+                    </svg>
+                    <span>${starMapText}</span>
+                </button>
+            </div>
+
+            <div class="card-solution-text">${escapeHtml(solution)}${isStreaming ? '<span class="typing-cursor"></span>' : ''}</div>
+
+            ${assistantData.code ? `
+            <div class="code-block-wrapper">
+                <div class="code-block-header">
+                    <span>${solutionCodeText}</span>
+                    <button class="code-copy-btn" onclick="copySnippet(this)">${copyCodeText}</button>
+                </div>
+                <pre><code>${escapeHtml(assistantData.code)}</code></pre>
+            </div>
+            ` : ''}
+
+            ${(!isStreaming && sources.length > 0) ? `
+            <div class="sources-card">
+                <div class="sources-header" onclick="toggleSources(this)">
+                    <span>${sourcesText}</span>
+                    <span class="sources-arrow">▾</span>
+                </div>
+                <div class="sources-list">
+                    ${sources.map(src => `
+                        <a href="${escapeHtml(src.url)}" target="_blank" rel="noopener noreferrer" class="source-item">
+                            <div class="source-left">
+                                <span class="source-score">▲ ${src.score}</span>
+                                <span class="source-title" title="${escapeHtml(src.title)}">${escapeHtml(src.title)}</span>
+                            </div>
+                            <span class="source-tags">${(src.tags || []).map(t => '#' + escapeHtml(t)).join(' ')}</span>
+                        </a>
+                    `).join('')}
+                </div>
+            </div>
+            ` : ''}
+        `;
+    }
+
+    function renderConversation(messagesOrUserText, assistantData = null) {
+        if (!elements.messagesContainer) return;
+        elements.messagesContainer.innerHTML = '';
+
+        let messages = [];
+        if (Array.isArray(messagesOrUserText)) {
+            messages = messagesOrUserText;
+        } else if (typeof messagesOrUserText === 'string') {
+            const userText = messagesOrUserText;
+            messages = [{ sender_role: 'user', content: userText }];
+            if (assistantData) {
+                messages.push({
+                    sender_role: 'assistant',
+                    content: assistantData.solution || assistantData.content || '',
+                    code: assistantData.code || null,
+                    rag_sources: assistantData.sources || assistantData.rag_sources || []
+                });
+            }
+        }
+
+        let lastAssistant = null;
+        let conversationHtml = '';
+
+        messages.forEach(msg => {
+            const role = msg.sender_role || msg.senderRole || 'user';
+            if (role === 'user') {
+                const userText = msg.content || (msg.error_context && msg.error_context.raw_query) || '';
+                currentQueryText = userText;
+                conversationHtml += `
+                    <!-- User Message -->
+                    <div class="message-row user">
+                        <div class="user-bubble">${escapeHtml(userText)}</div>
+                    </div>
+                `;
+            } else if (role === 'assistant') {
+                const solution = msg.content || '';
+                const code = msg.code || null;
+                const rawSources = msg.rag_sources || msg.sources || [];
+                const sources = normalizeSources(rawSources);
+
+                lastAssistant = {
+                    query: currentQueryText,
+                    solution: solution,
+                    code: code,
+                    sources: sources
+                };
+
+                conversationHtml += `
+                    <!-- Assistant Solution Card -->
+                    <div class="message-row assistant">
+                        <div class="assistant-avatar">
+                            <img src="/favicon.png" alt="Mascot" width="28" height="28">
+                        </div>
+                        <div class="assistant-card">
+                            ${renderAssistantCardInner(lastAssistant, false)}
+                        </div>
+                    </div>
+                `;
+            }
+        });
+
+        elements.messagesContainer.innerHTML = conversationHtml;
+
+        if (lastAssistant) {
+            currentAssistantData = lastAssistant;
+        }
+        scrollChatToBottom();
+    }
+
+    async function loadChatById(chatId, updateRoute = true) {
+        if (!chatId) return;
+        currentChatId = chatId;
+        switchToChatView(false);
+        closeSidebar();
+
+        if (updateRoute && !isNavigatingFromPopState) {
+            const chatUrl = `/chats/${encodeURIComponent(chatId)}`;
+            if (window.location.pathname !== chatUrl) {
+                window.history.pushState({ view: 'chat', chatId }, '', chatUrl);
+            }
+        }
+
+        updateRecentChatsActiveState(chatId);
+
+        try {
+            const res = await window.ErroriumAPI.request('GET', `/chats/${encodeURIComponent(chatId)}`);
+            if (res && res.messages) {
+                renderConversation(res.messages);
+            } else if (res && res.chat) {
+                renderConversation([]);
+            }
+        } catch (err) {
+            showToast((err && err.error) || 'Failed to load chat');
+            if (err && (err.status === 404 || err.status === 401)) {
+                currentChatId = null;
+                switchToHeroView();
+            }
+        }
+    }
+
+    function loadChatByQuery(query, chatId = null, updateRoute = true) {
+        if (chatId) {
+            loadChatById(chatId, updateRoute);
+        } else {
+            submitGuestMessage(query, query);
+        }
+    }
+
+    async function submitAuthorizedMessage(query, savedQuery) {
+        switchToChatView(false);
+
+        // 1. Create chat if not present
+        if (!currentChatId) {
+            try {
+                const newChat = await window.ErroriumAPI.request('POST', '/chats', {
+                    body: { title: 'Новый чат' }
+                });
+                if (!newChat || !newChat.id) {
+                    throw new Error('Failed to create new chat');
+                }
+                currentChatId = newChat.id;
+                const chatUrl = `/chats/${encodeURIComponent(currentChatId)}`;
+                window.history.pushState({ view: 'chat', chatId: currentChatId }, '', chatUrl);
+                loadRecentChats();
+            } catch (err) {
+                elements.promptInput.value = savedQuery;
+                adjustTextareaHeight();
+                showToast((err && err.error) || 'Failed to create chat. Please try again.');
+                return;
+            }
+        }
+
+        let assistantRowEl = null;
+        let solutionTextEl = null;
+        let accumulatedText = '';
+
+        try {
+            await window.ErroriumAPI.stream(
+                `/chats/${encodeURIComponent(currentChatId)}/messages`,
+                { query: query },
+                function (eventName, data) {
+                    if (eventName === 'user_message') {
+                        const userMsg = (data && data.user_message) ? data.user_message : data;
+                        const userText = (userMsg && (userMsg.content || (userMsg.error_context && userMsg.error_context.raw_query))) || query;
+                        currentQueryText = userText;
+
+                        const userRow = document.createElement('div');
+                        userRow.className = 'message-row user';
+                        userRow.innerHTML = `<div class="user-bubble">${escapeHtml(userText)}</div>`;
+                        elements.messagesContainer.appendChild(userRow);
+
+                        assistantRowEl = document.createElement('div');
+                        assistantRowEl.className = 'message-row assistant';
+                        assistantRowEl.innerHTML = `
+                            <div class="assistant-avatar">
+                                <img src="/favicon.png" alt="Mascot" width="28" height="28">
+                            </div>
+                            <div class="assistant-card">
+                                ${renderAssistantCardInner({ solution: '', code: null, sources: [] }, true)}
+                            </div>
+                        `;
+                        elements.messagesContainer.appendChild(assistantRowEl);
+                        solutionTextEl = assistantRowEl.querySelector('.card-solution-text');
+                        scrollChatToBottom();
+                    } else if (eventName === 'delta') {
+                        const deltaText = (data && typeof data === 'object' && data.text !== undefined) ? data.text : (typeof data === 'string' ? data : '');
+                        accumulatedText += deltaText;
+                        if (solutionTextEl) {
+                            solutionTextEl.textContent = accumulatedText;
+                        }
+                        scrollChatToBottom();
+                    } else if (eventName === 'done') {
+                        const assistantMsg = (data && data.assistant_message) ? data.assistant_message : null;
+                        const finalContent = (assistantMsg && assistantMsg.content) || accumulatedText;
+                        const finalCode = assistantMsg ? assistantMsg.code : null;
+                        const rawSources = assistantMsg ? (assistantMsg.rag_sources || assistantMsg.sources || []) : [];
+                        const finalSources = normalizeSources(rawSources);
+
+                        currentAssistantData = {
+                            query: query,
+                            solution: finalContent,
+                            code: finalCode,
+                            sources: finalSources
+                        };
+
+                        if (assistantRowEl) {
+                            const cardEl = assistantRowEl.querySelector('.assistant-card');
+                            if (cardEl) {
+                                cardEl.innerHTML = renderAssistantCardInner(currentAssistantData, false);
+                            }
+                        }
+                        scrollChatToBottom();
+                        loadRecentChats();
+                    } else if (eventName === 'error') {
+                        const errMsg = (data && data.error) ? data.error : 'Stream error';
+                        showToast(errMsg);
+                    }
+                }
+            );
+        } catch (err) {
+            showToast((err && err.error) || 'Failed to send message: network error');
+            elements.promptInput.value = savedQuery;
+            adjustTextareaHeight();
+            if (assistantRowEl && !accumulatedText) {
+                assistantRowEl.remove();
+            }
+        }
+    }
+
+    async function submitGuestMessage(query, savedQuery) {
+        switchToChatView(false);
+        // Guest queries are one-shot: every submission starts a fresh conversation
+        elements.messagesContainer.innerHTML = '';
+        currentAssistantData = null;
+        currentQueryText = query;
+        if (!isNavigatingFromPopState && window.location.pathname !== '/chats') {
+            window.history.pushState({ view: 'chat' }, '', '/chats');
+        }
+
+        const userRow = document.createElement('div');
+        userRow.className = 'message-row user';
+        userRow.innerHTML = `<div class="user-bubble">${escapeHtml(query)}</div>`;
+        elements.messagesContainer.appendChild(userRow);
+
+        const assistantRowEl = document.createElement('div');
+        assistantRowEl.className = 'message-row assistant';
+        assistantRowEl.innerHTML = `
+            <div class="assistant-avatar">
+                <img src="/favicon.png" alt="Mascot" width="28" height="28">
+            </div>
+            <div class="assistant-card">
+                ${renderAssistantCardInner({ solution: '', code: null, sources: [] }, true)}
+            </div>
+        `;
+        elements.messagesContainer.appendChild(assistantRowEl);
+        const solutionTextEl = assistantRowEl.querySelector('.card-solution-text');
+        scrollChatToBottom();
+
+        let accumulatedText = '';
+
+        try {
+            await window.ErroriumAPI.stream(
+                '/search/rag',
+                { query: query },
+                function (eventName, data) {
+                    if (eventName === 'delta') {
+                        const deltaText = (data && typeof data === 'object' && data.text !== undefined) ? data.text : (typeof data === 'string' ? data : '');
+                        accumulatedText += deltaText;
+                        if (solutionTextEl) {
+                            solutionTextEl.textContent = accumulatedText;
+                        }
+                        scrollChatToBottom();
+                    } else if (eventName === 'done') {
+                        const ragResp = data || {};
+                        const finalContent = ragResp.synthesis || accumulatedText;
+                        const finalCode = ragResp.code || null;
+                        const finalSources = normalizeSources(ragResp.sources || []);
+
+                        currentAssistantData = {
+                            query: query,
+                            solution: finalContent,
+                            code: finalCode,
+                            sources: finalSources
+                        };
+
+                        const cardEl = assistantRowEl.querySelector('.assistant-card');
+                        if (cardEl) {
+                            cardEl.innerHTML = renderAssistantCardInner(currentAssistantData, false);
+                        }
+                        scrollChatToBottom();
+                    } else if (eventName === 'error') {
+                        const errMsg = (data && data.error) ? data.error : 'Search error';
+                        showToast(errMsg);
+                    }
+                },
+                { auth: false }
+            );
+        } catch (err) {
+            showToast((err && err.error) || 'Search failed. Please try again.');
+            elements.promptInput.value = savedQuery;
+            adjustTextareaHeight();
+            if (assistantRowEl && !accumulatedText) {
+                assistantRowEl.remove();
+            }
+        }
+    }
+
+    async function submitCurrentQuery() {
         if (!elements.promptInput) return;
         const query = elements.promptInput.value.trim();
         if (!query) return;
 
+        const savedQuery = query;
         elements.promptInput.value = '';
         adjustTextareaHeight();
-        loadChatByQuery(query);
+
+        const isAuth = !!(window.ErroriumAPI && window.ErroriumAPI.getTokens() && getAuthUser());
+        if (isAuth) {
+            await submitAuthorizedMessage(query, savedQuery);
+        } else {
+            await submitGuestMessage(query, savedQuery);
+        }
+    }
+
+    function updateRecentChatsActiveState(chatId) {
+        if (!elements.recentChatsList) return;
+        elements.recentChatsList.querySelectorAll('.recent-chat-item').forEach(item => {
+            if (chatId && item.getAttribute('data-chat-id') === chatId) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
+    }
+
+    async function loadRecentChats(searchQuery = '') {
+        const tokens = window.ErroriumAPI ? window.ErroriumAPI.getTokens() : null;
+        if (!tokens || !tokens.access_token || !getAuthUser()) {
+            renderRecentChats([]);
+            return;
+        }
+
+        const endpoint = '/chats?limit=50' + (searchQuery ? '&search=' + encodeURIComponent(searchQuery) : '');
+        try {
+            const res = await window.ErroriumAPI.request('GET', endpoint);
+            chatsList = (res && Array.isArray(res.items)) ? res.items : [];
+            renderRecentChats(chatsList);
+        } catch (err) {
+            renderRecentChats([]);
+        }
+    }
+
+    function renderRecentChats(chats) {
+        if (!elements.recentChatsList) return;
+
+        const isAuth = !!(window.ErroriumAPI && window.ErroriumAPI.getTokens() && getAuthUser());
+
+        if (!isAuth) {
+            if (initialGuestRecentChatsHtml) {
+                elements.recentChatsList.innerHTML = initialGuestRecentChatsHtml;
+                attachGuestRecentChatsListeners();
+            }
+            return;
+        }
+
+        if (!chats || chats.length === 0) {
+            elements.recentChatsList.innerHTML = `<li class="recent-chat-empty-hint" style="padding:10px 12px;font-size:0.85rem;color:rgba(255,255,255,0.4);text-align:center;">${getCurrentLanguage() === 'Русский' ? 'Нет диалогов' : 'No chats yet'}</li>`;
+            return;
+        }
+
+        elements.recentChatsList.innerHTML = chats.map(chat => {
+            const isActive = (chat.id === currentChatId);
+            const pinPrefix = chat.is_pinned ? '📌 ' : '';
+            const titleEscaped = escapeHtml(chat.title || 'Новый чат');
+            return `
+                <li class="recent-chat-item ${isActive ? 'active' : ''}" data-chat-id="${escapeHtml(chat.id)}" data-query="${titleEscaped}">
+                    <span class="chat-item-title" title="${titleEscaped}">${pinPrefix}${titleEscaped}</span>
+                    <button class="chat-item-more" aria-label="More options" data-chat-id="${escapeHtml(chat.id)}">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <circle cx="12" cy="5" r="2"></circle>
+                            <circle cx="12" cy="12" r="2"></circle>
+                            <circle cx="12" cy="19" r="2"></circle>
+                        </svg>
+                    </button>
+                </li>
+            `;
+        }).join('');
+
+        elements.recentChatsList.querySelectorAll('.recent-chat-item').forEach(item => {
+            item.addEventListener('click', function (e) {
+                if (e.target.closest('.chat-item-more')) return;
+                const chatId = this.getAttribute('data-chat-id');
+                loadChatById(chatId, true);
+            });
+        });
+
+        elements.recentChatsList.querySelectorAll('.chat-item-more').forEach(btn => {
+            btn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                const chatId = this.getAttribute('data-chat-id');
+                openChatContextMenu(chatId, this);
+            });
+        });
+    }
+
+    function attachGuestRecentChatsListeners() {
+        if (!elements.recentChatsList) return;
+        elements.recentChatsList.querySelectorAll('.recent-chat-item').forEach(item => {
+            item.addEventListener('click', function (e) {
+                if (e.target.closest('.chat-item-more')) {
+                    e.stopPropagation();
+                    showToast('Log in to manage recent chats');
+                    return;
+                }
+                const query = this.getAttribute('data-query') || this.querySelector('.chat-item-title')?.textContent || '';
+                if (query) {
+                    submitGuestMessage(query, query);
+                }
+            });
+        });
+    }
+
+    function closeChatContextMenu() {
+        const existing = document.getElementById('chat-context-menu');
+        if (existing) existing.remove();
+    }
+
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('#chat-context-menu')) {
+            closeChatContextMenu();
+        }
+    });
+
+    function openChatContextMenu(chatId, buttonEl) {
+        closeChatContextMenu();
+
+        const chat = chatsList.find(c => c.id === chatId) || { id: chatId, title: '', is_pinned: false };
+        const isRu = getCurrentLanguage() === 'Русский';
+        const isPinned = !!chat.is_pinned;
+
+        const menu = document.createElement('div');
+        menu.className = 'chat-context-menu';
+        menu.id = 'chat-context-menu';
+        menu.style.position = 'fixed';
+        menu.style.zIndex = '9999';
+        menu.style.backgroundColor = '#161d31';
+        menu.style.border = '1px solid rgba(255, 255, 255, 0.15)';
+        menu.style.borderRadius = '8px';
+        menu.style.padding = '4px 0';
+        menu.style.minWidth = '150px';
+        menu.style.boxShadow = '0 8px 24px rgba(0,0,0,0.5)';
+
+        const renameLabel = isRu ? 'Переименовать' : 'Rename';
+        const pinLabel = isPinned ? (isRu ? 'Открепить' : 'Unpin') : (isRu ? 'Закрепить' : 'Pin');
+        const removeLabel = isRu ? 'Удалить' : 'Remove';
+
+        menu.innerHTML = `
+            <button class="chat-menu-action" data-action="rename" style="width:100%;text-align:left;padding:8px 12px;background:none;border:none;color:#e2e8f0;font-size:0.88rem;cursor:pointer;display:flex;align-items:center;gap:8px;">
+                <span>✏️</span><span>${renameLabel}</span>
+            </button>
+            <button class="chat-menu-action" data-action="pin" style="width:100%;text-align:left;padding:8px 12px;background:none;border:none;color:#e2e8f0;font-size:0.88rem;cursor:pointer;display:flex;align-items:center;gap:8px;">
+                <span>📌</span><span>${pinLabel}</span>
+            </button>
+            <div style="height:1px;background:rgba(255,255,255,0.1);margin:4px 0;"></div>
+            <button class="chat-menu-action" data-action="remove" style="width:100%;text-align:left;padding:8px 12px;background:none;border:none;color:#f87171;font-size:0.88rem;cursor:pointer;display:flex;align-items:center;gap:8px;">
+                <span>🗑️</span><span>${removeLabel}</span>
+            </button>
+        `;
+
+        document.body.appendChild(menu);
+
+        const rect = buttonEl.getBoundingClientRect();
+        menu.style.top = (rect.bottom + 4) + 'px';
+        menu.style.left = Math.max(10, rect.left - 110) + 'px';
+
+        menu.querySelectorAll('.chat-menu-action').forEach(actionBtn => {
+            actionBtn.addEventListener('mouseenter', () => {
+                actionBtn.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+            });
+            actionBtn.addEventListener('mouseleave', () => {
+                actionBtn.style.backgroundColor = 'transparent';
+            });
+
+            actionBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const action = actionBtn.getAttribute('data-action');
+                closeChatContextMenu();
+
+                if (action === 'rename') {
+                    const newTitle = prompt(isRu ? 'Новое название чата:' : 'New chat title:', chat.title || '');
+                    if (newTitle && newTitle.trim() && newTitle.trim() !== chat.title) {
+                        try {
+                            const updated = await window.ErroriumAPI.request('PATCH', `/chats/${encodeURIComponent(chatId)}`, {
+                                body: { title: newTitle.trim() }
+                            });
+                            chat.title = (updated && updated.title) ? updated.title : newTitle.trim();
+                            loadRecentChats();
+                        } catch (err) {
+                            showToast((err && err.error) || 'Failed to rename chat');
+                        }
+                    }
+                } else if (action === 'pin') {
+                    try {
+                        await window.ErroriumAPI.request('PATCH', `/chats/${encodeURIComponent(chatId)}`, {
+                            body: { is_pinned: !isPinned }
+                        });
+                        loadRecentChats();
+                    } catch (err) {
+                        showToast((err && err.error) || 'Failed to update pin status');
+                    }
+                } else if (action === 'remove') {
+                    const confirmed = confirm(isRu ? 'Удалить этот чат?' : 'Delete this chat?');
+                    if (confirmed) {
+                        try {
+                            await window.ErroriumAPI.request('DELETE', `/chats/${encodeURIComponent(chatId)}`);
+                            if (currentChatId === chatId) {
+                                currentChatId = null;
+                                switchToHeroView();
+                            }
+                            loadRecentChats();
+                        } catch (err) {
+                            showToast((err && err.error) || 'Failed to delete chat');
+                        }
+                    }
+                }
+            });
+        });
     }
 
     function switchToChatView(updateRoute = true) {
@@ -1965,8 +2916,8 @@
         if (elements.chatView) elements.chatView.style.display = 'flex';
         if (elements.promptFooter) elements.promptFooter.classList.remove('hidden');
         closeAllModals(false);
-        if (updateRoute && !isNavigatingFromPopState && !window.location.pathname.startsWith('/chat')) {
-            window.history.pushState({ view: 'chat' }, '', '/chat');
+        if (updateRoute && !isNavigatingFromPopState && !window.location.pathname.startsWith('/chats')) {
+            window.history.pushState({ view: 'chat' }, '', '/chats');
         }
     }
 
@@ -1980,6 +2931,7 @@
         if (elements.promptFooter) elements.promptFooter.classList.add('hidden');
         closeSidebar();
         closeAllModals(false);
+        loadUserProfile();
         if (updateRoute && !isNavigatingFromPopState && window.location.pathname !== '/profile') {
             window.history.pushState({ view: 'profile' }, '', '/profile');
         }
@@ -1996,6 +2948,7 @@
         if (elements.messagesContainer) elements.messagesContainer.innerHTML = '';
         currentAssistantData = null;
         currentQueryText = '';
+        currentChatId = null;
         if (elements.promptInput) elements.promptInput.value = '';
         adjustTextareaHeight();
         document.querySelectorAll('.recent-chat-item').forEach(i => i.classList.remove('active'));
@@ -2006,173 +2959,19 @@
     }
 
     elements.btnNewChat?.addEventListener('click', () => {
+        currentChatId = null;
         switchToHeroView();
         closeSidebar();
     });
 
     elements.headerLogo?.addEventListener('click', () => {
+        currentChatId = null;
         switchToHeroView();
     });
 
     elements.sidebarBrand?.addEventListener('click', () => {
         switchToLandingView(true, null);
     });
-
-    // Render Chat Messages
-    function loadChatByQuery(query, chatId = null, updateRoute = true) {
-        switchToChatView(false);
-        closeSidebar();
-
-        if (updateRoute && !isNavigatingFromPopState) {
-            const chatUrl = chatId ? `/chat/${encodeURIComponent(chatId)}` : '/chat';
-            if (window.location.pathname !== chatUrl) {
-                window.history.pushState({ view: 'chat', chatId, query }, '', chatUrl);
-            }
-        }
-
-        // Mark active in sidebar if known
-        document.querySelectorAll('.recent-chat-item').forEach(item => {
-            if (chatId && item.getAttribute('data-chat-id') === chatId) {
-                item.classList.add('active');
-            } else {
-                item.classList.remove('active');
-            }
-        });
-
-        // Resolve data from KB or synthesize on-the-fly
-        let data = chatId ? KNOWLEDGE_BASE[chatId] : null;
-        if (!data) {
-            // Find match in KB by fuzzy title
-            for (const key in KNOWLEDGE_BASE) {
-                if (KNOWLEDGE_BASE[key].title.toLowerCase().includes(query.toLowerCase()) ||
-                    query.toLowerCase().includes(KNOWLEDGE_BASE[key].title.toLowerCase())) {
-                    data = KNOWLEDGE_BASE[key];
-                    break;
-                }
-            }
-        }
-
-        if (!data) {
-            data = {
-                title: query,
-                query: query,
-                solution: `Analyzed error with BM25 inverted index ranking ($k_1=1.5, b=0.75$). The exception indicates an invalid runtime operation or unresolved reference in your execution environment.`,
-                code: `// Diagnostic verification:\ntry {\n    // Execute target operation\n    verifyInputParameters();\n} catch (Exception ex) {\n    System.err.println("Resolved: " + ex.getMessage());\n}`,
-                sources: [
-                    {
-                        title: `Stack Overflow: Solutions and discussions for "${escapeHtml(query)}"`,
-                        score: 1840,
-                        accepted: true,
-                        tags: ['error', 'debugging', 'stack-trace'],
-                        url: 'https://stackoverflow.com/search?q=' + encodeURIComponent(query)
-                    }
-                ]
-            };
-        }
-
-        renderConversation(query, data);
-    }
-
-    function renderConversation(userText, assistantData) {
-        const isRu = getCurrentLanguage() === 'Русский';
-        const cardTitle = isRu ? 'Errorium RAG-синтез (BM25 Ядро)' : 'Errorium RAG Synthesis (BM25 Core)';
-        const solutionCodeText = isRu ? 'Код решения' : 'Solution Code';
-        const copyCodeText = isRu ? 'Скопировать код' : 'Copy code';
-
-        const sourcesText = isRu ? `Источники Stack Overflow (${assistantData.sources.length})` : `Stack Overflow Sources (${assistantData.sources.length})`;
-        const starMapText = isRu ? 'Карта связей' : 'Star Map';
-        const starMapTitle = isRu ? 'Открыть карту связей' : 'Open Star Map';
-
-        currentQueryText = userText;
-        currentAssistantData = assistantData;
-
-        elements.messagesContainer.innerHTML = `
-            <!-- User Message -->
-            <div class="message-row user">
-                <div class="user-bubble">${escapeHtml(userText)}</div>
-            </div>
-
-            <!-- Assistant Solution Card -->
-            <div class="message-row assistant">
-                <div class="assistant-avatar">
-                    <img src="/favicon.png" alt="Mascot" width="28" height="28">
-                </div>
-                <div class="assistant-card">
-                    <div class="card-top-bar">
-                        <div class="badge-mascot">
-                            <img src="/mascot.png" alt="Mascot" width="22">
-                        </div>
-                        <span class="card-title">${cardTitle}</span>
-                        <button class="star-map-open-btn" onclick="openStarMapFromCard()" title="${starMapTitle}" aria-label="${starMapTitle}">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="5" cy="6" r="2.2"></circle>
-                                <circle cx="19" cy="5" r="2.2"></circle>
-                                <circle cx="12" cy="12" r="2.6"></circle>
-                                <circle cx="6" cy="19" r="2.2"></circle>
-                                <circle cx="19" cy="18" r="2.2"></circle>
-                                <path d="M7 7.5 10 10.5M14 10.5 17.2 6.6M10 14 7.3 17.4M14.2 13.8 17.3 16.6"></path>
-                            </svg>
-                            <span>${starMapText}</span>
-                        </button>
-                    </div>
-
-                    <div class="card-solution-text">
-                        ${assistantData.solution}
-                    </div>
-
-                    ${assistantData.code ? `
-                    <div class="code-block-wrapper">
-                        <div class="code-block-header">
-                            <span>${solutionCodeText}</span>
-                            <button class="code-copy-btn" onclick="copySnippet(this)">${copyCodeText}</button>
-                        </div>
-                        <pre><code>${escapeHtml(assistantData.code)}</code></pre>
-                    </div>
-                    ` : ''}
-
-                    <div class="sources-card">
-                        <div class="sources-header" onclick="toggleSources(this)">
-                            <span>${sourcesText}</span>
-                            <span class="sources-arrow">▾</span>
-                        </div>
-                        <div class="sources-list">
-                            ${assistantData.sources.map(src => `
-                                <a href="${src.url}" target="_blank" rel="noopener noreferrer" class="source-item">
-                                    <div class="source-left">
-                                        <span class="source-score">▲ ${src.score}</span>
-                                        <span class="source-title" title="${src.title}">${src.title}</span>
-                                    </div>
-                                    <span class="source-tags">${src.tags.map(t => '#' + t).join(' ')}</span>
-                                </a>
-                            `).join('')}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
-    // Attach click listeners to default recent chat items
-    document.querySelectorAll('.recent-chat-item').forEach(item => {
-        item.addEventListener('click', function (e) {
-            // Ignore clicking 3 dots button
-            if (e.target.closest('.chat-item-more')) {
-                e.stopPropagation();
-                showToast('Chat options: Rename / Pin / Remove');
-                return;
-            }
-            const chatId = this.getAttribute('data-chat-id');
-            const query = this.getAttribute('data-query');
-            loadChatByQuery(query, chatId);
-        });
-    });
-
-    // Escape HTML helper
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
 
     // Window helpers for dynamically rendered HTML
     window.copySnippet = function (btn) {
@@ -2221,135 +3020,11 @@
         { k: 1.8, len: 48 }
     ];
 
-    // Mock pool of related Stack Overflow threads (FR-3.5)
-    const MOCK_RELATED_THREADS = [
-        {
-            doc_id: 1132941,
-            title: 'Least Astonishment and the Mutable Default Argument',
-            snippet: 'Why does a Python function with a default list argument keep values between calls? The default object is created once at definition time.',
-            tags: ['python', 'list', 'default-argument'],
-            score: 6890, accepted: true,
-            answer: 'Default arguments are evaluated once, when the function is defined — not on each call. A mutable default (list, dict) is therefore shared across all calls.\n\nUse None as the default and create the object inside the function:\n\ndef append_to(item, target=None):\n    if target is None:\n        target = []\n    target.append(item)\n    return target',
-            url: 'https://stackoverflow.com/questions/1132941'
-        },
-        {
-            doc_id: 53513,
-            title: 'How do I check if a list is empty?',
-            snippet: 'What is the most pythonic way to test whether a list has no elements? Comparing to [] or checking len() both feel verbose.',
-            tags: ['python', 'list'],
-            score: 4520, accepted: true,
-            answer: 'Empty sequences are falsy in Python, so the idiomatic check is:\n\nif not my_list:\n    print("list is empty")\n\nAvoid len(my_list) == 0 — it is slower and less readable. The same pattern works for strings, tuples and dicts.',
-            url: 'https://stackoverflow.com/questions/53513'
-        },
-        {
-            doc_id: 1720421,
-            title: 'How to concatenate two lists in Python?',
-            snippet: 'I want to merge list_a and list_b into a single list. What is the difference between +, extend() and unpacking?',
-            tags: ['python', 'list', 'concatenation'],
-            score: 3110, accepted: true,
-            answer: 'Use + to build a new list, or extend() to mutate in place:\n\nmerged = list_a + list_b      # new list\nlist_a.extend(list_b)         # modifies list_a\n\nSince Python 3.5 you can also unpack: merged = [*list_a, *list_b]. Note that + requires both operands to be lists, while extend() accepts any iterable.',
-            url: 'https://stackoverflow.com/questions/1720421'
-        },
-        {
-            doc_id: 38987,
-            title: 'How do I merge two dictionaries in a single expression?',
-            snippet: 'Merging dict x and dict y so that values from y win on key conflicts. Looking for a clean one-liner.',
-            tags: ['python', 'dictionary'],
-            score: 4860, accepted: true,
-            answer: 'Python 3.9+ supports the merge operator:\n\nz = x | y\n\nPython 3.5+: z = {**x, **y}\n\nOlder versions: z = dict(x, **y) — only works when y keys are strings. In all cases values from y override values from x on conflicts.',
-            url: 'https://stackoverflow.com/questions/38987'
-        },
-        {
-            doc_id: 176918,
-            title: 'Finding the index of an item in a list',
-            snippet: 'Given a list and a value, how do I get the position of the value? And what happens when the value is not present?',
-            tags: ['python', 'list', 'indexing'],
-            score: 3720, accepted: true,
-            answer: 'Use the built-in index() method:\n\nidx = my_list.index("foo")\n\nIt raises ValueError when the item is absent, so guard with a membership test or try/except. To get all positions use enumerate:\n\n[i for i, v in enumerate(my_list) if v == "foo"]',
-            url: 'https://stackoverflow.com/questions/176918'
-        },
-        {
-            doc_id: 231767,
-            title: "What does the 'yield' keyword do in Python?",
-            snippet: 'Confused about generators: how does yield differ from return, and what is the point of iterating over a generator?',
-            tags: ['python', 'generator', 'yield'],
-            score: 7340, accepted: true,
-            answer: 'yield turns a function into a generator. Each call to next() runs the function until the next yield, produces that value and suspends state — instead of computing everything upfront like return.\n\ndef countdown(n):\n    while n > 0:\n        yield n\n        n -= 1\n\nGenerators are lazy and memory-efficient: they produce items one at a time, which matters for large or infinite sequences.',
-            url: 'https://stackoverflow.com/questions/231767'
-        },
-        {
-            doc_id: 2052390,
-            title: 'Manually raising (throwing) an exception in Python',
-            snippet: 'How do I raise an exception on purpose so that callers can catch it? Which exception type should I pick?',
-            tags: ['python', 'exception', 'raise'],
-            score: 3280, accepted: true,
-            answer: 'Use the raise statement with an exception instance:\n\nraise ValueError("config must not be empty")\n\nPick the built-in type that matches the semantics (ValueError, TypeError, KeyError...). Inside an except block, bare raise re-raises the current exception preserving the traceback. Define custom types by subclassing Exception for domain errors.',
-            url: 'https://stackoverflow.com/questions/2052390'
-        },
-        {
-            doc_id: 1712227,
-            title: 'How do I get the number of elements in a list in Python?',
-            snippet: 'Looking for the equivalent of length/size methods from other languages to count items in a list.',
-            tags: ['python', 'list', 'len'],
-            score: 4210, accepted: true,
-            answer: 'Use the built-in len() function:\n\ncount = len(my_list)\n\nlen() is O(1) for lists — the size is stored, not counted. It works on any sized container: str, tuple, dict, set. For lazy iterators without a known size, consume them with sum(1 for _ in it) instead.',
-            url: 'https://stackoverflow.com/questions/1712227'
-        },
-        {
-            doc_id: 613183,
-            title: 'How do I sort a dictionary by value?',
-            snippet: 'I have a dict of word counts and want to order entries by value descending. dict itself has no sort method.',
-            tags: ['python', 'dictionary', 'sorting'],
-            score: 3540, accepted: true,
-            answer: 'Sort the items with a key function:\n\nsorted_items = sorted(d.items(), key=lambda kv: kv[1], reverse=True)\n\nSince Python 3.7 dicts preserve insertion order, so you can rebuild one: dict(sorted_items). For the top-n entries, collections.Counter(d).most_common(n) is even shorter.',
-            url: 'https://stackoverflow.com/questions/613183'
-        },
-        {
-            doc_id: 101268,
-            title: 'Hidden features of Python',
-            snippet: 'Community wiki of lesser-known language features: chained comparisons, argument unpacking, else on loops and more.',
-            tags: ['python', 'language-features'],
-            score: 5230, accepted: true,
-            answer: 'A few favorites:\n\n- Chained comparisons: 0 < x < 10\n- Argument unpacking: func(*args, **kwargs)\n- for/else: else runs when the loop was not broken\n- Conditional expressions: value = a if cond else b\n- Swapping without a temp: a, b = b, a\n\nMost of these remove boilerplate while keeping the code readable.',
-            url: 'https://stackoverflow.com/questions/101268'
-        },
-        {
-            doc_id: 26595,
-            title: "Is there any difference between 'foo is None' and 'foo == None'?",
-            snippet: 'Both checks seem to work. Is one of them preferred, and can == None ever give a wrong answer?',
-            tags: ['python', 'none', 'comparison'],
-            score: 1620, accepted: true,
-            answer: 'Use is None. None is a singleton, and identity comparison is exact and fast. == invokes __eq__, which a class can overload to return True for anything — so == None can lie. PEP 8 explicitly recommends is / is not for None checks.',
-            url: 'https://stackoverflow.com/questions/26595'
-        },
-        {
-            doc_id: 13076951,
-            title: "TypeError: 'int' object is not iterable when looping",
-            snippet: 'for i in 5: raises TypeError. I expected it to loop five times like range-based loops in other languages.',
-            tags: ['python', 'typeerror', 'list'],
-            score: 1240, accepted: true,
-            answer: 'An int is not iterable — Python has no implicit numeric range. Wrap the number in range():\n\nfor i in range(5):\n    print(i)\n\nThe same TypeError appears when unpacking or passing an int where a sequence is expected, e.g. list(5). Check that the object you iterate over is actually a collection.',
-            url: 'https://stackoverflow.com/questions/13076951'
-        },
-        {
-            doc_id: 419163,
-            title: "What does if __name__ == '__main__': do?",
-            snippet: 'Every script seems to end with this guard. What problem does it solve when a file is both imported and executed?',
-            tags: ['python', 'module', 'main'],
-            score: 4930, accepted: true,
-            answer: 'When a file runs as a script, Python sets __name__ to "__main__"; when it is imported, __name__ is the module name. The guard therefore runs code only on direct execution:\n\nif __name__ == "__main__":\n    main()\n\nThis lets a module expose reusable functions without side effects on import — essential for testable code.',
-            url: 'https://stackoverflow.com/questions/419163'
-        },
-        {
-            doc_id: 379906,
-            title: 'How do I convert a string to an integer in Python?',
-            snippet: 'Parsing numeric user input: int("42") works, but what about floats, whitespace and invalid strings?',
-            tags: ['python', 'string', 'type-conversion'],
-            score: 2860, accepted: true,
-            answer: 'Use int() for whole numbers and float() for decimals:\n\nn = int("42")        # 42\nx = float("3.14")    # 3.14\n\nint() tolerates surrounding whitespace but raises ValueError on invalid input ("4.2" is not an int string — go through float first). Wrap parsing in try/except ValueError when the source is user input.',
-            url: 'https://stackoverflow.com/questions/379906'
-        }
-    ];
+    // Edge types compatible with protos/graph.proto & openapi.yaml
+    const STAR_MAP_EDGE_TYPES = {
+        DUPLICATE_OF: 'DUPLICATE_OF',
+        LINKED_IN_ANSWER: 'LINKED_IN_ANSWER'
+    };
 
     function hashString(str) {
         let h = 2166136261;
@@ -2404,95 +3079,31 @@
     }
 
     // Builds a graph compatible with ThreadGraphResponse (protos/graph.proto)
-    // from the RAG answer sources plus the mock related-thread pool.
-    function buildStarMapGraph(assistantData, query) {
-        const rand = mulberry32(hashString(query || 'errorium'));
-        const nodes = [];
-        const edges = [];
-        const usedIds = new Set();
+    // by fetching real nodes and edges from /graph/threads via ErroriumAPI.
+    async function buildStarMapGraph(assistantData) {
+        const sources = (assistantData && assistantData.sources) || [];
+        const docIds = [];
 
-        const addNode = (n) => {
-            if (usedIds.has(n.doc_id)) return null;
-            usedIds.add(n.doc_id);
-            nodes.push(n);
-            return n;
-        };
-
-        const sourceTags = new Set();
-        const primaryAnswer = assistantData.solution + (assistantData.code ? '\n\n' + assistantData.code : '');
-
-        assistantData.sources.forEach((src, i) => {
+        sources.forEach((src) => {
             const urlMatch = /questions\/(\d+)/.exec(src.url || '');
-            const docId = urlMatch ? parseInt(urlMatch[1], 10) : 90000000 + i;
-            (src.tags || []).forEach(tag => sourceTags.add(tag));
-            addNode({
-                doc_id: docId,
-                category: i === 0 ? 'PRIMARY_RESULT' : 'OTHER_RESULT',
-                score: src.score || 1,
-                title: src.title,
-                snippet: src.snippet || truncateText(assistantData.solution, 150),
-                has_accepted_answer: !!src.accepted,
-                tags: src.tags || [],
-                best_answer_score: Math.max(1, Math.round((src.score || 1) * 0.4)),
-                best_answer_body: primaryAnswer,
-                original_url: src.url
-            });
+            if (urlMatch) {
+                const docId = parseInt(urlMatch[1], 10);
+                if (!isNaN(docId) && !docIds.includes(docId)) {
+                    docIds.push(docId);
+                }
+            }
         });
 
-        const primary = nodes[0];
-        const others = nodes.slice(1);
-
-        const queryWords = (query || '').toLowerCase().split(/[^a-zа-яё0-9_]+/i).filter(w => w.length > 3);
-        const ranked = MOCK_RELATED_THREADS
-            .filter(t => !usedIds.has(t.doc_id))
-            .map(t => {
-                let relevance = t.tags.filter(tag => sourceTags.has(tag)).length * 2;
-                const haystack = (t.title + ' ' + t.tags.join(' ')).toLowerCase();
-                queryWords.forEach(w => { if (haystack.includes(w)) relevance += 1; });
-                return { thread: t, relevance: relevance + rand() * 0.5 };
-            })
-            .sort((a, b) => b.relevance - a.relevance)
-            .slice(0, 12)
-            .map(entry => entry.thread);
-
-        const duplicates = [];
-        const linked = [];
-        ranked.forEach((t, i) => {
-            const node = addNode({
-                doc_id: t.doc_id,
-                category: i < 3 ? 'DUPLICATE' : 'LINKED',
-                score: t.score,
-                title: t.title,
-                snippet: t.snippet,
-                has_accepted_answer: t.accepted,
-                tags: t.tags,
-                best_answer_score: Math.max(1, Math.round(t.score * 0.6)),
-                best_answer_body: t.answer,
-                original_url: t.url
-            });
-            if (!node) return;
-            if (node.category === 'DUPLICATE') duplicates.push(node);
-            else linked.push(node);
-        });
-
-        const addEdge = (source, target, type) => {
-            if (!source || !target || source.doc_id === target.doc_id) return;
-            edges.push({ source_doc_id: source.doc_id, target_doc_id: target.doc_id, type });
-        };
-
-        others.forEach(o => addEdge(o, primary, 'LINKED_IN_ANSWER'));
-        duplicates.forEach(d => addEdge(d, primary, 'DUPLICATE_OF'));
-        linked.forEach(l => {
-            const anchor = others.length && rand() < 0.5 ? others[Math.floor(rand() * others.length)] : primary;
-            addEdge(l, anchor, 'LINKED_IN_ANSWER');
-        });
-        for (let i = 0; i + 1 < linked.length; i += 3) {
-            addEdge(linked[i], linked[i + 1], 'LINKED_IN_ANSWER');
+        if (docIds.length === 0) {
+            return { nodes: [], edges: [] };
         }
 
-        return { nodes, edges };
+        const data = await window.ErroriumAPI.request('GET', '/graph/threads?doc_ids=' + docIds.join(','));
+        return {
+            nodes: (data && data.nodes) || [],
+            edges: (data && data.edges) || []
+        };
     }
-
     // Canvas engine: custom force simulation (repulsion + springs + gravity + damping)
     const StarMap = {
         canvas: null, ctx: null, dpr: 1, w: 0, h: 0,
@@ -2522,10 +3133,19 @@
             const rand = mulberry32(hashString(currentQueryText || 'star-map'));
             const now = performance.now();
             this.nodeById = new Map();
-            this.nodes = graph.nodes.map((n, i) => {
+            this.nodes = (graph.nodes || []).map((n, i) => {
                 const angle = rand() * Math.PI * 2;
                 const radius = n.category === 'PRIMARY_RESULT' ? 0 : 130 + rand() * 170;
                 const runtime = Object.assign({}, n, {
+                    doc_id: n.doc_id,
+                    score: n.score || 1,
+                    title: n.title || '',
+                    snippet: n.snippet || '',
+                    has_accepted_answer: !!n.has_accepted_answer,
+                    tags: n.tags || [],
+                    best_answer_score: n.best_answer_score || 0,
+                    best_answer_body: n.best_answer_body || '',
+                    original_url: n.original_url || '',
                     x: Math.cos(angle) * radius,
                     y: Math.sin(angle) * radius,
                     vx: 0, vy: 0,
@@ -2539,7 +3159,7 @@
                 this.nodeById.set(n.doc_id, runtime);
                 return runtime;
             });
-            this.edges = graph.edges
+            this.edges = (graph.edges || [])
                 .map(e => ({ source: this.nodeById.get(e.source_doc_id), target: this.nodeById.get(e.target_doc_id), type: e.type }))
                 .filter(e => e.source && e.target);
 
@@ -2926,7 +3546,7 @@
             elements.starMapDetailCategory.textContent = categoryNames[node.category] || '';
             elements.starMapDetailCategory.style.setProperty('--cat-color', node.color);
             elements.starMapDetailTitle.textContent = node.title;
-            elements.starMapDetailTags.innerHTML = node.tags.map(tag => `<span class="star-map-detail-tag">#${escapeHtml(tag)}</span>`).join('');
+            elements.starMapDetailTags.innerHTML = (node.tags || []).map(tag => `<span class="star-map-detail-tag">#${escapeHtml(tag)}</span>`).join('');
             elements.starMapDetailAnswerLabel.textContent = node.has_accepted_answer ? acceptedText : bestText;
             elements.starMapDetailAnswer.textContent = node.best_answer_body || '';
             elements.starMapDetailLink.href = node.original_url || '#';
@@ -3082,14 +3702,39 @@
     };
 
     // Animated view transitions: chat + prompt bar leave, Star Map appears (FR-3.4)
-    function openStarMap(animate = true, updateRoute = true) {
+    async function openStarMap(animate = true, updateRoute = true) {
         if (!currentAssistantData || !elements.starMapView) return;
         if (document.body.classList.contains('star-map-active')) return;
+
+        const isRu = getCurrentLanguage() === 'Русский';
+        const sources = (currentAssistantData && currentAssistantData.sources) || [];
+        const hasGraphSources = sources.length > 0 && sources.some(s => /questions\/(\d+)/.test(s.url || ''));
+
+        if (!hasGraphSources) {
+            showToast(isRu ? 'Нет источников для построения карты связей' : 'No sources available for Star Map');
+            return;
+        }
+
+        let graph = null;
+        try {
+            graph = await buildStarMapGraph(currentAssistantData);
+        } catch (err) {
+            const errMsg = (err && (err.error || err.message)) || (isRu ? 'Ошибка загрузки графа связей' : 'Failed to load Star Map graph');
+            showToast(errMsg);
+            closeStarMap(false, updateRoute);
+            return;
+        }
+
+        if (!graph || !graph.nodes || graph.nodes.length === 0) {
+            showToast(isRu ? 'Граф связей пуст' : 'Star Map graph is empty');
+            closeStarMap(false, updateRoute);
+            return;
+        }
 
         if (updateRoute) {
             starMapReturnUrl = window.location.pathname + window.location.search;
         }
-        const graph = buildStarMapGraph(currentAssistantData, currentQueryText);
+
         if (elements.starMapSubtitle) {
             elements.starMapSubtitle.textContent = truncateText(currentQueryText, 64);
         }
@@ -3410,6 +4055,9 @@
 
     // Initialize cursor comet / star trail
     initCursorComet();
+
+    // Preload dynamic tags catalog from API
+    loadTags();
 
     // Initialize SPA route based on initial URL
     renderCurrentRoute();

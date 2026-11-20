@@ -58,6 +58,8 @@ services:
     logging: *default-logging
     ports:
       - "127.0.0.1:${GATEWAY_PORT:-8000}:8000"
+    # Ключи SSO/LLM/SMTP/JWT из .env; явные environment: ниже имеют приоритет
+    env_file: .env
     environment:
       - GATEWAY_PORT=${GATEWAY_PORT:-8000}
       - DB_HOST=postgres
@@ -76,9 +78,39 @@ services:
       - GARAGE_ACCESS_KEY=${GARAGE_DEFAULT_ACCESS_KEY:-${GARAGE_ACCESS_KEY:-garageadmin}}
       - GARAGE_SECRET_KEY=${GARAGE_DEFAULT_SECRET_KEY:-${GARAGE_SECRET_KEY:?GARAGE_SECRET_KEY is required}}
       - GARAGE_BUCKET_NAME=${GARAGE_DEFAULT_BUCKET:-${GARAGE_BUCKET_NAME:-errorium-avatars}}
+      - SEARCH_ENGINE_ADDR=search_engine_core:50051
+    volumes:
+      # Сертификат НУЦ для GigaChat (GIGACHAT_CA_CERT=/app/certs/...)
+      - ./deploy/certs:/app/certs:ro
     depends_on:
       postgres:
         condition: service_healthy
+      search_engine_core:
+        condition: service_started
+    networks:
+      - errorium_net
+
+  search_engine_core:
+    build:
+      context: .
+      dockerfile: services/search_engine_core/Dockerfile
+    container_name: errorium_search_core
+    restart: unless-stopped
+    logging: *default-logging
+    environment:
+      - INDEX_DIR=${CORE_INDEX_DIR:-/app/data/index}
+      - BM25_K1=${BM25_K1:-1.5}
+      - BM25_B=${BM25_B:-0.75}
+      - GRPC_PORT=50051
+    volumes:
+      - ./data/index:/app/data/index:ro
+      - ./data/index-benchmark:/app/data/index-benchmark:ro
+      - ./benchmark:/app/benchmark:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('localhost',50051),2)"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
     networks:
       - errorium_net
 
