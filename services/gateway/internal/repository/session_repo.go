@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/netip"
 
+	"github.com/google/uuid"
 	"github.com/soskiiit/errorium/services/gateway/domain"
 	"github.com/soskiiit/errorium/services/gateway/pkg/db"
 )
@@ -13,6 +14,8 @@ import (
 type SessionRepository struct {
 	db *db.DB
 }
+
+var _ SessionStore = (*SessionRepository)(nil)
 
 // NewSessionRepository constructs a SessionRepository.
 func NewSessionRepository(database *db.DB) *SessionRepository {
@@ -79,6 +82,17 @@ func (r *SessionRepository) RevokeByTokenHash(ctx context.Context, hash string) 
 	_, err := r.db.ExecContext(ctx, q, hash)
 	if err != nil {
 		return fmt.Errorf("session_repo.RevokeByTokenHash: %w", err)
+	}
+	return nil
+}
+
+// RevokeByUser marks all sessions for a user as revoked.
+func (r *SessionRepository) RevokeByUser(ctx context.Context, userID uuid.UUID) error {
+	const q = `UPDATE user_sessions SET is_revoked = TRUE WHERE user_id = $1`
+
+	_, err := r.db.ExecContext(ctx, q, userID)
+	if err != nil {
+		return fmt.Errorf("session_repo.RevokeByUser: %w", err)
 	}
 	return nil
 }

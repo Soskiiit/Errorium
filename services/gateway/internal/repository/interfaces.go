@@ -27,6 +27,7 @@ type SessionStore interface {
 	Create(ctx context.Context, s *domain.UserSession) error
 	GetByTokenHash(ctx context.Context, hash string) (*domain.UserSession, error)
 	RevokeByTokenHash(ctx context.Context, hash string) error
+	RevokeByUser(ctx context.Context, userID uuid.UUID) error
 	CleanupExpired(ctx context.Context) error
 }
 
@@ -47,4 +48,25 @@ type TagStore interface {
 	GetOrCreate(ctx context.Context, name string) (*domain.Tag, error)
 	AttachToMessage(ctx context.Context, chatMessageID uuid.UUID, tagNames []string) error
 	GetByMessage(ctx context.Context, chatMessageID uuid.UUID) ([]*domain.Tag, error)
+}
+
+// PasswordResetStore manages password reset tokens in storage.
+type PasswordResetStore interface {
+	Create(ctx context.Context, token *domain.PasswordResetToken) error
+	GetByTokenHash(ctx context.Context, tokenHash string) (*domain.PasswordResetToken, error)
+	MarkUsed(ctx context.Context, id uuid.UUID) error
+	DeleteExpired(ctx context.Context) error
+}
+
+// SsoStateStore persists OAuth2 authorization flow state strings.
+type SsoStateStore interface {
+	Create(ctx context.Context, state *domain.SSOAuthState) error
+	Get(ctx context.Context, state string) (*domain.SSOAuthState, error)
+	Delete(ctx context.Context, state string) error
+}
+
+// RagConfigStore manages the RAG/LLM runtime configuration singleton.
+type RagConfigStore interface {
+	Get(ctx context.Context) (*domain.RagConfig, error)
+	Update(ctx context.Context, cfg *domain.RagConfig) error
 }

@@ -143,6 +143,17 @@ func (f *fakeSessionStore) RevokeByTokenHash(ctx context.Context, hash string) e
 	return nil
 }
 
+func (f *fakeSessionStore) RevokeByUser(ctx context.Context, userID uuid.UUID) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	for _, s := range f.sessions {
+		if s.UserID == userID {
+			s.IsRevoked = true
+		}
+	}
+	return nil
+}
+
 func (f *fakeSessionStore) CleanupExpired(ctx context.Context) error {
 	f.mu.Lock()
 	defer f.mu.Unlock()
