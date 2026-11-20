@@ -1,0 +1,21 @@
+# Поисковое ядро (Роль 2), отдельный compose-файл по паттерну ADR-009/ADR-011:
+# основной docker-compose.yml используется автодеплоем и не затрагивается.
+# Запуск: make core-up / core-down; тесты: make test-core; метрики: make benchmark.
+services:
+  search_engine_core:
+    image: errorium-core:dev
+    build:
+      context: .
+      dockerfile: services/search_engine_core/Dockerfile
+    ports:
+      - "${SEARCH_GRPC_PORT:-50051}:50051"
+    volumes:
+      - ./data:/app/data:ro
+      - ./benchmark:/app/benchmark:ro
+      - ./tests:/app/tests:ro
+    environment:
+      - INDEX_DIR=${INDEX_DIR:-/app/data/index}
+      - SEARCH_GRPC_PORT=50051
+      - BM25_K1=${BM25_K1:-1.5}
+      - BM25_B=${BM25_B:-0.75}
+      - SEARCH_MAX_TOP_K=${SEARCH_MAX_TOP_K:-100}

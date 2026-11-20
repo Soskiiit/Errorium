@@ -51,6 +51,9 @@ SAMPLE_MIN_SCORE=1
 # === Search Engine Core (Роль 2) ===
 SEARCH_GRPC_PORT=50051
 INDEX_DIR=/app/data/index
+BM25_K1=1.5              # допустимо [1.2, 2.0] (методичка ИУ5)
+BM25_B=0.75              # допустимо [0, 1]
+SEARCH_MAX_TOP_K=100
 
 # === Gateway & MCP Service (Роль 3) ===
 GATEWAY_PORT=8000
@@ -125,10 +128,21 @@ make up
 # 5. Остановка продакшн-контейнеров:
 make down
 
-# 6. Компиляция Protobuf контрактов:
+# 6. Компиляция Protobuf контрактов (pb2 для ядра; генерируются также при сборке образа):
 make proto
 
 # 7. Запуск тестов:
 make test
+
+# 8. Поисковое ядро (Роль 2, отдельный docker-compose.core.yml):
+make core-up             # gRPC-сервер :50051 (индекс из data/index, монтируется :ro)
+make core-down           # остановить ядро
+make test-core           # unit + gRPC интеграционные тесты ядра в контейнере
+
+# 9. Бенчмарк (Recall@k, MRR): сборка индекса корпуса + метрики через ядро:
+make benchmark
 ```
+
+> [!NOTE]
+> Ядру нужен опубликованный индекс: `make index-sample` (выборка из дампа, `data/index/`) или `make index-corpus` (учебный корпус, `data/index-benchmark/`). Без индекса ядро стартует, но отвечает `HealthCheck: NOT_SERVING`; индекс, построенный после старта, подхватывается автоматически (lazy reload, `03-data.md`, п. 6.2).
 

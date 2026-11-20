@@ -7,6 +7,7 @@
 ├── Makefile                          # Точка входа для сборки, тестов, protoc и запуска
 ├── docker-compose.yml                # Описание мультиконтейнерного стека
 ├── docker-compose.indexer.yml        # Офлайн-задача индексатора (make index-sample / index-corpus)
+├── docker-compose.core.yml           # Поисковое ядро gRPC :50051 (make core-up / test-core / benchmark)
 ├── AGENTS.md                         # Инструкции и ограничения для AI-ассистентов
 ├── STATUS.md                         # Текущий статус готовности и ближайший шаг
 ├── CHANGE_HISTORY.md                 # Журнал изменений архитектуры и реализации
@@ -29,9 +30,10 @@
 │   │   └── src/indexer/              # tokenizer, sampler, spimi, index_format, graph_db, pipeline, sources, config, __main__
 │   │
 │   ├── search_engine_core/           # [Роль 2] BM25 с нуля, MMap индекс, gRPC-сервер (:50051)
-│   │   ├── Dockerfile
+│   │   ├── Dockerfile                # Многостадийная сборка: pb2 из protos/, вендоринг tokenizer/index_format
+│   │   ├── requirements.txt          # grpcio + grpcio-tools (единственные внешние зависимости)
 │   │   ├── README.md
-│   │   └── src/
+│   │   └── src/core/                 # config, reader (mmap), bm25 (heap Top-K), engine, graph (SQLite ro), server, __main__
 │   │
 │   ├── gateway/                      # [Роль 3] REST API, SSO, MCP Server, RAG
 │   │   ├── Dockerfile
@@ -48,7 +50,9 @@
 │   └── index/                        # postings.bin, lexicon.bin, doc_lengths.bin, graph.db
 │
 ├── benchmark/                        # Метрики качества ранжирования (Recall@k, MRR)
-│   └── evaluate.py
+│   ├── evaluate.py                   # Прогон вопросов через core.engine, отчёт и пороги приёмки
+│   ├── questions.json                # 15 вопросов: 10 обычных + 5 ловушек, эталоны
+│   └── corpus/documents.jsonl        # 30 документов D01–D30 (золотой корпус)
 │
 └── tests/                            # Автотесты
     ├── unit/                         # Тесты токенизатора, BM25, Auth, графа тредов

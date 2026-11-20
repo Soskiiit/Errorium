@@ -3,6 +3,33 @@
 > **Роль 2: Search Core & Performance Engineer**  
 > Высокопроизводительное поисковое ядро: реализация алгоритма BM25 с нуля, MMap-чтение индекса, gRPC-сервер ядра (`:50051`).
 
+**Статус: реализован и верифицирован** (2026-11-20). Спецификация чтения и ранжирования — `docs/Tech/03-data.md`, раздел 6; решение о стеке — ADR-011. Бенчмарк на золотом корпусе: Recall@3 = 0.933, Recall@5 = 0.933, Recall@10 = 0.967, MRR@10 = 1.000, P95 = 0.25 мс (пороги: ≥ 0.75, ≥ 0.50, ≤ 150 мс).
+
+## 0. Быстрый запуск
+
+```bash
+make index-corpus    # индекс учебного корпуса (секунды) → data/index-benchmark/
+make core-up         # gRPC-сервер :50051 (docker-compose.core.yml)
+make test-core       # unit + gRPC интеграционные тесты в контейнере
+make benchmark       # Recall@k / MRR через ядро, отчёт data/benchmark_report.json
+make core-down
+```
+
+Для индекса выборки SO: `make index-sample` (нужен дамп, см. `docs/Tech/02-running.md`). Без опубликованного индекса сервер стартует как `NOT_SERVING` и подхватывает индекс при появлении (lazy reload).
+
+## 0.1. Состав кода (`src/core/`)
+
+| Модуль | Назначение |
+| :--- | :--- |
+| `reader.py` | mmap-чтение `postings.bin`, словарь/длины в памяти, валидация `metadata.json` (версии формата и токенизатора) |
+| `bm25.py` | Формула ИУ5: IDF, вклад терма, накопление баллов, Top-K min-heap (`heapq`) |
+| `engine.py` | Токенизация запроса общим токенизатором → BM25 → фильтры tags/language → Top-K |
+| `graph.py` | `graph.db` read-only: узлы, 1-hop окрестность, детали треда |
+| `server.py` | gRPC `SearchService` + `GraphService`, коды `FAILED_PRECONDITION`/`NOT_FOUND` |
+| `config.py` | Env-конфигурация с валидацией диапазонов k1/b |
+
+Общие модули индексатора (`tokenizer.py`, `index_format.py`) вендорятся в образ при сборке; pb2 генерируются из `protos/` (`grpcio-tools`), в git не коммитятся. Единственные внешние зависимости — `grpcio`/`grpcio-tools` (ADR-011); весь поиск — собственный код на stdlib.
+
 ---
 
 ## 1. Назначение и зона ответственности
@@ -42,6 +69,9 @@
 ```bash
 SEARCH_GRPC_PORT=50051         # Порт gRPC-сервера ядра
 INDEX_DIR=/app/data/index    # Директория с готовыми файлами индекса (монтируется :ro)
+BM25_K1=1.5                  # Параметр насыщения TF, допустимо [1.2, 2.0]
+BM25_B=0.75                  # Поправка на длину, допустимо [0, 1]
+SEARCH_MAX_TOP_K=100           # Верхняя граница top_k запроса
 ```
 
 ---

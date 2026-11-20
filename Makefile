@@ -1,6 +1,6 @@
 -include .env
 
-.PHONY: help up down build proto test-unit test-integration test benchmark index-sample index-corpus dev dev-docker dev-down ghcr-build-push ghcr-deploy
+.PHONY: help up down build proto test-unit test-integration test test-core benchmark index-sample index-corpus core-up core-down dev dev-docker dev-down ghcr-build-push ghcr-deploy
 
 GHCR_OWNER ?= soskiiit
 IMAGE_TAG ?= develop
@@ -22,6 +22,9 @@ help:
 	@echo "  make test-unit         - Запустить модульные тесты"
 	@echo "  make test-integration  - Запустить интеграционные тесты"
 	@echo "  make test              - Запустить все тесты (unit + integration)"
+	@echo "  make test-core         - Unit + gRPC тесты поискового ядра в контейнере"
+	@echo "  make core-up           - Поисковое ядро: gRPC-сервер :50051 (docker-compose.core.yml)"
+	@echo "  make core-down         - Остановить поисковое ядро"
 	@echo "  make benchmark         - Запустить расчёт метрик Recall@k и MRR (НИРС)"
 	@echo "  make index-sample      - Индексатор: выборка из дампа SO (SO_DUMP_DIR, см. .env.example)"
 	@echo "  make index-corpus      - Индексатор: индекс малого корпуса benchmark (секунды)"
@@ -51,14 +54,13 @@ down:
 build:
 	docker compose build
 
-# Кодогенерация gRPC контрактов
+# Кодогенерация gRPC контрактов: pb2 для ядра пишутся в services/search_engine_core/src/
+# (также генерируются при сборке образа; Go-код gateway генерируется отдельно, Роль 3)
 proto:
-	@echo "Генерация gRPC кода для Gateway..."
-	docker compose run --rm gateway python -m grpc_tools.protoc -I./protos \
-		--python_out=./src/grpc_client --grpc_python_out=./src/grpc_client ./protos/search.proto ./protos/graph.proto
-	@echo "Генерация gRPC кода для Search Engine Core..."
-	docker compose run --rm search_engine_core python -m grpc_tools.protoc -I./protos \
-		--python_out=./src --grpc_python_out=./src ./protos/search.proto ./protos/graph.proto
+	@echo "Генерация gRPC кода (pb2) для Search Engine Core..."
+	$(CORE_RUN) -v ./protos:/app/protos:ro -v ./services/search_engine_core/src:/app/src \
+		--entrypoint python search_engine_core -m grpc_tools.protoc -I/app/protos \
+		--python_out=/app/src --grpc_python_out=/app/src /app/protos/search.proto /app/protos/graph.proto
 	@echo "Кодогенерация Protobuf успешно завершена!"
 
 # Тестирование
@@ -74,6 +76,24 @@ test-integration:
 
 test: test-unit
 
+# Поисковое ядро (Роль 2): отдельный compose-файл, паттерн ADR-009/ADR-011
+CORE_RUN = docker compose -f docker-compose.core.yml run --rm
+
+core-up:
+	@mkdir -p data/index
+	docker compose -f docker-compose.core.yml up -d --build
+
+core-down:
+	docker compose -f docker-compose.core.yml down
+
+# Unit-тесты ядра (формула, ридер, heap, граф) + gRPC интеграция — в контейнере ядра
+test-core:
+	$(CORE_RUN) --entrypoint sh search_engine_core -c '\
+		for p in test_bm25_formula test_top_k test_index_reader test_search_engine test_thread_graph; do \
+			python -m unittest discover -s /app/tests/unit -p "$$p.py" -v || exit 1; \
+		done && \
+		python -m unittest discover -s /app/tests/integration -p "test_grpc_search.py" -v'
+
 # Индексатор (Роль 1): офлайн-задачи в контейнере, отдельный compose-файл
 INDEXER_RUN = docker compose -f docker-compose.indexer.yml run --rm
 
@@ -85,9 +105,12 @@ index-corpus:
 	@mkdir -p data/index-benchmark data/dump
 	$(INDEXER_RUN) -e INDEX_OUTPUT_PATH=/app/data/index-benchmark indexer corpus
 
-# Бенчмарк (НИРС: Recall@k, MRR): сначала собирается индекс корпуса benchmark (секунды), затем метрики
+# Бенчмарк (НИРС: Recall@k, MRR): сначала собирается индекс корпуса benchmark (секунды),
+# затем метрики считаются через ядро (engine in-process); отчёт — data/benchmark_report.json
 benchmark: index-corpus
-	docker compose run --rm search_engine_core python benchmark/evaluate.py
+	$(CORE_RUN) -e INDEX_DIR=/app/data/index-benchmark -v ./data:/app/report \
+		--entrypoint python search_engine_core /app/benchmark/evaluate.py \
+		--output /app/report/benchmark_report.json
 
 # Сборка образов на хосте под linux/amd64 и отправка в GitHub Container Registry (GHCR)
 ghcr-build-push:

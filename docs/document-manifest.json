@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "project": "Errorium",
-  "version": "1.1.1",
-  "updated_at": "2026-11-18T12:00:00Z",
+  "version": "1.2.0",
+  "updated_at": "2026-11-20T12:00:00Z",
   "documents": [
     {
       "path": "STATUS.md",

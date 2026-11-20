@@ -19,6 +19,9 @@ __pycache__/
 .coverage
 htmlcov/
 
+# gRPC codegen (Search Engine Core, генерируется при сборке образа / make proto)
+services/search_engine_core/src/*_pb2*.py
+
 # Node / Frontend
 services/frontend/node_modules/
 services/frontend/dist/

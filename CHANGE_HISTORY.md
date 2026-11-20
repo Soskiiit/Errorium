@@ -1,5 +1,31 @@
 # CHANGE_HISTORY.md — История изменений проекта Errorium
 
+## [2026-11-20] — Search Engine Core (Роль 2): BM25 с нуля, mmap-ридер индекса, gRPC :50051, бенчмарк
+
+### Затронутые компоненты и спецификации:
+- `services/search_engine_core/src/core/` (новый) — `config.py`, `reader.py` (mmap), `bm25.py` (формула ИУ5 + Top-K min-heap), `engine.py`, `graph.py` (SQLite ro), `server.py` (SearchService + GraphService), `__main__.py`
+- `services/search_engine_core/Dockerfile` (реализован), `requirements.txt` (новый: grpcio/grpcio-tools), `README.md` (статус, запуск, состав кода)
+- `docker-compose.core.yml` (новый), `Makefile` (`core-up`/`core-down`/`test-core`, починка `proto` и `benchmark`), `.gitignore` (pb2)
+- `benchmark/evaluate.py` (новый) — Recall@{3,5,10}, MRR@10, латентность P50/P95, пороги приёмки, JSON-отчёт
+- Тесты: `tests/unit/test_bm25_formula.py`, `test_top_k.py`, `test_index_reader.py`, `test_search_engine.py`, `test_thread_graph.py`, `_core_fixture.py` (новые, 57 тестов); `tests/integration/test_grpc_search.py` (новый, 14 gRPC-тестов), `test_core_e2e.py` (новый, parity с эталонным BM25 индексатора)
+- Спецификации: `docs/Tech/03-data.md` (новый раздел 6 — чтение индекса, BM25, фильтры, GraphService, конфиг), `docs/Tech/02-running.md` (команды ядра, env), `docs/Tech/05-verification.md` (пирамида тестов и бенчмарк ядра), `docs/Tech/WORKSPACE_MAP.md`, `docs/Service/decisions.md` (ADR-011), `STATUS.md`
+
+### Суть изменений:
+1. **Ридер индекса (`reader.py`):** `postings.bin` — через `mmap` (срезы по offset/length из словаря, без загрузки в RAM); `lexicon.bin` и `doc_lengths.bin` — в память при старте; `metadata.json` — маркер готовности, N/avgdl берутся из него; отказ при `format_version != 1` или `tokenizer_version != "1"`; lazy reload (индекс, построенный после старта, подхватывается без перезапуска).
+2. **BM25 (`bm25.py`) строго по методичке ИУ5:** IDF = ln(1+(N−DF+0.5)/(DF+0.5)), вклад TF·(k1+1)/(TF+k1·(1−b+b·|d|/avgdl)); k1=1.5, b=0.75 (env `BM25_K1`/`BM25_B` с валидацией диапазонов [1.2,2.0]/[0,1]); термы запроса дедуплицируются (`dict.fromkeys`, как в коде занятия 3); Top-K — min-heap размера k (`heapq`, ключ (score, −doc_id)), tie-break по возрастанию doc_id. Пример занятия 3 воспроизведён точно: 0.940/0.470/0.470.
+3. **Движок (`engine.py`):** запрос токенизируется общим токенизатором индексатора (HTML не снимается, `List<String>` сохраняется); фильтры tags (AND, lowercase) и language (как тег) по `thread_nodes.tags`; `total_hits` — до фильтров; `tokenized_query` и `latency_ms` в ответе.
+4. **gRPC-сервер (`server.py`, :50051):** Search/GetDocument/BatchGetDocuments/GetStats/HealthCheck (SERVING/NOT_SERVING/REBUILDING_INDEX по `.building/`); GraphService: GetThreadGraph (первый id — PRIMARY, score узла = question_score, исходящие рёбра thread_links, категории DUPLICATE/LINKED), GetThreadDetails (original_url). Коды: FAILED_PRECONDITION без индекса, NOT_FOUND для отсутствующих документов. pb2 генерируются при сборке образа из `protos/`; токенизатор и index_format вендорятся из индексатора (единый источник истины).
+5. **Бенчмарк (`benchmark/evaluate.py`):** прогон 10 обычных вопросов золотого корпуса через ядро in-process; ловушки исключены из метрик поиска; пороги Recall@10 ≥ 0.75, MRR ≥ 0.50, P95 ≤ 150 мс с ненулевым кодом возврата при провале; `make benchmark` = сборка индекса корпуса + метрики + отчёт `data/benchmark_report.json`.
+6. **Инфраструктура:** отдельный `docker-compose.core.yml` (паттерн ADR-009, автодеплой не затрагивается); `make proto` теперь генерирует pb2 в `services/search_engine_core/src/` через контейнер ядра (прежний таргет был нерабочим).
+
+### Результаты тестов/бенчмарка:
+- `python3 -m unittest discover -s tests/unit` — **270 тестов OK** (213 прежних + 57 новых, 0 регрессий).
+- `make test-core` (контейнер ядра) — 57 unit + **14 gRPC интеграционных OK**: баллы Search совпадают с независимым эталоном по файлам индекса до 1e-9; NOT_FOUND/FAILED_PRECONDITION/REBUILDING_INDEX/lazy reload проверены по реальному каналу.
+- `tests/integration/test_core_e2e.py` — parity движка с эталонным BM25 `test_indexer_e2e.py` на индексе реального индексатора (k1=1.2 и 1.5) — OK.
+- `make benchmark` (контейнер): **Recall@3 = 0.933, Recall@5 = 0.933, Recall@10 = 0.967, MRR@10 = 1.000** (эталон корпуса при k1=1.2: 0.967/1.000 — не ухудшилось), P50 = 0.15 мс, **P95 = 0.25 мс** (порог 150 мс). Все пороги OK.
+- Живой smoke-тест `make core-up` + gRPC-клиент: HealthCheck SERVING, GetStats (N=30, avgdl=249.7, словарь 1569), Search «IndexError list index out of range» → треды 1/11/21 (релевантные Q01), GetThreadDetails — OK.
+- Go-тесты gateway на этой машине не запускались (`go` не установлен в окружении); Python-часть `make test-unit` и integration — зелёные.
+
 ## [2026-11-19] — Gateway: Интеграционные тесты, документация и завершение пакета «Ядро + стабы» (T1–T8)
 
 ### Затронутые компоненты и спецификации:

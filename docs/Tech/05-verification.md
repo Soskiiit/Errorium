@@ -6,19 +6,25 @@
 
 1. **Unit-тесты (`tests/unit/`):**
    - Модули токенизации (`test_tokenizer.py`): проверка сохранения составных токенов (`NullPointerException`, `C++`, `fmt.Println`).
-   - Расчет формулы BM25 (`test_bm25_formula.py`): сверка вычислений $IDF(t)$ и $BM25(q, d)$ с ручным эталонным расчетом кафедры ИУ5.
-   - Извлечение графа (`test_thread_graph.py`): валидация корректности построения графа связей между тредами (дубликаты, связанные ответы).
+   - Расчет формулы BM25 (`test_bm25_formula.py`): сверка вычислений $IDF(t)$ и $BM25(q, d)$ с ручным эталонным расчетом кафедры ИУ5 (пример занятия 3: $IDF \approx 0{,}470$, баллы $0{,}940 / 0{,}470 / 0{,}470$ при $k_1 = 1{,}2$).
+   - Top-K отбор (`test_top_k.py`): min-heap эквивалентен полной сортировке, tie-break по `doc_id`, граничные $k$.
+   - Чтение индекса (`test_index_reader.py`): mmap-постинги совпадают с эталонным декодером, отказ при отсутствии `metadata.json` / чужой версии формата / чужой `tokenizer_version`.
+   - Поисковый движок (`test_search_engine.py`): фильтры tags/language, `total_hits`, `tokenized_query`, ранжирование на синтетическом индексе.
+   - Извлечение графа (`test_thread_graph.py`): категории узлов (PRIMARY/OTHER/DUPLICATE/LINKED), исходящие рёбра, детали треда, read-only режим.
    - JWT & SSO (`test_auth.py`): генерация, валидация сигнатуры, проверка истечения срока действия токена, контроль RBAC.
 
+   Unit-тесты ядра не требуют `grpcio` (импортируют только `core.bm25` / `core.reader` / `core.engine` / `core.graph`) и выполняются хостовым `make test-unit`.
+
 2. **Интеграционные тесты (`tests/integration/`):**
-   - Межсервисный gRPC-канал (`test_grpc_search.py`): корректность сериализации запросов/ответов `SearchService` и `GraphService`.
+   - Межсервисный gRPC-канал (`test_grpc_search.py`): реальный gRPC-сервер ядра на случайном порту — `Search`/`GetDocument`/`BatchGetDocuments`/`GetStats`/`HealthCheck`/`GetThreadGraph`/`GetThreadDetails`, сверка баллов с эталонным BM25 из `test_indexer_e2e.py`. На хосте без `grpcio` тесты пропускаются; полный прогон — `make test-core` (в контейнере ядра).
    - REST API Gateway (`test_api_endpoints.py`): сквозной вызов поиска, RAG-генерации с моком LLM, эндпоинтов админки.
    - MCP Protocol (`test_mcp_sse.py`): вызов инструментов MCP агента через SSE транспорт.
 
 3. **Бенчмаркинг ранжирования (`benchmark/evaluate.py`):**
-   - Прогон золотого датасета поисковых запросов и расчет метрик:
+   - Прогон золотого датасета через `core.engine` in-process (без сети) по индексу `data/index-benchmark/` и расчет метрик:
      - $Recall@k = \frac{|\text{Релевантные в Top-}k|}{|\text{Все релевантные}|}$ для $k \in \{3, 5, 10\}$
-     - $MRR = \frac{1}{|Q|} \sum_{i=1}^{|Q|} \frac{1}{\text{rank}_i}$
+     - $MRR = \frac{1}{|Q|} \sum_{i=1}^{|Q|} \frac{1}{\text{rank}_i}$ (глубина 10)
+   - Пороги приёмки (README ядра): $Recall@10 \ge 0{,}75$, $MRR \ge 0{,}50$, $P_{95}$ латентности поиска $\le 150$ мс; при нарушении — ненулевой код возврата. Выдача по каждому вопросу и сводка печатаются в stdout и сохраняются в JSON-отчёт (`data/benchmark_report.json`).
 
 4. **Нагрузочные тесты и профилирование памяти:**
    - Проверка непревышения 4 ГБ RAM при потоковой индексации.
