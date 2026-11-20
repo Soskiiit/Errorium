@@ -69,7 +69,7 @@ func (h *SearchHandler) Search(w http.ResponseWriter, r *http.Request) {
 		Language: body.Language,
 	})
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, err.Error())
+		respondError(w, http.StatusBadGateway, "search backend unavailable")
 		return
 	}
 
@@ -105,7 +105,7 @@ func (h *SearchHandler) SearchRAG(w http.ResponseWriter, r *http.Request) {
 		Language: body.Language,
 	})
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, err.Error())
+		respondError(w, http.StatusBadGateway, "search backend unavailable")
 		return
 	}
 
@@ -143,7 +143,7 @@ func (h *SearchHandler) GetThreadGraph(w http.ResponseWriter, r *http.Request) {
 
 	resp, err := h.graphClient.GetThreadGraph(r.Context(), docIDs)
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, err.Error())
+		respondError(w, http.StatusBadGateway, "search backend unavailable")
 		return
 	}
 

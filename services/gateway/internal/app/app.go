@@ -6,6 +6,9 @@ import (
 	"net/http"
 	"time"
 
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+
 	"github.com/soskiiit/errorium/services/gateway/api"
 	"github.com/soskiiit/errorium/services/gateway/internal/graph"
 	"github.com/soskiiit/errorium/services/gateway/internal/handler"
@@ -19,9 +22,10 @@ import (
 )
 
 type App struct {
-	cfg      *config.Config
-	server   *http.Server
-	database *db.DB
+	cfg        *config.Config
+	server     *http.Server
+	database   *db.DB
+	searchConn *grpc.ClientConn
 }
 
 func New(cfg *config.Config) *App {
@@ -33,15 +37,37 @@ func New(cfg *config.Config) *App {
 	docsHandler := handler.NewDocsHandler(api.OpenAPIYAML)
 	docsHandler.RegisterRoutes(mux)
 
-	searchStub := search.NewStub()
-	graphStub := graph.NewStub()
-	searchHandler := handler.NewSearchHandler(searchStub, graphStub)
+	var searchClient search.SearchClient
+	var graphClient graph.GraphClient
+	var searchConn *grpc.ClientConn
+	var coreChecker handler.CoreChecker
+
+	if cfg.SearchEngineAddr != "" {
+		conn, err := grpc.NewClient(cfg.SearchEngineAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		if err != nil {
+			log.Printf("Failed to create gRPC client for search engine at %s: %v, falling back to stubs", cfg.SearchEngineAddr, err)
+			searchClient = search.NewStub()
+			graphClient = graph.NewStub()
+		} else {
+			searchConn = conn
+			grpcSearch := search.NewGRPCClient(conn)
+			searchClient = grpcSearch
+			graphClient = graph.NewGRPCClient(conn)
+			coreChecker = grpcSearch
+		}
+	} else {
+		log.Println("SEARCH_ENGINE_ADDR is empty; using search and graph stubs (dev mode)")
+		searchClient = search.NewStub()
+		graphClient = graph.NewStub()
+	}
+
+	searchHandler := handler.NewSearchHandler(searchClient, graphClient)
 	searchHandler.RegisterRoutes(mux)
 
 	tagsHandler := handler.NewTagsHandler()
 	tagsHandler.RegisterRoutes(mux)
 
-	statusHandler := handler.NewStatusHandler(cfg.SearchEngineAddr)
+	statusHandler := handler.NewStatusHandler(cfg.SearchEngineAddr, coreChecker)
 	statusHandler.RegisterRoutes(mux)
 
 	var database *db.DB
@@ -62,7 +88,7 @@ func New(cfg *config.Config) *App {
 			authHandler := handler.NewAuthHandler(userRepo, sessionRepo, jwtMgr, cfg.JWT.RefreshTokenExpireDays)
 			authHandler.RegisterRoutes(mux)
 
-			chatHandler := handler.NewChatHandler(chatRepo, tagRepo, searchStub)
+			chatHandler := handler.NewChatHandler(chatRepo, tagRepo, searchClient)
 			chatHandler.RegisterRoutes(mux, authMW)
 
 			var avatarStore storage.AvatarStore
@@ -94,9 +120,10 @@ func New(cfg *config.Config) *App {
 	}
 
 	return &App{
-		cfg:      cfg,
-		server:   server,
-		database: database,
+		cfg:        cfg,
+		server:     server,
+		database:   database,
+		searchConn: searchConn,
 	}
 }
 
@@ -119,6 +146,11 @@ func (a *App) Shutdown(ctx context.Context) error {
 	if a.database != nil {
 		if dbErr := a.database.Close(); dbErr != nil && err == nil {
 			err = dbErr
+		}
+	}
+	if a.searchConn != nil {
+		if connErr := a.searchConn.Close(); connErr != nil && err == nil {
+			err = connErr
 		}
 	}
 	return err

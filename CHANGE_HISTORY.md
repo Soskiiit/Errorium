@@ -1,5 +1,78 @@
 # CHANGE_HISTORY.md — История изменений проекта Errorium
 
+## [2026-11-20] — Волна A: Поисковое ядро BM25, gRPC Search/Graph сервисы, benchmark evaluate.py и подключение Gateway
+
+### Затронутые компоненты и спецификации:
+- `services/search_engine_core/` (src/core/, server.py, search_servicer.py, graph_servicer.py, engine.py, config.py, smoke.py, Dockerfile, requirements.txt, сгенерированные search_pb2/graph_pb2)
+- `services/gateway/internal/search/` (grpc_client.go, template.go, stub.go, grpc_client_test.go)
+- `services/gateway/internal/graph/` (grpc_client.go, grpc_client_test.go)
+- `services/gateway/internal/app/app.go` (переключение grpc/stub по SEARCH_ENGINE_ADDR, graceful shutdown)
+- `services/gateway/internal/handler/` (search_handler.go, status_handler.go, status_handler_test.go, search_handler_test.go)
+- `benchmark/evaluate.py`, `tests/unit/test_benchmark_metrics.py`, `tests/integration/test_core_gateway_e2e.py`
+- `Makefile` (цели proto, benchmark, index-corpus), `docker-compose.yml`, `docker-compose.dev.yml`
+- `docs/Tech/02-running.md`, `services/search_engine_core/README.md`, `services/gateway/README.md`, `STATUS.md`, `CHANGE_HISTORY.md`
+
+### Суть изменений:
+1. **Завершение задач волны A (A1–A6):**
+   - **A1:** Реализован движок BM25 с нуля в `search_engine_core/src/core/engine.py` строго по методическим указаниям кафедры ИУ5 ($k_1=1.5, b=0.75$). Токенизация и бинарное чтение индекса v1 переиспользуют пакет `indexer`. Реализован `ThreadStore` для работы с `graph.db` в режиме SQLite `mode=ro`.
+   - **A2:** Разработан gRPC-сервис `SearchService` (Search, GetDocument, BatchGetDocuments, GetStats, ReloadIndex, HealthCheck) на порту `:50051`. Реализована потокобезопасная атомарная замена индекса при горячей перезагрузке. Написан скрипт проверки `smoke.py`. Сформирован легковесный `Dockerfile` на базе `python:3.13-slim`.
+   - **A3:** Разработан gRPC-сервис `GraphService` (GetThreadGraph, GetThreadDetails) по контракту `protos/graph.proto`. Поддержаны категории узлов (`PRIMARY_RESULT`, `OTHER_RESULT`, `DUPLICATE`, `LINKED`), отбор до 20 соседей с дедупликацией и сортировкой по весу связей.
+   - **A4:** Разработан скрипт оценки качества `benchmark/evaluate.py` для 15 тестовых вопросов (10 answerable + 5 trap). Зафиксированы метрики бенчмарка: $Recall@3=0.9333$, $Recall@5=0.9333$, $Recall@10=0.9667$ ($\ge 0.75$), $MRR@10=1.0000$ ($\ge 0.50$). Все NFR кафедры выполнены.
+   - **A5:** Настроен воспроизводимый кодоген `make proto` (Go + Python). Сервис `search_engine_core` подключен в `docker-compose.yml` и `docker-compose.dev.yml`. Введена цель `make benchmark`.
+   - **A6:** В Gateway разработаны gRPC-адаптеры `search.GRPCClient` и `graph.GRPCClient`, реализующие интерфейсы `SearchClient` и `GraphClient`. Метод `RAG` использует шаблонный синтез `SynthesizeTemplate` (служащий деградацией для LLM). В `app.go` внедрен динамический выбор gRPC/стаб в зависимости от `SEARCH_ENGINE_ADDR`. Сбои ядра транслируются хендлерами в 502 Bad Gateway (`search backend unavailable`). Эндпоинт `/api/v1/status` отражает реальный статус `search_core.connected` через HealthCheck SERVING (таймаут 1 с). Разработан e2e тест `test_core_gateway_e2e.py`.
+
+### Результаты тестов/бенчмарка:
+- `cd services/gateway && gofmt -l .` — вывод пуст.
+- `cd services/gateway && go build ./... && go vet ./... && go test -v -race ./...` — все тесты пройдены успешно (0 data races).
+- `python3 -m unittest discover -s tests/unit -p "test_*.py"` — 262 unit-теста пройдены успешно.
+- `make test-unit` — успешно.
+- `core.smoke localhost:50051`: HealthCheck `SERVING` (v1.0.0), `Search` (21 hits, 2.90 ms), `GetStats` (N=30, avgdl=249.67, vocab=1569), `GetThreadGraph` (1 node) — смоук пройден успешно.
+- `benchmark/evaluate.py`:
+  - `Recall@3`: 0.9333
+  - `Recall@5`: 0.9333
+  - `Recall@10`: 0.9667 (порог NFR >= 0.75 пройден)
+  - `MRR@10`: 1.0000 (порог NFR >= 0.50 пройден)
+- `tests.integration.test_core_gateway_e2e`: 4 из 4 тестов пройдены успешно (status.connected=True, детерминизм поиска по индексу ядра, категории и ребра графа, details 404).
+
+## [2026-11-19] — ADR-012: MCP-токены убраны, открытый доступ с лимитами (правка контракта и пакета до реализации)
+
+### Затронутые компоненты и спецификации:
+- `docs/Service/decisions.md` (ADR-012, п.2 ADR-011 помечен заменённым), `docs/Product/03-requirements.md` (FR-4.4 переписан), `docs/Product/02-users-and-scenarios.md` (роль MCP-клиента, сценарий 3), `docs/Product/04-interface-and-behavior.md` (лендинг и модалка MCP без токенов), `docs/Tech/03-data.md` (§3.4 открытый доступ + лимиты, §3.5 миграция 000003 из трёх таблиц), `docs/Tech/04-api-and-access.md` (MCP-секция, карта эндпоинтов)
+- `services/gateway/api/openapi.yaml` — удалены `/api/v1/mcp/token`, `/api/v1/mcp/token/regenerate` и схема `McpTokenResponse` (32 пути); `/sse` и `/mcp/messages` — открытый доступ, ответы 429/503 + Retry-After, компонент RateLimited
+- `handoff/gateway-final/TASKS.md`, `PROMPTS.md` — B1 (3 таблицы вместо 4), B4 (глобальный семафор LLM_MAX_CONCURRENT=8), B5 (переписан: открытый MCP + limits.go), B7/C4/C5 (сценарии без токенов), сообщения коммитов B1/B5/C4
+- `.env.example` (MCP_MAX_SESSIONS_PER_IP=100, MCP_MAX_SESSIONS=200, MCP_CALLS_PER_MIN=60, LLM_MAX_CONCURRENT=8), `STATUS.md`
+
+### Суть изменений:
+1. Владелец поставил под вопрос ценность MCP-токена в гибридной схеме: анонимный доступ разрешён, токен ничего не запирает — только атрибутция ценой таблицы `mcp_tokens`, AES-GCM, двух эндпоинтов и усложнения B5/C4. Решение: **убрать токены полностью** (ADR-012 заменяет п.2 ADR-011 до реализации).
+2. Защита публичного `/sse` — лимиты, выбранные с учётом защиты в Бауманке: весь зал за одним NAT не должен блокироваться, поэтому лимиты НЕ по IP-запросам: ≤100 одновременных SSE-сессий с IP (429), ≤200 сессий глобально (503), ≤60 tools/call/мин на сессию (429), ≤8 одновременных LLM-вызовов глобально (ожидание 2 с → деградация до шаблонного синтеза). Счётчики in-memory, без схемы БД.
+3. Модалка MCP и лендинг фронта: URL `{origin}/sse` + JSON-конфиг без заголовков авторизации (конфиг строится на клиенте); FR-4.4 переписан под открытый доступ с лимитами.
+
+### Результаты тестов/бенчмарка:
+- openapi.yaml: YAML валиден, все `$ref` разрешаются, 32 пути, токен-эндпоинтов и McpTokenResponse нет.
+- Код сервисов не менялся; гейты итерации 1 остаются зелёными (проверялись ранее в этот день). Бенчмарк не запускался (evaluate.py — задача A4).
+
+## [2026-11-19] — Итерация 2 «Финал до КТ3»: контракт обновлён, подготовлен пакет из 18 задач (волны A/B/C)
+
+### Затронутые компоненты и спецификации:
+- `services/gateway/api/openapi.yaml` — все 14 planned-операций переведены в `core` (34 пути): SSE-формат в info.description, MCP-гибрид (`/sse` + новый `POST /mcp/messages`), `RagConfig.provider: openai|gigachat|stub` + base_url, `admin/index/reload` через gRPC ReloadIndex (200 вместо 202), описания search/graph переведены на gRPC
+- `protos/search.proto` — добавлен rpc `ReloadIndex` + сообщения (горячая перезагрузка индекса для Admin API)
+- `docs/Service/decisions.md` (ADR-011), `docs/Tech/04-api-and-access.md` (статусы, §2.3 LLM-провайдеры, MCP-гибрид, SSE), `docs/Tech/03-data.md` (§3.4 гибрид + mcp_tokens с token_encrypted, §3.5 миграция 000003), `.env.example` (LLM/GigaChat/SMTP/FRONTEND_URL/SEARCH_ENGINE_ADDR/BM25)
+- `handoff/gateway-final/TASKS.md`, `handoff/gateway-final/PROMPTS.md` (новые) — пакет для внешней команды: 18 задач + промпты (оркестратор /teamwork и ручной режим)
+- `STATUS.md`
+
+### Суть изменений:
+1. **Аудит после итерации 1:** T1–T8 выполнены и влиты (мердж e134fa4), гейты зелёные (go build/vet/test, 213 unit-тестов). Остаток до КТ3: пустой search_engine_core, нет benchmark/evaluate.py, make proto устарел (Python-кодоген в Go-gateway), planned-часть gateway, фронтенд на моках.
+2. **Решения владельца (ADR-011):** объём — всё до КТ3 тремя линейными волнами (A: ядро Python + benchmark + кодоген/compose + gRPC-адаптеры gateway; B: миграция 000003, пароли+SMTP, SSO GitHub/Google/Yandex на stdlib, LLM+RAG+SSE, MCP-гибрид+токены, Admin API; C: интеграция фронтенда Vanilla JS). **MCP — гибрид** (анонимный /sse + персональный токен err_live_ с привязкой и аудитом; прежнее противоречие FR-4.4/§3.4 снято). **LLM — OpenAI-совместимый + GigaChat + stub**: GigaChat бесплатный scope GIGACHAT_API_PERS, OAuth ngw.devices.sberbank.ru:9443/api/v2/oauth (токен 30 мин), API https://api.giga.chat/v1 (новый адрес после 17.07.2026, старый gigachat.devices.sberbank.ru выводится), TLS через сертификат НУЦ Минцифры (InsecureSkipVerify запрещён). SSO/SMTP — полный код, ключи владелец подставит позже (dev-отправитель пишет ссылку в лог).
+3. **Контракт:** единый SSE-формат (delta/done/error, для чатов первым user_message, X-Accel-Buffering: no против буферизации nginx); WriteTimeout=0 в gateway (иначе SSE рвётся); деградация LLM до шаблонного синтеза без поломки поиска (NFR); ядро переиспользует токенизатор и читатели формата индексатора (ADR-008, §5.6), BM25 с нуля по методичке; кодоген Go (protoc-gen-go v1.36.6 / go-grpc v1.5.1, module-опция) + Python (grpcio-tools 1.76.0), сгенерированное коммитится.
+4. **Пакет:** 18 задач (A1–A6, B1–B7, C1–C5) с точными файлами, TDD-тестами, гейтами по волнам, критериями готовности и простыми сообщениями коммитов; зависимости core пинованы (grpcio==1.76.0, grpcio-tools==1.76.0, protobuf==5.29.5), gateway — grpc v1.76.0/protobuf v1.36.6; benchmark-пороги NFR (Recall@10≥0.75, MRR≥0.50) с запретом подгонки корпуса; лимит ретраев 3, эскалация.
+
+### Результаты тестов/бенчмарка:
+- `python3 -m unittest discover -s tests/unit`: 213 тестов OK (код сервисов не менялся).
+- `cd services/gateway && go build ./... && go vet ./...` — зелёные.
+- `protoc --descriptor_set_out=/dev/null protos/search.proto protos/graph.proto` — синтаксис валиден (предупреждение о deprecated py_generic_services — существовало ранее).
+- openapi.yaml: YAML валиден, все `$ref` разрешаются, 34 пути, planned-операций не осталось.
+- Бенчмарк не запускался: evaluate.py ещё не существует (задача A4); ранжирование не затрагивалось.
+
 ## [2026-11-19] — Gateway: Интеграционные тесты, документация и завершение пакета «Ядро + стабы» (T1–T8)
 
 ### Затронутые компоненты и спецификации:

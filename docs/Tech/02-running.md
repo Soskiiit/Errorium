@@ -7,6 +7,11 @@
   - Docker $\ge 24.0$
   - Docker Compose $\ge 2.20$
   - GNU Make $\ge 4.3$
+  - Go $\ge 1.27.1$
+  - Python $\ge 3.11$ (рекомендуется 3.13)
+  - `protoc` v36.1 (для кодогенерации `make proto`)
+    - Go-плагины: `protoc-gen-go@v1.36.6`, `protoc-gen-go-grpc@v1.5.1`
+    - Python-пакет: `grpcio-tools==1.76.0`
 - **Рекомендуемые аппаратные ресурсы:**
   - CPU: $\ge 4$ ядра
   - RAM: $\ge 8$ ГБ (для работы с демонстрационным индексом), $\ge 16$ ГБ (для полной индексации 100 ГБ дампа)
@@ -50,10 +55,13 @@ SAMPLE_MIN_SCORE=1
 
 # === Search Engine Core (Роль 2) ===
 SEARCH_GRPC_PORT=50051
-INDEX_DIR=/app/data/index
+CORE_INDEX_DIR=/app/data/index              # В dev для корпуса benchmark: /app/data/index-benchmark
+BM25_K1=1.5                                 # Параметр k1 формулы BM25 [1.2, 2.0]
+BM25_B=0.75                                 # Параметр b формулы BM25
 
 # === Gateway & MCP Service (Роль 3) ===
 GATEWAY_PORT=8000
+SEARCH_ENGINE_ADDR=search_engine_core:50051 # gRPC-адрес поискового ядра (пусто -> fallback на стабы)
 SEARCH_ENGINE_HOST=search_engine_core
 SEARCH_ENGINE_PORT=50051
 
@@ -110,25 +118,41 @@ LLM_MAX_TOKENS=1500
 
 Все операции производятся через `Makefile`:
 
-# 1. Локальный запуск дев-сервера фронтенда (порт :3000):
-make dev
-
-# 2. Локальный запуск полного стека в Docker (Frontend :3000 + Gateway :8000):
-make dev-docker
-
-# 3. Остановка локального дев-стека в Docker:
-make dev-down
-
-# 4. Продакшн запуск с SSL-сертификатами (порты 80/443):
-make up
-
-# 5. Остановка продакшн-контейнеров:
-make down
-
-# 6. Компиляция Protobuf контрактов:
+```bash
+# 1. Компиляция Protobuf контрактов (Go и Python):
 make proto
 
-# 7. Запуск тестов:
+# 2. Построение индекса малого корпуса benchmark (30 документов):
+make index-corpus
+
+# 3. Выборка из дампа Stack Overflow (требуется SO_DUMP_ARCHIVE):
+make index-sample
+
+# 4. Бенчмарк качества поиска (Recall@k, MRR@10 на корпусе benchmark):
+make benchmark
+
+# 5. Локальный запуск дев-сервера фронтенда (порт :3000):
+make dev
+
+# 6. Локальный запуск полного dev-стека в Docker (Core :50051, Gateway :8000, Frontend :3000, Postgres, Garage):
+make dev-docker
+
+# 7. Остановка локального дев-стека в Docker:
+make dev-down
+
+# 8. Продакшн запуск с SSL-сертификатами (порты 80/443):
+make up
+
+# 9. Остановка продакшн-контейнеров:
+make down
+
+# 10. Запуск модульных тестов:
+make test-unit
+
+# 11. Запуск интеграционных тестов:
+make test-integration
+
+# 12. Полный тестовый набор:
 make test
 ```
 

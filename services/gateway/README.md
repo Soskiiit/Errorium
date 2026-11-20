@@ -101,9 +101,9 @@
 
 ---
 
-## 5. Стабы и граница gRPC
+## 5. gRPC-клиенты поискового ядра и фолбэк на стабы
 
-В соответствии с методологией проекта и до готовности микросервиса `search_engine_core` (Роль 2), слой Gateway взаимодействует с поисковым ядром и графом связей исключительно через абстрактные интерфейсы Go:
+Слой Gateway взаимодействует с микросервисом `search_engine_core` (Роль 2) по gRPC (`protos/search.proto` и `protos/graph.proto`) через абстрактные интерфейсы Go:
 
 ```go
 type SearchClient interface {
@@ -117,7 +117,19 @@ type GraphClient interface {
 }
 ```
 
-### Архитектурные свойства стабов:
-1. **Детерминированность:** Стаб поиска ранжирует пул фикстур реальных SO-тредов по пересечению термов и числу голосов. Идентичные запросы дают побайтово идентичные результаты и скоры BM25 без использования случайных величин.
-2. **Изоляция контракта:** Хендлеры `SearchHandler` и `ChatHandler` зависят только от интерфейсов `SearchClient` и `GraphClient`.
-3. **Бесшовная замена на gRPC:** При подключении `search_engine_core` реализация `search.Stub` и `graph.Stub` будет заменена на gRPC-клиент (по `protos/search.proto` и `protos/graph.proto`) исключительно на уровне фабрики в `internal/app/app.go`, без изменения обработчиков HTTP или REST-контракта.
+### Архитектура gRPC-адаптеров:
+1. **Search gRPC Client (`internal/search/grpc_client.go`):**
+   - Вызывает `SearchService.Search` ядра, маппит `SearchHit` в структуры `Source` (`bm25_score = score`, `question_score`, `is_accepted = (accepted_answer_id != 0)`, `url = https://stackoverflow.com/questions/{doc_id}`).
+   - Метод `RAG` выполняет gRPC-поиск и синтезирует структурированный ответ через переиспользуемую функцию `SynthesizeTemplate` (служит также деградацией для LLM-оркестратора).
+   - Предоставляет методы `HealthCheck`, `GetStats`, `ReloadIndex`.
+2. **Graph gRPC Client (`internal/graph/grpc_client.go`):**
+   - Вызывает `GraphService.GetThreadGraph`, конвертирует enum категорий (`PRIMARY_RESULT`, `OTHER_RESULT`, `DUPLICATE`, `LINKED`) и связей (`DUPLICATE_OF`, `LINKED_IN_ANSWER`) в строковые константы REST-спецификации.
+   - Выполняет последовательное обогащение каждого узла графа (до 21 вызова) полями `best_answer_body` и `original_url` через `GetThreadDetails`.
+   - При отсутствии треда маппит gRPC `codes.NotFound` в `graph.ErrNotFound` (REST 404).
+3. **Управление подключением (`internal/app/app.go`):**
+   - Если переменная `SEARCH_ENGINE_ADDR != ""`, создается ленивое gRPC-соединение `grpc.NewClient(addr, insecure.NewCredentials())` и регистрируются gRPC-адаптеры.
+   - Если `SEARCH_ENGINE_ADDR` пуст, сервис переключается на детерминированные стабы `search.Stub` и `graph.Stub` с явным логированием dev-режима.
+   - Соединение корректно закрывается при вызове `app.Shutdown(ctx)`.
+4. **Обработка ошибок и мониторинг доступности:**
+   - Сбои gRPC-вызовов ядра в хендлерах (`search`, `chat`) трансформируются в HTTP `502 Bad Gateway` (`{"error": "search backend unavailable"}`).
+   - Эндпоинт `GET /api/v1/status` выполняет проверку `HealthCheck` ядра с таймаутом 1 секунда и возвращает реальный статус подключения `search_core.connected: true` (статус `SERVING`) или `false` при недоступности ядра.
