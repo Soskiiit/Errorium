@@ -18,6 +18,7 @@ import (
 	"github.com/soskiiit/errorium/services/gateway/pkg/config"
 	"github.com/soskiiit/errorium/services/gateway/pkg/db"
 	jwtpkg "github.com/soskiiit/errorium/services/gateway/pkg/jwt"
+	"github.com/soskiiit/errorium/services/gateway/pkg/mailer"
 	"github.com/soskiiit/errorium/services/gateway/pkg/storage"
 )
 
@@ -106,6 +107,17 @@ func New(cfg *config.Config) *App {
 
 			userHandler := handler.NewUserHandler(userRepo, avatarStore)
 			userHandler.RegisterRoutes(mux, authMW)
+
+			passwordResetRepo := repository.NewPasswordResetRepository(database)
+			mailerInstance := mailer.New(cfg.SMTP)
+			passwordResetHandler := handler.NewPasswordResetHandler(
+				userRepo,
+				passwordResetRepo,
+				sessionRepo,
+				mailerInstance,
+				cfg.FrontendURL,
+			)
+			passwordResetHandler.RegisterRoutes(mux, authMW)
 		}
 	}
 

@@ -32,6 +32,18 @@ func TestLoadDefaults(t *testing.T) {
 	if cfg.SearchEngineAddr != "search_engine_core:50051" {
 		t.Errorf("expected SearchEngineAddr search_engine_core:50051, got %s", cfg.SearchEngineAddr)
 	}
+	if cfg.FrontendURL != "http://localhost:3000" {
+		t.Errorf("expected FrontendURL http://localhost:3000, got %s", cfg.FrontendURL)
+	}
+	if cfg.SMTP.Port != 587 {
+		t.Errorf("expected SMTP port 587, got %d", cfg.SMTP.Port)
+	}
+	if cfg.SMTP.From != "no-reply@errorium.ru" {
+		t.Errorf("expected SMTP from no-reply@errorium.ru, got %s", cfg.SMTP.From)
+	}
+	if cfg.SMTP.Host != "" {
+		t.Errorf("expected empty default SMTP host, got %s", cfg.SMTP.Host)
+	}
 }
 
 func TestLoadSearchEngineAddrOverride(t *testing.T) {
@@ -79,5 +91,35 @@ func TestLoadCustomEnv(t *testing.T) {
 	}
 	if !cfg.S3.UseSSL {
 		t.Errorf("expected UseSSL true, got false")
+	}
+}
+
+func TestLoadSMTPAndFrontendConfig(t *testing.T) {
+	os.Clearenv()
+	t.Setenv("FRONTEND_URL", "https://app.errorium.ru")
+	t.Setenv("SMTP_HOST", "smtp.example.com")
+	t.Setenv("SMTP_PORT", "465")
+	t.Setenv("SMTP_USER", "smtpuser")
+	t.Setenv("SMTP_PASSWORD", "smtppass")
+	t.Setenv("SMTP_FROM", "support@errorium.ru")
+
+	cfg := config.Load()
+	if cfg.FrontendURL != "https://app.errorium.ru" {
+		t.Errorf("expected FrontendURL https://app.errorium.ru, got %s", cfg.FrontendURL)
+	}
+	if cfg.SMTP.Host != "smtp.example.com" {
+		t.Errorf("expected SMTP host smtp.example.com, got %s", cfg.SMTP.Host)
+	}
+	if cfg.SMTP.Port != 465 {
+		t.Errorf("expected SMTP port 465, got %d", cfg.SMTP.Port)
+	}
+	if cfg.SMTP.User != "smtpuser" {
+		t.Errorf("expected SMTP user smtpuser, got %s", cfg.SMTP.User)
+	}
+	if cfg.SMTP.Password != "smtppass" {
+		t.Errorf("expected SMTP password smtppass, got %s", cfg.SMTP.Password)
+	}
+	if cfg.SMTP.From != "support@errorium.ru" {
+		t.Errorf("expected SMTP from support@errorium.ru, got %s", cfg.SMTP.From)
 	}
 }

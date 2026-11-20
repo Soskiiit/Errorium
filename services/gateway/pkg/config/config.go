@@ -40,6 +40,14 @@ type JWTConfig struct {
 	RefreshTokenExpireDays int
 }
 
+type SMTPConfig struct {
+	Host     string
+	Port     int
+	User     string
+	Password string
+	From     string
+}
+
 type Config struct {
 	Port             string
 	SearchEngineAddr string
@@ -47,6 +55,8 @@ type Config struct {
 	S3               S3Config
 	MinIO            S3Config
 	JWT              JWTConfig
+	SMTP             SMTPConfig
+	FrontendURL      string
 	AutoMigrate      bool
 }
 
@@ -91,10 +101,27 @@ func Load() *Config {
 	searchPort := getEnv("SEARCH_ENGINE_PORT", "50051")
 	searchEngineAddr := getEnv("SEARCH_ENGINE_ADDR", searchHost+":"+searchPort)
 
+	smtpPort := 587
+	if v := getEnv("SMTP_PORT", ""); v != "" {
+		if n, err := strconv.Atoi(v); err == nil {
+			smtpPort = n
+		}
+	}
+
+	smtpCfg := SMTPConfig{
+		Host:     getEnv("SMTP_HOST", ""),
+		Port:     smtpPort,
+		User:     getEnv("SMTP_USER", ""),
+		Password: getEnv("SMTP_PASSWORD", ""),
+		From:     getEnv("SMTP_FROM", "no-reply@errorium.ru"),
+	}
+
 	return &Config{
 		Port:             getEnv("GATEWAY_PORT", "8000"),
 		SearchEngineAddr: searchEngineAddr,
 		AutoMigrate:      getEnv("AUTO_MIGRATE", "true") == "true",
+		FrontendURL:      getEnv("FRONTEND_URL", "http://localhost:3000"),
+		SMTP:             smtpCfg,
 		JWT: JWTConfig{
 			SecretKey:              getEnv("JWT_SECRET_KEY", "change-this-in-production"),
 			AccessTokenExpireMin:   accessExpMin,

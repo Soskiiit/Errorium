@@ -54,6 +54,9 @@ func TestApp_NoDB_Health200_Chats404(t *testing.T) {
 		{http.MethodPatch, "/api/v1/users/me"},
 		{http.MethodPost, "/api/v1/auth/login"},
 		{http.MethodPost, "/api/v1/auth/register"},
+		{http.MethodPost, "/api/v1/auth/password/forgot"},
+		{http.MethodPost, "/api/v1/auth/password/reset"},
+		{http.MethodPost, "/api/v1/auth/password/change"},
 	}
 
 	for _, up := range unregisteredPaths {
