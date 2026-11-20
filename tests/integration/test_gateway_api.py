@@ -291,6 +291,144 @@ class TestGatewayAPI(unittest.TestCase):
         self.assertIn("enabled", data["rag"])
         self.assertEqual(data["rag"]["provider"], "stub")
 
+    def test_password_forgot(self):
+        status, _, content = self.make_request(
+            "POST",
+            "/api/v1/auth/password/forgot",
+            {"email": "forgot_e2e@example.com"},
+        )
+        self.assertEqual(status, 202)
+
+    def test_mcp_sse_anonymous_flow(self):
+        url = f"{self.base_url}/sse"
+        req = urllib.request.Request(url, headers={"Accept": "text/event-stream"})
+        session_id = None
+        try:
+            with urllib.request.urlopen(req, timeout=5) as resp:
+                self.assertEqual(resp.status, 200)
+                ct = resp.headers.get("Content-Type", "")
+                self.assertTrue("text/event-stream" in ct)
+
+                for _ in range(20):
+                    line = resp.readline().decode("utf-8")
+                    if "sessionId=" in line:
+                        part = line.split("sessionId=")[1].strip()
+                        session_id = part.split()[0].rstrip("\r\n")
+                        break
+        except Exception as e:
+            self.fail(f"Failed to read from /sse stream: {e}")
+
+        self.assertTrue(bool(session_id), "Expected sessionId in /sse endpoint event")
+
+        init_payload = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+                "protocolVersion": "2024-11-05",
+                "capabilities": {},
+                "clientInfo": {"name": "test-e2e", "version": "1.0"},
+            },
+        }
+        status, _, content = self.make_request(
+            "POST",
+            f"/mcp/messages?sessionId={session_id}",
+            init_payload,
+        )
+        self.assertEqual(status, 200)
+        resp_data = json.loads(content.decode("utf-8"))
+        self.assertEqual(resp_data.get("jsonrpc"), "2.0")
+        self.assertIn("result", resp_data)
+
+    def test_admin_flow(self):
+        admin_email = os.environ.get("FIRST_ADMIN_EMAIL", "admin@errorium.ru")
+        admin_password = os.environ.get("FIRST_ADMIN_PASSWORD", "AdminSecurePassword2026!")
+
+        status, _, content = self.make_request(
+            "POST",
+            "/api/v1/auth/login",
+            {"email": admin_email, "password": admin_password},
+        )
+        if status != 200:
+            raise unittest.SkipTest(f"Admin login failed (status {status}), bootstrap admin may not be configured in current environment")
+
+        login_data = json.loads(content.decode("utf-8"))
+        admin_token = login_data["access_token"]
+        if login_data["user"].get("role") != "admin":
+            raise unittest.SkipTest("Logged in user is not an admin")
+
+        # 1. GET /api/v1/admin/stats
+        status_stats, _, content_stats = self.make_request(
+            "GET",
+            "/api/v1/admin/stats",
+            token=admin_token,
+        )
+        if status_stats == 200:
+            stats_data = json.loads(content_stats.decode("utf-8"))
+            self.assertIn("total_documents", stats_data)
+            self.assertIn("avg_doc_length", stats_data)
+            self.assertIn("is_ready", stats_data)
+            self.assertIn("latency_ms", stats_data)
+
+        # 2. GET /api/v1/admin/users
+        status_users, _, content_users = self.make_request(
+            "GET",
+            "/api/v1/admin/users",
+            token=admin_token,
+        )
+        self.assertEqual(status_users, 200)
+        users_data = json.loads(content_users.decode("utf-8"))
+        self.assertIn("items", users_data)
+        self.assertIn("total", users_data)
+
+        # 3. GET /api/v1/admin/rag/config
+        status_rag, _, content_rag = self.make_request(
+            "GET",
+            "/api/v1/admin/rag/config",
+            token=admin_token,
+        )
+        self.assertEqual(status_rag, 200)
+        rag_data = json.loads(content_rag.decode("utf-8"))
+        self.assertIn("provider", rag_data)
+
+        # 4. PUT /api/v1/admin/rag/config
+        status_put, _, _ = self.make_request(
+            "PUT",
+            "/api/v1/admin/rag/config",
+            {
+                "provider": rag_data.get("provider", "stub"),
+                "model": rag_data.get("model", "stub-model"),
+                "system_prompt": rag_data.get("system_prompt", "Errorium prompt"),
+                "temperature": 0.3,
+                "max_tokens": 1200,
+            },
+            token=admin_token,
+        )
+        self.assertEqual(status_put, 200)
+
+    def test_search_rag_sse(self):
+        url = f"{self.base_url}/api/v1/search/rag"
+        body = json.dumps({"query": "SyntaxError in Python"}).encode("utf-8")
+        req = urllib.request.Request(
+            url,
+            data=body,
+            headers={
+                "Content-Type": "application/json",
+                "Accept": "text/event-stream",
+            },
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                self.assertEqual(resp.status, 200)
+                ct = resp.headers.get("Content-Type", "")
+                self.assertTrue("text/event-stream" in ct)
+                content = resp.read().decode("utf-8")
+                self.assertIn("event: delta\n", content)
+                self.assertIn("event: done\n", content)
+        except Exception as e:
+            self.fail(f"SSE /search/rag request failed: {e}")
+
 
 if __name__ == "__main__":
     unittest.main()

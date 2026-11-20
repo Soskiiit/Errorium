@@ -94,22 +94,48 @@ JWT_ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=60
 REFRESH_TOKEN_EXPIRE_DAYS=30
 
-# OAuth2 / SSO провайдеры (GitHub / Google / OIDC)
+# OAuth2 / SSO провайдеры (GitHub / Google / Yandex)
 GITHUB_CLIENT_ID=your_github_client_id
 GITHUB_CLIENT_SECRET=your_github_client_secret
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
+YANDEX_CLIENT_ID=your_yandex_client_id
+YANDEX_CLIENT_SECRET=your_yandex_client_secret
+SSO_REDIRECT_BASE=http://localhost:8000
+FRONTEND_URL=http://localhost:3000
 
-# Стартовая учетная запись администратора
+# Отправка email (сброс пароля)
+SMTP_HOST=                                   # Пусто -> dev-режим (LogMailer в stdout)
+SMTP_PORT=587                                # 587 (STARTTLS) или 465 (SSL/TLS)
+SMTP_USER=
+SMTP_PASSWORD=
+SMTP_FROM=no-reply@errorium.ru
+
+# Стартовая учетная запись администратора (bootstrap)
 FIRST_ADMIN_EMAIL=admin@errorium.ru
 FIRST_ADMIN_PASSWORD=AdminSecurePassword2026!
 
 # === RAG-пайплайн и LLM Провайдер ===
-LLM_PROVIDER=openai # openai | anthropic | local
-OPENAI_API_KEY=sk-...
-OPENAI_MODEL_NAME=gpt-4o-mini
+LLM_PROVIDER=openai                          # openai | gigachat | stub
 LLM_TEMPERATURE=0.2
 LLM_MAX_TOKENS=1500
+LLM_MAX_CONCURRENT=8                         # Глобальный семафор одновременных запросов к LLM
+
+# OpenAI-совместимый провайдер (OpenAI, vLLM, Ollama)
+OPENAI_BASE_URL=https://api.openai.com/v1
+OPENAI_API_KEY=sk-...
+OPENAI_MODEL_NAME=gpt-4o-mini
+
+# GigaChat провайдер
+GIGACHAT_CLIENT_ID=
+GIGACHAT_CLIENT_SECRET=
+GIGACHAT_SCOPE=GIGACHAT_API_PERS
+GIGACHAT_CA_CERT=deploy/certs/russian_trusted_root_ca.crt
+
+# === Лимиты открытого MCP-сервера ===
+MCP_MAX_SESSIONS_PER_IP=100                  # Максимум одновременных сессий с одного IP (429)
+MCP_MAX_SESSIONS=200                         # Максимум одновременных сессий глобально (503)
+MCP_CALLS_PER_MIN=60                         # Максимум tools/call в минуту на сессию (429)
 ```
 
 ---
@@ -155,4 +181,101 @@ make test-integration
 # 12. Полный тестовый набор:
 make test
 ```
+
+---
+
+## 5. Настройка компонентов и интеграций волны B
+
+### 5.1. Настройка SSO-провайдеров (GitHub, Google, Яндекс)
+
+Сервис Gateway поддерживает бесшовный вход через внешних провайдеров идентификации по протоколам OAuth2 и OIDC. Вся логика реализована на стандартной библиотеке Go (`net/http`) без сторонних SDK.
+
+1. **Регистрация OAuth-приложений:**
+   - **GitHub:** `Settings` $\to$ `Developer settings` $\to$ `OAuth Apps` $\to$ `New OAuth App`.
+     - *Authorization callback URL:* `http://localhost:8000/api/v1/auth/sso/callback/github` (или значение переменной `{SSO_REDIRECT_BASE}/api/v1/auth/sso/callback/github`).
+   - **Google:** `Google Cloud Console` $\to$ `APIs & Services` $\to$ `Credentials` $\to$ `OAuth 2.0 Client IDs`.
+     - *Authorized redirect URI:* `http://localhost:8000/api/v1/auth/sso/callback/google`.
+   - **Яндекс:** `Яндекс OAuth` $\to$ `Создать приложение` $\to$ `Веб-сервисы`.
+     - *Redirect URI:* `http://localhost:8000/api/v1/auth/sso/callback/yandex`.
+2. **Переменные окружения:**
+   Внесите полученные `Client ID` и `Client Secret` в файл `.env` (`GITHUB_CLIENT_ID`, `GOOGLE_CLIENT_ID`, `YANDEX_CLIENT_ID` и соответствующие секреты).
+3. **Поведение при входе:**
+   - Фронтенд перенаправляет пользователя на `/api/v1/auth/sso/login/{provider}`.
+   - Gateway генерирует криптографический одноразовый параметр `state`, сохраняет его в таблице `sso_states` (срок жизни 10 мин) и выполняет редирект 302 на страницу авторизации провайдера.
+   - После успешного входа провайдер возвращает пользователя на callback-эндпоинт шлюза. Шлюз обменивает авторизационный код на access токен, запрашивает профиль пользователя (UserInfo), создает или находит пользователя в БД и связывает его в таблице `user_sso_accounts`.
+   - Шлюз перенаправляет браузер на фронтенд:
+     `{FRONTEND_URL}/auth/callback#access_token=<JWT>&refresh_token=<JWT>`
+
+### 5.2. Настройка почтового отправителя (SMTP и dev-режим LogMailer)
+
+Для отправки писем со ссылками восстановления доступа используется абстракция `mailer.Mailer`:
+
+1. **Режим разработки (по умолчанию):**
+   - Если переменная `SMTP_HOST` не заполнена (или пуста), Gateway автоматически активирует `LogMailer`.
+   - При запросе `POST /api/v1/auth/password/forgot` письмо не отправляется по сети, а ссылка сброса выводится в стандартный поток вывода Gateway:
+     ```text
+     [DEV MAILER] password reset link for user@example.com: http://localhost:3000/reset-password?token=...
+     ```
+   - Это позволяет тестировать весь сценарий восстановления пароля локально без реального почтового сервера.
+2. **Продакшн-режим (SMTP):**
+   - Задайте переменные:
+     ```bash
+     SMTP_HOST=smtp.yandex.ru
+     SMTP_PORT=465                  # 465 для прямого TLS или 587 для STARTTLS
+     SMTP_USER=no-reply@errorium.ru
+     SMTP_PASSWORD=your_app_password
+     SMTP_FROM=no-reply@errorium.ru
+     ```
+   - Шлюз поддерживает как прямое шифрование SSL/TLS (порт 465), так и протокол STARTTLS (порт 587) с аутентификацией `PLAIN`.
+   - Ссылка сброса пароля формируется на основе `FRONTEND_URL` и одноразового токена (срок действия 1 час). При успешном сбросе или смене пароля все существующие сессии пользователя немедленно отзываются.
+
+### 5.3. Сертификат НУЦ Минцифры для GigaChat
+
+Для подключения к сервисам Сбера (GigaChat API) по протоколу HTTPS используется корневой сертификат Национального удостоверяющего центра (НУЦ) Минцифры России.
+
+> [!CAUTION]
+> Отключение проверки TLS (`InsecureSkipVerify: true`) в кодовой базе проекта категорически запрещено требованиями информационной безопасности!
+
+1. **Скачивание публичного сертификата:**
+   Скачайте публичный корневой сертификат с официального портала Госуслуг:
+   ```bash
+   curl -k -o deploy/certs/russian_trusted_root_ca.crt https://gu-st.ru/content/Other/doc/russian_trusted_root_ca.crt
+   ```
+2. **Конфигурация:**
+   - Путь к файлу передается через переменную `GIGACHAT_CA_CERT`:
+     ```bash
+     GIGACHAT_CA_CERT=deploy/certs/russian_trusted_root_ca.crt
+     ```
+   - При инициализации клиента `llm.NewGigaChat` Gateway загружает этот сертификат в системный пул `x509.CertPool` и безопасно валидирует TLS-соединение как к OAuth-шлюзу (`ngw.devices.sberbank.ru:9443`), так и к API чата (`api.giga.chat`).
+   - Если сертификат не найден по указанному пути, провайдер `gigachat` завершает инициализацию с понятной ошибкой в логе и не выполняет небезопасных соединений.
+
+### 5.4. Bootstrap первого администратора (FIRST_ADMIN)
+
+Для начального администрирования сервиса без необходимости ручных вставок в БД предусмотрен механизм автоматической инициализации:
+
+1. **Параметры запуска:**
+   ```bash
+   FIRST_ADMIN_EMAIL=admin@errorium.ru
+   FIRST_ADMIN_PASSWORD=AdminSecurePassword2026!
+   ```
+2. **Принцип работы (`app.BootstrapFirstAdmin`):**
+   - При старте сервиса шлюз проверяет наличие пользователя с указанным `FIRST_ADMIN_EMAIL`.
+   - Если пользователь не найден, создается учетная запись с ролью `RoleAdmin` (`admin`), заполненным именем и паролем, захэшированным с помощью `bcrypt` (cost 12).
+   - Если учетная запись уже существует, операция завершается успешно без изменения существующего хэша пароля или данных пользователя.
+   - Механизм строго идемпотентен и безопасен при горизонтальном масштабировании контейнеров Gateway.
+
+### 5.5. Настройка лимитов открытого MCP-сервера
+
+В соответствии с архитектурным решением **ADR-012**, сервер Remote MCP (`/sse` и `/mcp/messages`) работает в открытом режиме без персональных токенов. Для предотвращения перегрузки и атак отказа в обслуживании на защите НИРС действуют in-memory лимиты:
+
+```bash
+MCP_MAX_SESSIONS_PER_IP=100    # Лимит сессий с одного IP (X-Real-IP от nginx / RemoteAddr)
+MCP_MAX_SESSIONS=200           # Глобальный лимит одновременных SSE-соединений
+MCP_CALLS_PER_MIN=60           # Лимит вызовов tools/call в минуту на одну сессию
+LLM_MAX_CONCURRENT=8           # Глобальный семафор одновременных обращений к LLM
+```
+
+- **Специфика бауманского контура:** лимиты наложены на количество одновременных сессий и частоту вызовов внутри сессии, а не на число HTTP-запросов с IP. Это гарантирует, что аудитория за общим NAT во время защиты проекта не будет заблокирована.
+- **Освобождение ресурсов:** при закрытии клиентом SSE-стрима (или разрыве сетевого соединения) счетчик активных сессий немедленно декрементируется, освобождая слот для новых подключений.
+
 

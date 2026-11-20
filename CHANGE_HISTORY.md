@@ -1,5 +1,44 @@
 # CHANGE_HISTORY.md — История изменений проекта Errorium
 
+## [2026-11-20] — Волна B: Gateway расширен до КТ3 (B1–B7: пароли, SSO, LLM/RAG/SSE, открытый MCP с лимитами, Admin API, интеграционные тесты)
+
+### Затронутые компоненты и спецификации:
+- `services/gateway/migrations/` (`000003_iteration2.up.sql`, `000003_iteration2.down.sql`, `migrations_test.go`)
+- `services/gateway/domain/` (`password_reset.go`, `sso_state.go`, `rag_config.go`, unit-тесты моделей)
+- `services/gateway/internal/repository/` (`password_reset_repo.go`, `sso_state_repo.go`, `sso_account_repo.go`, `rag_config_repo.go`, `audit_repo.go`, `session_repo.go`, `user_repo.go`, `repository_test.go`)
+- `services/gateway/pkg/mailer/` (`mailer.go`, `mailer_test.go` — LogMailer, SMTPMailer с TLS/STARTTLS)
+- `services/gateway/internal/sso/` (`sso.go`, `sso_test.go` — провайдеры GitHub, Google, Yandex на Go stdlib)
+- `services/gateway/internal/llm/` (`client.go`, `openai.go`, `gigachat.go`, `llm_test.go` — OpenAI-совместимый и GigaChat с сертификатом НУЦ Минцифры)
+- `services/gateway/internal/rag/` (`rag.go`, `rag_test.go` — оркестратор RAG, семафор LLM_MAX_CONCURRENT=8, деградация)
+- `services/gateway/internal/mcp/` (`server.go`, `limits.go`, `tools.go`, unit-тесты — открытый MCP сервер без токенов, in-memory rate limiting)
+- `services/gateway/internal/metrics/` (`metrics.go`, `metrics_test.go` — перцентили задержек p50, p95, p99)
+- `services/gateway/internal/middleware/` (`admin.go`, `admin_test.go` — RBAC middleware RequireAdmin)
+- `services/gateway/internal/handler/` (`password_reset_handler.go`, `sso_handler.go`, `search_handler.go`, `chat_handler.go`, `mcp_handler.go`, `admin_handler.go`, `helpers.go`, тесты хендлеров)
+- `services/gateway/internal/app/` (`app.go`, `app_test.go`, `app_integration_test.go` — bootstrap первого администратора, WriteTimeout=0, сквозные интеграционные тесты)
+- `services/gateway/pkg/config/` (`config.go`, `config_test.go`)
+- `tests/integration/test_gateway_api.py` (e2e тесты волны B: forgot 202, анонимный MCP flow, admin flow, SSE search/rag)
+- `services/gateway/README.md`, `docs/Tech/02-running.md`, `STATUS.md`, `CHANGE_HISTORY.md`
+- Спецификации: `docs/Tech/04-api-and-access.md`, `docs/Tech/03-data.md`, `docs/Service/decisions.md` (ADR-011, ADR-012), `services/gateway/api/openapi.yaml`
+
+### Суть изменений:
+1. **Завершение всех 7 задач волны B (B1–B7):**
+   - **B1 (Схема и репозитории):** Разработана миграция `000003_iteration2` (таблицы `password_resets`, `sso_states`, `user_sso_accounts`, `rag_configs`). Реализованы потокобезопасные репозитории PostgreSQL на чистом `database/sql` с покрытием тестами.
+   - **B2 (Сброс и смена пароля):** Реализованы эндпоинты `POST /api/v1/auth/password/forgot` (всегда 202 Accepted против enumeration-атак), `POST /api/v1/auth/password/reset` (токен с SHA-256 хэшированием и сроком 1 час), `POST /api/v1/auth/password/change`. Разработан модуль `mailer` (`LogMailer` для dev-логирования ссылки, `SMTPMailer` с поддержкой TLS port 465 и STARTTLS port 587). Сброс или смена пароля немедленно отзывают все активные refresh-сессии пользователя.
+   - **B3 (SSO GitHub/Google/Яндекс):** Реализована OAuth2/OIDC аутентификация на Go stdlib (`net/http`) без сторонних библиотек. Поддержаны провайдеры GitHub, Google, Yandex. Генерируется одноразовый криптографический `state` в БД (TTL 10 мин, удаление при первом чтении). При первом входе создается учетная запись `User` и связь в `user_sso_accounts`; при повторных входах возвращается существующий пользователь. Браузер перенаправляется на `{FRONTEND_URL}/auth/callback#access_token=...&refresh_token=...`.
+   - **B4 (LLM-провайдеры, RAG и SSE):** Реализованы клиенты `OpenAICompat` (OpenAI, vLLM, Ollama) и `GigaChat` (SberDevices OAuth2, scope `GIGACHAT_API_PERS`, обязательный публичный корневой сертификат НУЦ Минцифры `russian_trusted_root_ca.crt`, запрет `InsecureSkipVerify`). Реализован `rag.Orchestrator` с глобальным семафором `LLM_MAX_CONCURRENT=8` (ожидание 2 с с последующей деградацией до шаблона без прерывания поиска). В `http.Server` установлен `WriteTimeout = 0` для сохранения долгоживущих стримов. Эндпоинты `/api/v1/search/rag` и `/api/v1/chats/{id}/messages` при наличии заголовка `Accept: text/event-stream` отдают поток событий (`event: user_message`, `event: delta`, `event: done`), сохраняя JSON-режим без Accept.
+   - **B5 (Открытый MCP сервер с лимитами по ADR-012):** Реализован Model Context Protocol сервер (`GET /sse` и `POST /mcp/messages`) без токенов. Первым событием SSE передается `endpoint` с `sessionId`. Доступны 3 инструмента: `errorium_search_solution`, `errorium_explain_error`, `errorium_get_related_errors`. Внедрен in-memory rate limiter: $\le 60$ вызовов `tools/call`/мин на сессию (429 + `Retry-After: 5`), $\le 100$ сессий с одного IP (429, общий NAT зала на защите не блокируется), $\le 200$ сессий глобально (503). Закрытие сессии освобождает слоты и счетчики.
+   - **B6 (Admin API и Bootstrap):** Реализован `BootstrapFirstAdmin`: идемпотентная инициализация учетной записи администратора при старте по `FIRST_ADMIN_EMAIL`/`FIRST_ADMIN_PASSWORD` с bcrypt (cost 12). Реализован `AdminHandler`: статистика ядра и задержки `GET /api/v1/admin/stats` (p50, p95, p99 от `metrics.Metrics`), горячая перезагрузка индекса ядра `POST /api/v1/admin/index/reload` через gRPC `SearchService.ReloadIndex`, блокировка и смена ролей `PATCH /api/v1/admin/users/{id}`, настройка RAG на лету `GET/PUT /api/v1/admin/rag/config` с аудитом в `admin_audit_logs`.
+   - **B7 (Интеграционные тесты и документация):**
+     * Go сквозной интеграционный тест (`services/gateway/internal/app/app_integration_test.go`): 18 последовательных шагов жизненного цикла на реальной БД PostgreSQL при наличии `TEST_DB_DSN` (честный skip без него). Доказаны сценарии: password forgot (LogMailer) -> reset -> 401 старых сессий -> change -> revoke; SSO mock-IdP -> создание пользователя -> повторный вход тем же ID возвращает того же пользователя; MCP open /sse -> initialize -> tools/list -> tools/call -> 429/503 limits -> освобождение счетчиков при закрытии; Admin bootstrap -> stats (mock gRPC) -> patch user (деактивация с 403) -> put rag config -> поиск с обновленным конфигом; SSE search/rag (delta/done) и чат (user_message/delta/done) с сохранением JSON-режима.
+     * Python e2e тест (`tests/integration/test_gateway_api.py`): честный skip при недоступности `GATEWAY_URL`, forgot 202, анонимный MCP flow через urllib, admin flow, SSE-поток search/rag.
+     * Документация: обновлены `services/gateway/README.md`, `docs/Tech/02-running.md` (SSO, SMTP/LogMailer, сертификат НУЦ Минцифры, FIRST_ADMIN, MCP лимиты), `STATUS.md`.
+
+### Результаты тестов/бенчмарка:
+- `cd services/gateway && gofmt -l .` — вывод пуст (форматирование строго по стандарту).
+- `cd services/gateway && go build ./... && go vet ./... && go test ./...` — все пакеты скомпилированы успешно, все unit и интеграционные тесты зелёные.
+- `python3 -m unittest discover -s tests/unit -p "test_*.py"` — 262 unit-теста пройдены успешно.
+- `python3 -m unittest tests/integration/test_gateway_api.py` — корректный skip при недоступности живого шлюза.
+
 ## [2026-11-20] — Волна A: Поисковое ядро BM25, gRPC Search/Graph сервисы, benchmark evaluate.py и подключение Gateway
 
 ### Затронутые компоненты и спецификации:
