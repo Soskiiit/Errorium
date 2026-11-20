@@ -104,6 +104,14 @@ func (f *fakeUserStore) UpdateLastLogin(ctx context.Context, id uuid.UUID, t tim
 	return nil
 }
 
+func (f *fakeUserStore) List(ctx context.Context, limit, offset int, search string) ([]*domain.User, int, error) {
+	return nil, 0, nil
+}
+
+func (f *fakeUserStore) UpdateRoleAndStatus(ctx context.Context, id uuid.UUID, role *domain.Role, isActive *bool) (*domain.User, error) {
+	return nil, nil
+}
+
 type fakeSessionStore struct {
 	mu       sync.Mutex
 	sessions map[string]*domain.UserSession // tokenHash -> session
@@ -139,6 +147,17 @@ func (f *fakeSessionStore) RevokeByTokenHash(ctx context.Context, hash string) e
 	defer f.mu.Unlock()
 	if s, ok := f.sessions[hash]; ok {
 		s.IsRevoked = true
+	}
+	return nil
+}
+
+func (f *fakeSessionStore) RevokeByUser(ctx context.Context, userID uuid.UUID) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	for _, s := range f.sessions {
+		if s.UserID == userID {
+			s.IsRevoked = true
+		}
 	}
 	return nil
 }

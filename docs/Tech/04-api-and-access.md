@@ -17,9 +17,7 @@
 - `GET /openapi.yaml` — спека;
 - `GET /docs` — Swagger UI (HTML-страница, читает `/openapi.yaml`).
 
-Каждая операция помечена `x-status`:
-- **`core`** — итерация «Ядро + стабы» (текущий пакет задач, см. `handoff/gateway-backend/`): auth (register/login/refresh/logout/me), профиль и аватар, чаты CRUD + сообщения, search/RAG/graph/tags/status как детерминированные стабы, Swagger UI.
-- **`planned`** — контракт зафиксирован, реализация в следующих итерациях: SSO, сброс/смена пароля, MCP-токены и `/sse`, SSE-стриминг, Admin API.
+Каждая операция помечена `x-status: core`. Итерация 1 («Ядро + стабы», пакет `handoff/gateway-backend/`, **выполнена**): auth, профиль/аватар, чаты, стабы search/graph/tags/status, Swagger UI. Итерация 2 («Финал до КТ3», пакет `handoff/gateway-final/`, ADR-011/012): волна A — поисковое ядро + benchmark, волна B — gRPC-адаптеры вместо стабов, LLM (OpenAI/GigaChat) + SSE, SSO, сброс/смена пароля, открытый MCP с лимитами, Admin API, волна C — интеграция фронтенда.
 
 ### 2.1. Ключевые решения контракта (ADR-010)
 1. **Ошибки** — единый JSON `{"error": "<сообщение>"}`; коды: 400 валидация, 401 нет/невалиден токен, 403 нет прав/аккаунт заблокирован, 404 не найдено **или чужой ресурс** (существование не раскрывается), 409 конфликт (email занят).
@@ -36,30 +34,37 @@
 | Группа | Эндпоинты | Статус |
 | :--- | :--- | :--- |
 | Auth | `POST /api/v1/auth/register`, `login`, `refresh`, `logout`; `GET /api/v1/auth/me` | core |
-| SSO | `GET /api/v1/auth/sso/login/{provider}`, `callback/{provider}` (`github\|google\|yandex`) | planned |
-| Пароль | `POST /api/v1/auth/password/forgot`, `reset`, `change` | planned |
+| SSO | `GET /api/v1/auth/sso/login/{provider}`, `callback/{provider}` (`github\|google\|yandex`) | core (итерация 2) |
+| Пароль | `POST /api/v1/auth/password/forgot`, `reset`, `change` | core (итерация 2) |
 | Профиль | `GET/PATCH /api/v1/users/me`; `POST /api/v1/users/avatar`; `GET /api/v1/users/{id}/avatar` (публичный) | core |
 | Чаты | `GET/POST /api/v1/chats`; `GET/PATCH/DELETE /api/v1/chats/{id}`; `POST /api/v1/chats/{id}/messages` | core |
-| Поиск | `POST /api/v1/search`, `POST /api/v1/search/rag` (публичные; стаб) | core |
-| Граф | `GET /api/v1/graph/threads?doc_ids=…`, `GET /api/v1/graph/threads/{doc_id}` (публичные; стаб) | core |
+| Поиск | `POST /api/v1/search`, `POST /api/v1/search/rag` (публичные; gRPC к ядру, LLM, SSE) | core |
+| Граф | `GET /api/v1/graph/threads?doc_ids=…`, `GET /api/v1/graph/threads/{doc_id}` (публичные; gRPC GraphService) | core |
 | Теги | `GET /api/v1/tags` — курируемый список пилюль фронтенда | core |
 | Статус | `GET /api/v1/status` — состояние ядра/RAG для модалки настроек | core |
-| MCP | `GET /api/v1/mcp/token`, `POST /api/v1/mcp/token/regenerate`, `GET /sse` | planned |
-| Admin | `GET /api/v1/admin/stats`, `POST /api/v1/admin/index/reload`, `GET /api/v1/admin/users`, `PATCH /api/v1/admin/users/{id}`, `GET/PUT /api/v1/admin/rag/config` | planned |
+| MCP | `GET /sse`, `POST /mcp/messages` (открытый доступ, лимиты; токенов нет — ADR-012) | core (итерация 2) |
+| Admin | `GET /api/v1/admin/stats`, `POST /api/v1/admin/index/reload`, `GET /api/v1/admin/users`, `PATCH /api/v1/admin/users/{id}`, `GET/PUT /api/v1/admin/rag/config` | core (итерация 2) |
 | Служебные | `GET /health`, `GET /docs`, `GET /openapi.yaml` | core |
 
 > **Режим моков (FR-3.5):** до интеграции с `GraphService` (gRPC) экран Star Map (`/star-map`) во фронтенде строит граф из мок-данных: источники RAG-ответа становятся узлами `PRIMARY_RESULT` / `OTHER_RESULT`, пул связанных тредов — узлами `DUPLICATE` / `LINKED`. Структура узлов и ребер повторяет контракты `ThreadGraphResponse` / `ThreadDetailsResponse` из `protos/graph.proto`, поэтому переход на реальный API не требует изменения слоя визуализации. REST-стаб gateway повторяет ту же структуру.
 
-> **SSE-стриминг** (`Accept: text/event-stream` для `/search/rag` и `/chats/{id}/messages`) — planned: в текущей итерации ответы синхронные JSON.
+> **SSE-стриминг** (итерация 2): `Accept: text/event-stream` для `/search/rag` и `/chats/{id}/messages`. Формат: `event: delta` / `data: {"text":"…"}` → `event: done` / `data: {полный JSON-ответ}`; ошибки — `event: error` / `data: {"error":"…"}`. Для сообщений чата первым идёт `event: user_message`. Заголовки: `Content-Type: text/event-stream`, `Cache-Control: no-cache`, `X-Accel-Buffering: no` (против буферизации nginx). Без заголовка Accept — синхронный JSON, как в итерации 1.
+
+### 2.3. LLM-провайдеры RAG (итерация 2, ADR-011)
+
+Конфигурация хранится в БД (`rag_config`, редактируется через Admin API) и в env:
+- **`openai`** — OpenAI-совместимый Chat Completions API с настраиваемым `OPENAI_BASE_URL` (OpenAI, прокси, vLLM, Ollama `/v1`), стриминг `stream: true`.
+- **`gigachat`** — бесплатный для физлиц scope `GIGACHAT_API_PERS`. OAuth: `POST https://ngw.devices.sberbank.ru:9443/api/v2/oauth` (Basic base64(client_id:client_secret), заголовок `RqUID: <uuid>`, тело `scope=GIGACHAT_API_PERS`), токен живёт 30 минут. API: `https://api.giga.chat/v1/chat/completions` (OpenAI-совместимый; новый адрес для подключений после 17.07.2026, старый `gigachat.devices.sberbank.ru` выводится из использования). TLS требует корневого сертификата НУЦ Минцифры (`russian_trusted_root_ca.crt`, путь через `GIGACHAT_CA_CERT`).
+- **`stub`** — детерминированный шаблон без LLM (поведение итерации 1).
+- **Деградация (NFR):** недоступность LLM не ломает поиск: `/search` работает всегда; `/search/rag` и сообщения чата при ошибке LLM используют шаблонный синтез по лучшим источникам.
 
 ---
 
 ## 3. Remote MCP Protocol (`/sse`)
 
-Сервис Gateway реализует спецификацию **Model Context Protocol (MCP)** по протоколу HTTP Server-Sent Events (SSE).
-**Авторизация для Remote MCP не требуется** — подключение открыто для всех локальных AI-агентов (Cursor, Claude Code, Windsurf) без передачи API-токенов.
+Сервис Gateway реализует спецификацию **Model Context Protocol (MCP)** по протоколу HTTP Server-Sent Events (SSE): `GET /sse` (сервер→клиент, первым событием `endpoint` с URL `/mcp/messages?sessionId=…`) и `POST /mcp/messages` (клиент→сервер, JSON-RPC 2.0).
 
-> **Нерешённое противоречие (planned):** FR-4.4 и модалка MCP во фронтенде предполагают персональные Bearer-токены (`err_live_…`), а `docs/Tech/03-data.md` §3.4 фиксирует открытый доступ без таблицы `mcp_tokens`. Эндпоинты `/api/v1/mcp/token*` описаны в openapi.yaml как `planned`; реализация — только после решения владельца продукта.
+**Доступ — открытый, без токенов (ADR-012):** подключение открыто для всех локальных AI-агентов (Cursor, Claude Code, Windsurf); персональные MCP-токены не выпускаются, таблицы `mcp_tokens` нет. Модалка MCP во фронтенде показывает URL подключения и готовый JSON-конфиг без заголовков авторизации. Защита от абьюза — лимиты (не по IP-запросам, чтобы общий NAT зала на защите не блокировался): ≤100 одновременных сессий с IP, ≤200 сессий глобально, ≤60 `tools/call`/мин на сессию, ≤8 одновременных LLM-вызовов глобально (сверх — деградация до шаблонного синтеза). Значения настраиваются env (`MCP_MAX_SESSIONS_PER_IP`, `MCP_MAX_SESSIONS`, `MCP_CALLS_PER_MIN`, `LLM_MAX_CONCURRENT`). Прежние формулировки «гибрид с токенами» (ADR-011) и противоречие с FR-4.4 сняты: FR-4.4 переписан под открытый доступ.
 
 ### Инструменты MCP (Tools):
 1. **`errorium_search_solution`**: Поиск релевантных тем и кода решений по описанию ошибки или стектрейсу.

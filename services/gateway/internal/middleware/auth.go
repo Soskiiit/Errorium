@@ -53,6 +53,11 @@ func Auth(jwtManager *jwtpkg.Manager) func(http.Handler) http.Handler {
 	}
 }
 
+// WithUserID adds a user UUID to a request context.
+func WithUserID(ctx context.Context, id uuid.UUID) context.Context {
+	return context.WithValue(ctx, ContextKeyUserID, id)
+}
+
 // UserIDFromCtx extracts the authenticated user's UUID from a request context.
 func UserIDFromCtx(ctx context.Context) (uuid.UUID, bool) {
 	v, ok := ctx.Value(ContextKeyUserID).(uuid.UUID)

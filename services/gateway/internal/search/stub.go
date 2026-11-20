@@ -2,7 +2,6 @@ package search
 
 import (
 	"context"
-	"fmt"
 	"sort"
 	"strings"
 	"time"
@@ -300,14 +299,15 @@ func (s *Stub) Search(ctx context.Context, req SearchRequest) (*SearchResponse, 
 	results := make([]Source, len(candidates))
 	for i, c := range candidates {
 		results[i] = Source{
-			DocID:         c.fixture.DocID,
-			Title:         c.fixture.Title,
-			URL:           c.fixture.URL,
-			Snippet:       c.fixture.Snippet,
-			Tags:          c.fixture.Tags,
-			QuestionScore: c.fixture.QuestionScore,
-			BM25Score:     c.score,
-			IsAccepted:    c.fixture.IsAccepted,
+			DocID:          c.fixture.DocID,
+			Title:          c.fixture.Title,
+			URL:            c.fixture.URL,
+			Snippet:        c.fixture.Snippet,
+			Tags:           c.fixture.Tags,
+			QuestionScore:  c.fixture.QuestionScore,
+			BM25Score:      c.score,
+			IsAccepted:     c.fixture.IsAccepted,
+			BestAnswerBody: c.fixture.AnswerBody,
 		}
 	}
 
@@ -332,26 +332,7 @@ func (s *Stub) RAG(ctx context.Context, req SearchRequest) (*RAGResult, error) {
 
 	tookMs := time.Since(start).Milliseconds()
 
-	if len(searchResp.Results) == 0 {
-		synthesis := fmt.Sprintf("No matching Stack Overflow solutions found for query: %s. Please check for typos or try broader keywords.", req.Query)
-		return &RAGResult{
-			Query:     req.Query,
-			Synthesis: synthesis,
-			Code:      nil,
-			Sources:   []Source{},
-			TookMs:    tookMs,
-		}, nil
-	}
-
-	topHit := searchResp.Results[0]
-	topFix, _ := GetFixture(topHit.DocID)
-
-	synthesis := fmt.Sprintf("Based on Stack Overflow solution for \"%s\", the issue is typically caused by improper syntax or state: %s", topHit.Title, topFix.AnswerBody)
-	var code *string
-	if topFix.CodeSnippet != "" {
-		c := topFix.CodeSnippet
-		code = &c
-	}
+	synthesis, code := SynthesizeTemplate(req.Query, searchResp.Results)
 
 	return &RAGResult{
 		Query:     req.Query,

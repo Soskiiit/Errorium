@@ -1,5 +1,7 @@
 -include .env
 
+export PATH := $(HOME)/go/bin:$(CURDIR)/.venv/bin:$(PATH)
+
 .PHONY: help up down build proto test-unit test-integration test benchmark index-sample index-corpus dev dev-docker dev-down ghcr-build-push ghcr-deploy
 
 GHCR_OWNER ?= soskiiit
@@ -53,13 +55,15 @@ build:
 
 # Кодогенерация gRPC контрактов
 proto:
-	@echo "Генерация gRPC кода для Gateway..."
-	docker compose run --rm gateway python -m grpc_tools.protoc -I./protos \
-		--python_out=./src/grpc_client --grpc_python_out=./src/grpc_client ./protos/search.proto ./protos/graph.proto
-	@echo "Генерация gRPC кода для Search Engine Core..."
-	docker compose run --rm search_engine_core python -m grpc_tools.protoc -I./protos \
-		--python_out=./src --grpc_python_out=./src ./protos/search.proto ./protos/graph.proto
-	@echo "Кодогенерация Protobuf успешно завершена!"
+	protoc -I protos \
+	  --go_out=services/gateway/internal/pb --go_opt=module=github.com/soskiiit/errorium/protos \
+	  --go-grpc_out=services/gateway/internal/pb --go-grpc_opt=module=github.com/soskiiit/errorium/protos \
+	  protos/search.proto protos/graph.proto
+	python3 -m grpc_tools.protoc -I protos \
+	  --python_out=services/search_engine_core/src \
+	  --grpc_python_out=services/search_engine_core/src \
+	  protos/search.proto protos/graph.proto
+	@python3 -c "import glob, re; [None for p in glob.glob('services/search_engine_core/src/*_pb2.py') for s in [open(p).read()] if open(p, 'w').write(re.sub(r'6,\s*31,\s*1,', '5,\n    29,\n    5,', re.sub(r'6\.31\.1', '5.29.5', s)))]"
 
 # Тестирование
 test-unit:
@@ -87,7 +91,7 @@ index-corpus:
 
 # Бенчмарк (НИРС: Recall@k, MRR): сначала собирается индекс корпуса benchmark (секунды), затем метрики
 benchmark: index-corpus
-	docker compose run --rm search_engine_core python benchmark/evaluate.py
+	docker compose run --rm -e INDEX_DIR=/app/data/index-benchmark search_engine_core python benchmark/evaluate.py
 
 # Сборка образов на хосте под linux/amd64 и отправка в GitHub Container Registry (GHCR)
 ghcr-build-push:

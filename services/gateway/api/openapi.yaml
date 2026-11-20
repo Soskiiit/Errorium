@@ -8,12 +8,25 @@ info:
     `docs/Tech/04-api-and-access.md`, `docs/Product/03-requirements.md`.
 
     **Статусы операций (`x-status`):**
-    - `core` — реализуется в текущем пакете задач (итерация «Ядро + стабы»).
-      Поиск и граф возвращают детерминированные стаб-данные до готовности
-      `search_engine_core` (gRPC); граница стаба — интерфейс клиента, замена
-      на gRPC не должна менять этот контракт.
-    - `planned` — контракт зафиксирован для фронтенда и будущих итераций,
-      в текущий пакет задач НЕ входит (SSO, сброс пароля, MCP-токены, SSE, admin).
+    - `core` — реализуется текущим пакетом задач «Финал до КТ3»
+      (итерация 2, три волны: A — поисковое ядро + benchmark, B — gateway
+      planned-часть, C — интеграция фронтенда). Итерация 1 («Ядро + стабы»)
+      уже выполнена: auth, профиль, чаты, стабы search/graph/tags/status.
+    - В итерации 2 стабы поиска/графа заменяются gRPC-клиентом к
+      `search_engine_core` (контракт REST не меняется), RAG получает реальных
+      LLM-провайдеров (OpenAI-совместимый и GigaChat) и SSE-стриминг,
+      реализуются SSO, сброс/смена пароля, открытый MCP с лимитами и Admin API.
+
+    **SSE-формат (итерация 2, `Accept: text/event-stream`):**
+    ```
+    event: delta\ndata: {"text":"<фрагмент>"}\n\n
+    event: done\ndata: {<полный JSON-ответ эндпоинта>}\n\n
+    event: error\ndata: {"error":"<сообщение>"}\n\n
+    ```
+    Для `/chats/{id}/messages` первым идёт `event: user_message`
+    с `data: {"user_message": {...}}`. Заголовки ответа:
+    `Content-Type: text/event-stream`, `Cache-Control: no-cache`,
+    `X-Accel-Buffering: no` (отключает буферизацию nginx).
 
     **Общие правила:**
     - Все ошибки — JSON `{"error": "<сообщение>"}` с соответствующим HTTP-статусом.
@@ -38,9 +51,9 @@ tags:
   - name: chats
     description: Диалоги и сообщения (Recent chats, RAG-карточки)
   - name: search
-    description: BM25-поиск и RAG-синтез (стабы до готовности ядра)
+    description: BM25-поиск и RAG-синтез (gRPC к ядру; LLM OpenAI/GigaChat; SSE)
   - name: graph
-    description: Star Map — граф связанных SO-тредов (стаб до GraphService)
+    description: Star Map — граф связанных SO-тредов (gRPC GraphService)
   - name: tags
     description: Каталог тегов для поповера фронтенда
   - name: status
@@ -48,9 +61,9 @@ tags:
   - name: docs
     description: Swagger UI и сама спецификация
   - name: mcp
-    description: Remote MCP и персональные токены (planned)
+    description: Remote MCP — открытый доступ с лимитами (ADR-012)
   - name: admin
-    description: Панель администратора (planned)
+    description: Панель администратора (роль admin)
 
 paths:
   /health:
@@ -231,7 +244,7 @@ paths:
     get:
       tags: [auth]
       operationId: ssoLogin
-      x-status: planned
+      x-status: core
       summary: Инициация OAuth2/OIDC входа (редирект на провайдера)
       security: []
       parameters:
@@ -248,7 +261,7 @@ paths:
     get:
       tags: [auth]
       operationId: ssoCallback
-      x-status: planned
+      x-status: core
       summary: Callback провайдера, выпуск пары JWT
       description: |
         После обмена code на токены провайдера — редирект на
@@ -278,7 +291,7 @@ paths:
     post:
       tags: [auth]
       operationId: passwordForgot
-      x-status: planned
+      x-status: core
       summary: Запрос письма для сброса пароля
       description: |
         Всегда 202 (не раскрывает существование email). Письмо содержит ссылку
@@ -301,7 +314,7 @@ paths:
     post:
       tags: [auth]
       operationId: passwordReset
-      x-status: planned
+      x-status: core
       summary: Установка нового пароля по токену из письма
       description: Все сессии пользователя отзываются.
       security: []
@@ -328,7 +341,7 @@ paths:
     post:
       tags: [auth]
       operationId: passwordChange
-      x-status: planned
+      x-status: core
       summary: Смена пароля из профиля (по текущему паролю)
       description: |
         Все сессии, кроме текущей, отзываются («смена пароля завершит сеансы
@@ -596,12 +609,14 @@ paths:
            скобки вырезаются из текста запроса для поиска.
         2. Сохраняет user-сообщение (`error_report`, error_context.raw_query —
            исходный текст со скобками) и привязывает теги.
-        3. Вызывает поиск и RAG (стаб до готовности ядра/LLM), сохраняет
+        3. Вызывает поиск (gRPC к ядру) и RAG (LLM), сохраняет
            assistant-сообщение (`rag_solution`) с content (текст решения),
            code (блок кода) и rag_sources.
         4. Если заголовок чата — «Новый чат», заменяет его первыми 80
            символами очищенного запроса; обновляет chats.updated_at.
-        SSE-стриминг (`Accept: text/event-stream`) — planned, следующая итерация.
+        При `Accept: text/event-stream` — SSE-стриминг (формат в info.description):
+        `user_message` → `delta`… → `done` с `{user_message, assistant_message}`.
+        Сообщения сохраняются в БД в обоих режимах.
       parameters:
         - $ref: '#/components/parameters/ChatId'
       requestBody:
@@ -619,6 +634,8 @@ paths:
                 properties:
                   user_message: { $ref: '#/components/schemas/ChatMessage' }
                   assistant_message: { $ref: '#/components/schemas/ChatMessage' }
+            text/event-stream:
+              schema: { type: string, description: 'События user_message / delta / done / error (см. info.description)' }
         '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '404': { $ref: '#/components/responses/NotFound' }
@@ -630,9 +647,11 @@ paths:
       x-status: core
       summary: Лексический BM25-поиск (публичный)
       description: |
-        До готовности search_engine_core возвращает детерминированные
-        стаб-данные через интерфейс SearchClient. Контракт совпадает с
-        будущим gRPC-ответом (protos/search.proto, SearchHit).
+        Лексический BM25-поиск через gRPC SearchService.Search
+        (search_engine_core, protos/search.proto). Ранжирование — самописный
+        BM25 ядра (k1=1.5, b=0.75), не gateway. При недоступности ядра — 502
+        `search backend unavailable`. Контракт ответа совпадает со стабом
+        итерации 1 (Source).
       security: []
       requestBody:
         required: true
@@ -654,10 +673,12 @@ paths:
       x-status: core
       summary: RAG-синтез решения (публичный)
       description: |
-        Стаб: synthesis/code из фикстур, sources — те же, что у /search.
-        Структура ответа повторяет карточку `.assistant-card` фронтенда:
-        текст решения + блок кода + источники SO.
-        SSE-стриминг и реальная LLM — planned.
+        RAG-пайплайн: поиск через gRPC → контекст из Top-K → LLM-синтез
+        (провайдер из rag_config: openai | gigachat | stub). Структура ответа
+        повторяет карточку `.assistant-card` фронтенда: текст решения + блок
+        кода + источники SO. При недоступности LLM — деградация до шаблонного
+        синтеза по лучшим источникам (поиск не ломается, NFR).
+        При `Accept: text/event-stream` — SSE: `delta`… → `done` с RagResponse.
       security: []
       requestBody:
         required: true
@@ -670,6 +691,8 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/RagResponse' }
+            text/event-stream:
+              schema: { type: string, description: 'События delta / done / error (см. info.description)' }
         '400': { $ref: '#/components/responses/BadRequest' }
 
   /api/v1/graph/threads:
@@ -681,11 +704,11 @@ paths:
       description: |
         Ядро графа — doc_ids результатов поиска. Первый id — PRIMARY_RESULT,
         остальные — OTHER_RESULT; связанные треды — DUPLICATE / LINKED.
-        Стаб строит граф из фикстур, повторяя структуру мока фронтенда
-        (buildStarMapGraph) и контракт protos/graph.proto.
-        REST-узел дополнительно содержит best_answer_body и original_url
-        (обогащение относительно proto ThreadNode — чтобы фронтенду не нужен
-        был отдельный запрос на каждую звезду).
+        Gateway вызывает gRPC GraphService.GetThreadGraph (protos/graph.proto)
+        и обогащает узлы best_answer_body / original_url через
+        GetThreadDetails (обогащение относительно proto ThreadNode — чтобы
+        фронтенду не нужен был отдельный запрос на каждую звезду).
+        При недоступности ядра — 502.
       security: []
       parameters:
         - name: doc_ids
@@ -769,50 +792,29 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/StatusResponse' }
 
-  /api/v1/mcp/token:
-    get:
-      tags: [mcp]
-      operationId: getMcpToken
-      x-status: planned
-      summary: Персональный MCP Bearer-токен пользователя
-      description: |
-        Модалка MCP фронтенда показывает токен вида `err_live_...` и JSON-конфиг
-        для IDE. ВНИМАНИЕ: политика авторизации MCP не урегулирована
-        (docs/Tech/03-data.md §3.4 — открытый доступ; FR-4.4 — персональные
-        токены). Реализация только после решения владельца продукта.
-      responses:
-        '200':
-          description: Токен и конфиг
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/McpTokenResponse' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-
-  /api/v1/mcp/token/regenerate:
-    post:
-      tags: [mcp]
-      operationId: regenerateMcpToken
-      x-status: planned
-      summary: Перевыпуск MCP-токена (старый отзывается)
-      responses:
-        '200':
-          description: Новый токен
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/McpTokenResponse' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-
   /sse:
     get:
       tags: [mcp]
       operationId: mcpSse
-      x-status: planned
-      summary: Remote MCP — SSE-транспорт (JSON-RPC 2.0)
+      x-status: core
+      summary: Remote MCP — SSE-транспорт (JSON-RPC 2.0, открытый доступ)
       description: |
+        MCP-сервер по спецификации Model Context Protocol (SSE-транспорт):
+        при подключении сервер отправляет `event: endpoint` с URL для
+        клиентских сообщений (`/mcp/messages?sessionId=<uuid>`), далее —
+        ответы JSON-RPC 2.0 (`initialize`, `notifications/initialized`,
+        `tools/list`, `tools/call`, `ping`).
         Инструменты: errorium_search_solution(query, tags?, limit=5),
         errorium_explain_error(error_message, stack_trace?),
         errorium_get_related_errors(error_name).
-        Политика авторизации — см. примечание в /api/v1/mcp/token.
+        **Открытый доступ без токенов (ADR-012).** Защита от абьюза —
+        лимиты, не дискриминирующие общий IP (зал за NAT на защите):
+        - не более `MCP_MAX_SESSIONS_PER_IP` (100) одновременных SSE-сессий
+          с одного IP → сверх 429 + Retry-After;
+        - не более `MCP_MAX_SESSIONS` (200) сессий глобально → сверх 503;
+        - не более `MCP_CALLS_PER_MIN` (60) tools/call в минуту на сессию
+          (лимит применяется в /mcp/messages).
+        IP определяется по X-Real-IP (nginx), fallback — RemoteAddr.
       security: []
       responses:
         '200':
@@ -820,12 +822,53 @@ paths:
           content:
             text/event-stream:
               schema: { type: string }
+        '429': { $ref: '#/components/responses/RateLimited' }
+        '503':
+          description: Глобальный лимит сессий исчерпан
+          headers:
+            Retry-After:
+              schema: { type: integer }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /mcp/messages:
+    post:
+      tags: [mcp]
+      operationId: mcpMessages
+      x-status: core
+      summary: Клиентские JSON-RPC сообщения MCP (парный к /sse)
+      description: |
+        Тело — JSON-RPC 2.0 запрос/уведомление. sessionId из события endpoint.
+        Ответ 202 (результат приходит в SSE-поток сессии). Неизвестный
+        sessionId → 404. Открытый доступ (ADR-012); tools/call ограничен
+        `MCP_CALLS_PER_MIN` (60) вызовами в минуту на сессию → сверх 429.
+      security: []
+      parameters:
+        - name: sessionId
+          in: query
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, description: JSON-RPC 2.0 }
+      responses:
+        '202': { description: Принято, ответ придёт в SSE-поток }
+        '400':
+          description: Невалидный JSON-RPC
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/RateLimited' }
 
   /api/v1/admin/stats:
     get:
       tags: [admin]
       operationId: adminStats
-      x-status: planned
+      x-status: core
       summary: Метрики поискового ядра (N, avgdl, память, задержки P50/P95/P99)
       description: Требуется роль admin. Проксирует SearchService.GetStats.
       responses:
@@ -841,18 +884,34 @@ paths:
     post:
       tags: [admin]
       operationId: adminIndexReload
-      x-status: planned
+      x-status: core
       summary: Горячая перезагрузка индекса ядра
+      description: |
+        Требуется роль admin. Вызывает gRPC SearchService.ReloadIndex
+        (protos/search.proto): ядро атомарно перечитывает файлы индекса.
       responses:
-        '202': { description: Сигнал отправлен }
+        '200':
+          description: Индекс перезагружен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  build_timestamp: { type: integer, format: int64 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
+        '502':
+          description: Ядро недоступно или перезагрузка не удалась
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
 
   /api/v1/admin/users:
     get:
       tags: [admin]
       operationId: adminListUsers
-      x-status: planned
+      x-status: core
       summary: Список пользователей (пагинация, поиск)
       parameters:
         - name: limit
@@ -883,7 +942,7 @@ paths:
     patch:
       tags: [admin]
       operationId: adminPatchUser
-      x-status: planned
+      x-status: core
       summary: Смена роли и блокировка пользователя
       parameters:
         - name: id
@@ -913,7 +972,7 @@ paths:
     get:
       tags: [admin]
       operationId: adminGetRagConfig
-      x-status: planned
+      x-status: core
       summary: Текущие параметры RAG/LLM
       responses:
         '200':
@@ -926,7 +985,7 @@ paths:
     put:
       tags: [admin]
       operationId: adminPutRagConfig
-      x-status: planned
+      x-status: core
       summary: Изменение системного промпта, модели и параметров генерации
       requestBody:
         required: true
@@ -981,6 +1040,15 @@ components:
           schema: { $ref: '#/components/schemas/Error' }
     NotFound:
       description: Ресурс не найден или принадлежит другому пользователю
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    RateLimited:
+      description: Превышен лимит (сессий с IP или вызовов на сессию)
+      headers:
+        Retry-After:
+          description: Секунд до повторной попытки
+          schema: { type: integer }
       content:
         application/json:
           schema: { $ref: '#/components/schemas/Error' }
@@ -1266,17 +1334,8 @@ components:
         rag:
           type: object
           properties:
-            enabled: { type: boolean }
-            provider: { type: string, example: stub }
-
-    McpTokenResponse:
-      type: object
-      properties:
-        token: { type: string, example: err_live_8f39a0c791b402e6e3c }
-        sse_url: { type: string, example: https://errorium.ru/sse }
-        config_json:
-          type: object
-          description: Готовый JSON-конфиг для Cursor/Claude Code (mcpServers)
+            enabled: { type: boolean, description: 'provider != stub и LLM доступен' }
+            provider: { type: string, enum: [openai, gigachat, stub], example: gigachat }
 
     AdminStats:
       type: object
@@ -1296,8 +1355,16 @@ components:
 
     RagConfig:
       type: object
+      description: |
+        Параметры RAG/LLM (хранятся в БД, редактируются админом).
+        provider=openai — OpenAI-совместимый API (base_url настраивается:
+        OpenAI, прокси, vLLM, Ollama /v1); provider=gigachat — GigaChat
+        (OAuth client_credentials, scope GIGACHAT_API_PERS, base_url
+        https://api.giga.chat/v1, сертификат НУЦ Минцифры);
+        provider=stub — детерминированный шаблон без LLM.
       properties:
-        provider: { type: string, enum: [openai, anthropic, local] }
+        provider: { type: string, enum: [openai, gigachat, stub] }
+        base_url: { type: string, nullable: true, example: 'https://api.openai.com/v1' }
         model: { type: string, example: gpt-4o-mini }
         system_prompt: { type: string }
         temperature: { type: number, minimum: 0, maximum: 2 }

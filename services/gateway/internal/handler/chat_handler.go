@@ -44,18 +44,30 @@ type TagStore interface {
 
 // ChatHandler handles all /api/v1/chats/* endpoints.
 type ChatHandler struct {
-	chats  ChatStore
-	tags   TagStore
-	search search.SearchClient
+	chats   ChatStore
+	tags    TagStore
+	search  search.SearchClient
+	ragOrch RAGSynthesizer
 }
 
 // NewChatHandler constructs a ChatHandler.
-func NewChatHandler(chats ChatStore, tags TagStore, searchClient search.SearchClient) *ChatHandler {
-	return &ChatHandler{
-		chats:  chats,
-		tags:   tags,
-		search: searchClient,
+func NewChatHandler(chats ChatStore, tags TagStore, searchClient search.SearchClient, ragOrch ...RAGSynthesizer) *ChatHandler {
+	var orch RAGSynthesizer
+	if len(ragOrch) > 0 {
+		orch = ragOrch[0]
 	}
+	return &ChatHandler{
+		chats:   chats,
+		tags:    tags,
+		search:  searchClient,
+		ragOrch: orch,
+	}
+}
+
+// WithRAGOrchestrator attaches a RAG synthesizer orchestrator to the handler.
+func (h *ChatHandler) WithRAGOrchestrator(orch RAGSynthesizer) *ChatHandler {
+	h.ragOrch = orch
+	return h
 }
 
 // RegisterRoutes wires up the chat routes on mux.
@@ -432,7 +444,7 @@ func (h *ChatHandler) SendMessage(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Call search and RAG.
+	// Call search.
 	if h.search == nil {
 		respondError(w, http.StatusBadGateway, "search backend unavailable")
 		return
@@ -442,19 +454,129 @@ func (h *ChatHandler) SendMessage(w http.ResponseWriter, r *http.Request) {
 		TopK:  topK,
 		Tags:  mergedTags,
 	}
-	if _, err := h.search.Search(r.Context(), searchReq); err != nil {
-		respondError(w, http.StatusBadGateway, "search backend unavailable")
-		return
-	}
-	ragResult, err := h.search.RAG(r.Context(), searchReq)
+	searchResp, err := h.search.Search(r.Context(), searchReq)
 	if err != nil {
 		respondError(w, http.StatusBadGateway, "search backend unavailable")
 		return
 	}
 
+	// Handle non-SSE vs SSE
+	if !isSSE(r) {
+		var ragResult *search.RAGResult
+		if h.ragOrch != nil {
+			res, err := h.ragOrch.Synthesize(r.Context(), cleanQuery, searchResp.Results)
+			if err != nil {
+				respondError(w, http.StatusBadGateway, "search backend unavailable")
+				return
+			}
+			ragResult = res
+		} else {
+			res, err := h.search.RAG(r.Context(), searchReq)
+			if err != nil {
+				respondError(w, http.StatusBadGateway, "search backend unavailable")
+				return
+			}
+			ragResult = res
+		}
+
+		var rawRAGSources *json.RawMessage
+		if ragResult.Sources != nil {
+			sourcesJSON, err := json.Marshal(ragResult.Sources)
+			if err == nil {
+				rawSources := json.RawMessage(sourcesJSON)
+				rawRAGSources = &rawSources
+			}
+		}
+
+		assistantNow := time.Now().UTC()
+		assistantMsg := &domain.ChatMessage{
+			ID:          uuid.New(),
+			ChatID:      chatID,
+			SenderRole:  domain.SenderRoleAssistant,
+			MessageType: domain.MessageTypeRAGSolution,
+			Content:     &ragResult.Synthesis,
+			Code:        ragResult.Code,
+			RAGSources:  rawRAGSources,
+			CreatedAt:   assistantNow,
+		}
+		if err := h.chats.AddMessage(r.Context(), assistantMsg); err != nil {
+			respondError(w, http.StatusInternalServerError, "failed to save assistant message")
+			return
+		}
+
+		// Auto-titling: if chat.Title == "Новый чат", set title to first 80 runes of cleanQuery.
+		if chat.Title == "Новый чат" {
+			runes := []rune(cleanQuery)
+			if len(runes) > 80 {
+				runes = runes[:80]
+			}
+			chat.Title = string(runes)
+		}
+		chat.UpdatedAt = time.Now().UTC()
+		_ = h.chats.Update(r.Context(), chat)
+
+		respondJSON(w, http.StatusCreated, sendMessageResponse{
+			UserMessage:      userMsg,
+			AssistantMessage: assistantMsg,
+		})
+		return
+	}
+
+	// SSE streaming mode
+	flusher := initSSE(w, http.StatusCreated)
+
+	// 1. First event: user_message
+	_ = writeSSE(w, flusher, "user_message", map[string]any{"user_message": userMsg})
+
+	// 2. Stream deltas
+	var accumulated strings.Builder
+	var streamErr error
+	var finalRagResult *search.RAGResult
+
+	if h.ragOrch != nil {
+		finalRagResult, streamErr = h.ragOrch.SynthesizeStream(r.Context(), cleanQuery, searchResp.Results, func(delta string) {
+			accumulated.WriteString(delta)
+			_ = writeSSE(w, flusher, "delta", map[string]string{"text": delta})
+		})
+	} else {
+		res, err := h.search.RAG(r.Context(), searchReq)
+		if err != nil {
+			streamErr = err
+		} else {
+			finalRagResult = res
+			accumulated.WriteString(res.Synthesis)
+			_ = writeSSE(w, flusher, "delta", map[string]string{"text": res.Synthesis})
+		}
+	}
+
+	// 3. Handle client disconnect / cancellation
+	if r.Context().Err() != nil {
+		if accumulated.Len() > 0 {
+			saveCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			partialContent := accumulated.String()
+			partialMsg := &domain.ChatMessage{
+				ID:          uuid.New(),
+				ChatID:      chatID,
+				SenderRole:  domain.SenderRoleAssistant,
+				MessageType: domain.MessageTypeRAGSolution,
+				Content:     &partialContent,
+				CreatedAt:   time.Now().UTC(),
+			}
+			_ = h.chats.AddMessage(saveCtx, partialMsg)
+		}
+		return
+	}
+
+	if streamErr != nil {
+		_ = writeSSE(w, flusher, "error", map[string]string{"error": streamErr.Error()})
+		return
+	}
+
+	// 4. Save completed assistant message to DB
 	var rawRAGSources *json.RawMessage
-	if ragResult.Sources != nil {
-		sourcesJSON, err := json.Marshal(ragResult.Sources)
+	if finalRagResult != nil && finalRagResult.Sources != nil {
+		sourcesJSON, err := json.Marshal(finalRagResult.Sources)
 		if err == nil {
 			rawSources := json.RawMessage(sourcesJSON)
 			rawRAGSources = &rawSources
@@ -467,17 +589,16 @@ func (h *ChatHandler) SendMessage(w http.ResponseWriter, r *http.Request) {
 		ChatID:      chatID,
 		SenderRole:  domain.SenderRoleAssistant,
 		MessageType: domain.MessageTypeRAGSolution,
-		Content:     &ragResult.Synthesis,
-		Code:        ragResult.Code,
+		Content:     &finalRagResult.Synthesis,
+		Code:        finalRagResult.Code,
 		RAGSources:  rawRAGSources,
 		CreatedAt:   assistantNow,
 	}
 	if err := h.chats.AddMessage(r.Context(), assistantMsg); err != nil {
-		respondError(w, http.StatusInternalServerError, "failed to save assistant message")
+		_ = writeSSE(w, flusher, "error", map[string]string{"error": "failed to save assistant message"})
 		return
 	}
 
-	// Auto-titling: if chat.Title == "Новый чат", set title to first 80 runes of cleanQuery.
 	if chat.Title == "Новый чат" {
 		runes := []rune(cleanQuery)
 		if len(runes) > 80 {
@@ -488,7 +609,8 @@ func (h *ChatHandler) SendMessage(w http.ResponseWriter, r *http.Request) {
 	chat.UpdatedAt = time.Now().UTC()
 	_ = h.chats.Update(r.Context(), chat)
 
-	respondJSON(w, http.StatusCreated, sendMessageResponse{
+	// 5. Final event: done
+	_ = writeSSE(w, flusher, "done", sendMessageResponse{
 		UserMessage:      userMsg,
 		AssistantMessage: assistantMsg,
 	})

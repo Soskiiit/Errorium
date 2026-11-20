@@ -296,17 +296,24 @@ erDiagram
 - **Выдача:** публичный прокси-эндпоинт `GET /api/v1/users/{id}/avatar` — Gateway стримит объект из S3 с его Content-Type, `Cache-Control` и `ETag`. Причина: тег `<img>` во фронтенде не может передать Bearer-токен.
 - **Ссылка в БД:** в поле `users.avatar_url` сохраняется относительный прокси-путь `/api/v1/users/{id}/avatar` (nginx фронтенда проксирует `/api/` на gateway).
 
-### 3.4. Политика авторизации для MCP (Model Context Protocol)
+### 3.4. Политика доступа для MCP (Model Context Protocol)
 
-- **Авторизация для Remote MCP отсутствует:** вызовы `GET /sse` и обработка запросов AI-агентов производятся в открытом режиме без Bearer токенов и без привязки к пользователю.
-- Таблицы `mcp_tokens` в БД **нет**.
+**Открытый доступ без токенов** (ADR-012, решение владельца 2026-11-19; заменяет гибрид из ADR-011 до его реализации):
+- `GET /sse` и `POST /mcp/messages` работают без авторизации — для всех локальных AI-агентов.
+- Таблицы `mcp_tokens` в БД **нет**; персональные MCP-токены не выпускаются.
+- Защита от абьюза — лимиты в памяти gateway (не по IP-запросам, чтобы не блокировать зал за общим NAT на защите):
+  - ≤ `MCP_MAX_SESSIONS_PER_IP` (100) одновременных SSE-сессий с одного IP (X-Real-IP от nginx, fallback RemoteAddr) → 429 + Retry-After;
+  - ≤ `MCP_MAX_SESSIONS` (200) сессий глобально → 503;
+  - ≤ `MCP_CALLS_PER_MIN` (60) `tools/call` в минуту на сессию → 429;
+  - ≤ `LLM_MAX_CONCURRENT` (8) одновременных LLM-вызовов глобально (все потребители: RAG, чаты, MCP) → ожидание до 2 с, затем деградация до шаблонного синтеза.
 
 ### 3.5. Механизм версионирования и применения миграций (embed.FS)
 
 Миграции схемы БД встроены непосредственно в исполняемый файл Gateway с помощью механизма Go **`embed.FS`** (`services/gateway/migrations/migrations.go`).
 - **Автоматический накат при старте:** При запуске Gateway считывает `AUTO_MIGRATE=true` (по умолчанию включено), подключается к PostgreSQL и атомарно накатывает ожидающие `.up.sql` миграции через драйвер `golang-migrate/v4/source/iofs`.
 - **Изоляция инфраструктуры:** Контейнер `postgres` в `docker-compose` остается полностью чистым от скриптов инициализации (устранен антипаттерн разового монтирования в `/docker-entrypoint-initdb.d/`), а версионирование схемы (`schema_migrations`) ведется стандартными средствами мигратора.
-- **Миграция `000002_profile_and_message_content`** (итерация «Ядро + стабы», ADR-010): добавляет `users.profession`, `users.gender`, `users.language` и `chat_messages.content`, `chat_messages.code`. Таблицы `mcp_tokens` / `password_reset_tokens` намеренно НЕ добавляются: политика MCP не урегулирована (§3.4), сброс пароля — planned; схемы будут добавлены вместе с реализацией.
+- **Миграция `000002_profile_and_message_content`** (итерация «Ядро + стабы», ADR-010): добавляет `users.profession`, `users.gender`, `users.language` и `chat_messages.content`, `chat_messages.code`.
+- **Миграция `000003_iteration2`** (итерация 2, ADR-011/012): добавляет `password_reset_tokens` (`id`, `user_id FK`, `token_hash UNIQUE`, `expires_at`, `used_at`, `created_at`), `sso_auth_states` (`state TEXT PK`, `provider`, `redirect_to`, `expires_at`), `rag_config` (одна строка `id=1`: `provider`, `base_url`, `model`, `system_prompt`, `temperature`, `max_tokens`, `updated_at`). Таблица `mcp_tokens` НЕ создаётся (ADR-012: MCP без токенов).
 
 ---
 

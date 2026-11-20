@@ -18,14 +18,15 @@ type SearchRequest struct {
 
 // Source represents a Stack Overflow error thread source.
 type Source struct {
-	DocID         int64    `json:"doc_id"`
-	Title         string   `json:"title"`
-	URL           string   `json:"url"`
-	Snippet       string   `json:"snippet"`
-	Tags          []string `json:"tags"`
-	QuestionScore int      `json:"question_score"`
-	BM25Score     float64  `json:"bm25_score"`
-	IsAccepted    bool     `json:"is_accepted"`
+	DocID          int64    `json:"doc_id"`
+	Title          string   `json:"title"`
+	URL            string   `json:"url"`
+	Snippet        string   `json:"snippet"`
+	Tags           []string `json:"tags"`
+	QuestionScore  int      `json:"question_score"`
+	BM25Score      float64  `json:"bm25_score"`
+	IsAccepted     bool     `json:"is_accepted"`
+	BestAnswerBody string   `json:"-"`
 }
 
 // SearchResponse contains ranked search hits.
