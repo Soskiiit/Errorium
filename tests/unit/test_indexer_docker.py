@@ -64,7 +64,7 @@ class TestMakefileTargets(unittest.TestCase):
             self.assertIn(target, phony.split())
 
     def test_runner_uses_separate_compose_file(self):
-        self.assertRegex(self.text, r"(?m)^INDEXER_RUN = docker compose -f docker-compose\.indexer\.yml run --rm$")
+        self.assertRegex(self.text, r"(?m)^INDEXER_RUN = docker compose -f docker-compose\.indexer\.yml run --build --rm$")
 
     def test_sample_target_runs_in_container(self):
         self.assertRegex(self.text, r"(?ms)^index-sample:.*?\$\(INDEXER_RUN\) indexer sample")

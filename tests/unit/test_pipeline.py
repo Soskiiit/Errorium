@@ -399,6 +399,22 @@ class TestRunCorpus(FixtureCase):
         rows = conn.execute("SELECT doc_id, has_accepted_answer, tags FROM thread_nodes ORDER BY doc_id").fetchall()
         self.assertEqual(rows, [(1, 0, '["java"]'), (2, 0, "[]"), (3, 0, "[]")])
 
+    def test_question_answer_docs_get_answer_in_graph_db(self):
+        import sqlite3
+        docs = [{"doc_id": 1, "title": "Docker", "text": "Question: Why permission denied?\n\nAnswer: Add your user to the docker group."},
+                {"doc_id": 2, "title": "Plain", "text": "no answer part here"}]
+        cfg = self.cfg(self.write_corpus(docs))
+        run_corpus(cfg, log=lambda *_: None)
+        conn = sqlite3.connect(f"file:{os.path.join(cfg.index_output_path, 'graph.db')}?mode=ro", uri=True)
+        self.addCleanup(conn.close)
+        rows = conn.execute("SELECT doc_id, has_accepted_answer, snippet, best_answer_body FROM thread_nodes ORDER BY doc_id").fetchall()
+        self.assertEqual(rows, [(1, 1, "Why permission denied?", "<p>Add your user to the docker group.</p>"),
+                                (2, 0, "no answer part here", "")])
+        # весь text по-прежнему индексируется
+        lex = read_lexicon(os.path.join(cfg.index_output_path, "lexicon.bin"))
+        self.assertIn("permission", lex)
+        self.assertIn("group", lex)
+
     def test_source_recorded_and_deterministic(self):
         corpus = self.write_corpus()
         cfg1, cfg2 = self.cfg(corpus, self.path("i1")), self.cfg(corpus, self.path("i2"))

@@ -13,6 +13,7 @@ from indexer.graph_db import (  # noqa: E402
     SNIPPET_MAX_LEN,
     GraphNode,
     make_snippet,
+    node_from_corpus_doc,
     node_from_thread,
     write_graph_db,
 )
@@ -74,6 +75,55 @@ class TestNodeFromThread(unittest.TestCase):
 
     def test_answer_body_kept_as_html(self):
         self.assertEqual(node_from_thread(thread()).best_answer_body, "<p>Check <code>x</code> for null</p>")
+
+
+class TestNodeFromCorpusDoc(unittest.TestCase):
+    """Режим corpus: ответ из `Answer:` попадает в best_answer_body (docs/Tech/03-data.md, п. 4.9)."""
+
+    TEXT = ("Question: How do I fix <T> & friends?\n\n"
+            "Answer: Use the group.\n\n    sudo usermod -aG docker $USER\n\nThen log in again.")
+
+    def test_question_answer_split(self):
+        n = node_from_corpus_doc(5, "Docker permission", self.TEXT, ["docker"])
+        self.assertEqual(n.snippet, "How do I fix <T> & friends?")
+        self.assertTrue(n.has_accepted_answer)
+        self.assertEqual(n.title, "Docker permission")
+        self.assertEqual(n.tags, ["docker"])
+
+    def test_answer_becomes_escaped_html_paragraphs(self):
+        n = node_from_corpus_doc(5, "t", self.TEXT)
+        self.assertEqual(n.best_answer_body,
+                         "<p>Use the group.</p>\n<p>    sudo usermod -aG docker $USER</p>\n<p>Then log in again.</p>")
+
+    def test_special_characters_in_answer_are_escaped(self):
+        n = node_from_corpus_doc(1, "t", "Question: q?\n\nAnswer: Use List<String> & <code>x</code>")
+        self.assertEqual(n.best_answer_body, "<p>Use List&lt;String&gt; &amp; &lt;code&gt;x&lt;/code&gt;</p>")
+
+    def test_answer_text_survives_html_cleaning(self):
+        n = node_from_corpus_doc(1, "t", "Question: q?\n\nAnswer: Use List<String> & more")
+        self.assertEqual(make_snippet(n.best_answer_body), "Use List<String> & more")
+
+    def test_question_prefix_is_optional(self):
+        n = node_from_corpus_doc(1, "t", "Just a question\n\nAnswer: yes")
+        self.assertEqual(n.snippet, "Just a question")
+        self.assertEqual(n.best_answer_body, "<p>yes</p>")
+        self.assertTrue(n.has_accepted_answer)
+
+    def test_text_without_separator_has_no_answer(self):
+        n = node_from_corpus_doc(1, "t", "plain text about <b> things")
+        self.assertEqual(n.snippet, "plain text about <b> things")
+        self.assertEqual(n.best_answer_body, "")
+        self.assertFalse(n.has_accepted_answer)
+
+    def test_empty_answer_part_counts_as_no_answer(self):
+        n = node_from_corpus_doc(1, "t", "Question: q?\n\nAnswer:   ")
+        self.assertEqual(n.best_answer_body, "")
+        self.assertFalse(n.has_accepted_answer)
+
+    def test_long_question_snippet_truncated(self):
+        n = node_from_corpus_doc(1, "t", "Question: " + "word " * 200 + "\n\nAnswer: ok")
+        self.assertLessEqual(len(n.snippet), SNIPPET_MAX_LEN)
+        self.assertEqual(n.best_answer_body, "<p>ok</p>")
 
 
 class TestWriteGraphDb(unittest.TestCase):
