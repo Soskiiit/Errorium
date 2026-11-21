@@ -79,7 +79,7 @@ test-integration:
 test: test-unit
 
 # Индексатор (Роль 1): офлайн-задачи в контейнере, отдельный compose-файл
-INDEXER_RUN = docker compose -f docker-compose.indexer.yml run --rm
+INDEXER_RUN = docker compose -f docker-compose.indexer.yml run --build --rm
 
 index-sample:
 	@mkdir -p data/raw data/index data/dump

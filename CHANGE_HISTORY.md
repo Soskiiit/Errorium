@@ -1,5 +1,25 @@
 # CHANGE_HISTORY.md — История изменений проекта Errorium
 
+## [2026-11-21] — Режим `corpus`: ответ документа в graph.db для RAG; пересборка образа индексатора при запуске
+
+### Затронутые компоненты и спецификации:
+- `docs/Tech/03-data.md` (п. 2 — `has_accepted_answer`; п. 4.9 — разбор `Question:` / `Answer:`; п. 4.10 — пересборка образа)
+- `services/search_engine_indexer/src/indexer/graph_db.py` (`node_from_corpus_doc`)
+- `Makefile` (`INDEXER_RUN` с `--build`)
+- `tests/unit/test_graph_db.py`, `tests/unit/test_pipeline.py`, `tests/unit/test_indexer_docker.py`, `tests/integration/test_benchmark_e2e.py`
+- `STATUS.md`
+
+### Суть изменений:
+1. **Проблема:** gateway кладёт в контекст LLM заголовок, сниппет (≤ 300 символов вопроса) и `best_answer_body` из `graph.db`. Для индекса корпуса benchmark `best_answer_body` был пуст, поэтому RAG на вопросах benchmark видел только начало вопроса, а не ответ документа.
+2. **Исправление:** текст документа корпуса вида `Question: …\n\nAnswer: …` делится: вопрос (без префикса) → `snippet`, ответ → `best_answer_body` (HTML-абзацы `<p>…</p>`, спецсимволы экранированы), `has_accepted_answer = 1`. Документы без разделителя ведут себя как раньше. Файлы индекса (`lexicon.bin`, `postings.bin`, `doc_lengths.bin`) не меняются, метрики benchmark те же.
+3. **`make index-corpus` / `index-sample`:** образ индексатора пересобирается при каждом запуске (`docker compose run --build`, из кеша), чтобы изменения кода сразу попадали в контейнер.
+
+### Результаты тестов/бенчмарка:
+- `python -m unittest discover -s tests/unit`: 327 тестов OK; `tests/integration`: 16 тестов OK (3 пропущены — требуют запущенных сервисов); тесты написаны до кода (37 падений на старом коде).
+- `make benchmark`: Recall@3 = 0.9333, Recall@5 = 0.9333, Recall@10 = 0.9667, MRR@10 = 1.0000 (NFR PASS), без изменений.
+- Проверено на пересобранном индексе: все 30 узлов `graph.db` имеют ответ, поисковое ядро (`Engine`) возвращает `best_answer_body` в результатах поиска.
+- Не затронуто: отказ от ответа на вопросах-ловушках определяется инструкцией RAG-слоя gateway.
+
 ## [2026-11-20] — Память чата для RAG: окно истории + memory-ячейка (ADR-014, ветка fix/chat-memory)
 
 ### Затронутые компоненты и спецификации:

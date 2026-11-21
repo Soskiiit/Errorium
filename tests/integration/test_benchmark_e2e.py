@@ -68,6 +68,18 @@ class TestBenchmarkEndToEnd(unittest.TestCase):
         self.assertGreater(recall10 / len(answerable), 0.5)
         self.assertGreater(rr / len(answerable), 0.5)
 
+    def test_graph_db_gives_rag_the_answer_of_every_document(self):
+        import sqlite3
+        conn = sqlite3.connect(f"file:{os.path.join(self.out, 'graph.db')}?mode=ro", uri=True)
+        self.addCleanup(conn.close)
+        rows = conn.execute("SELECT doc_id, has_accepted_answer, snippet, best_answer_body FROM thread_nodes").fetchall()
+        self.assertEqual(len(rows), 30)
+        for doc_id, accepted, snippet, answer in rows:
+            with self.subTest(doc_id=doc_id):
+                self.assertEqual(accepted, 1)
+                self.assertTrue(snippet and not snippet.startswith("Question:"))
+                self.assertTrue(answer.startswith("<p>") and len(answer) > 50)
+
     def test_build_is_deterministic(self):
         second = os.path.join(self._tmp.name, "second")
         result = run_indexer("corpus", {"CORPUS_PATH": CORPUS, "INDEX_OUTPUT_PATH": second}, self._tmp.name)
