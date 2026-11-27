@@ -1125,6 +1125,24 @@
         </main>
     </div>
 
+    <!-- Onboarding: Role Selection Modal (shown after first registration) -->
+    <div id="modal-onboarding" class="modal-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="onboarding-title">
+        <div class="modal-card modal-auth-card onboarding-card">
+            <div class="modal-header-brand">
+                <img src="/mascot.png" alt="Errorium Mascot" class="auth-mascot-img" width="68" height="45">
+                <h2 id="onboarding-title" class="auth-brand-heading">Errorium</h2>
+            </div>
+            <p class="onboarding-subtitle">Choose your role so we can prioritise the most relevant tags for you</p>
+
+            <div class="onboarding-roles-grid" id="onboarding-roles-grid">
+                <!-- Rendered by JS -->
+            </div>
+
+            <button type="button" id="btn-onboarding-continue" class="btn-green-pill" disabled>Continue</button>
+            <button type="button" id="btn-onboarding-skip" class="onboarding-skip-btn">Skip for now</button>
+        </div>
+    </div>
+
     <!-- Pure Vanilla SPA Scripts (Zero Frameworks) -->
     <script src="/static/api.js?v=20261120_1"></script>
     <script src="/static/app.js?v=20261120_2"></script>

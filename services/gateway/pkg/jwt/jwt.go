@@ -32,9 +32,10 @@ type RegisteredClaims struct {
 
 // Claims is the payload stored in an access token.
 type Claims struct {
-	UserID string `json:"user_id"`
-	Email  string `json:"email"`
-	Role   string `json:"role"`
+	UserID     string `json:"user_id"`
+	Email      string `json:"email"`
+	Role       string `json:"role"`
+	Profession string `json:"profession,omitempty"`
 	RegisteredClaims
 }
 
@@ -62,9 +63,10 @@ func NewManager(cfg config.JWTConfig) *Manager {
 func (m *Manager) GenerateAccess(user *domain.User) (string, error) {
 	now := time.Now()
 	claims := Claims{
-		UserID: user.ID.String(),
-		Email:  user.Email,
-		Role:   string(user.Role),
+		UserID:     user.ID.String(),
+		Email:      user.Email,
+		Role:       string(user.Role),
+		Profession: user.Profession,
 		RegisteredClaims: RegisteredClaims{
 			Subject:   user.ID.String(),
 			IssuedAt:  now.Unix(),

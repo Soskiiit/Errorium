@@ -759,6 +759,8 @@ paths:
         (Go, Python, Java, C#, C++, JS, SQL, Rust, TypeScript, Docker, Linux,
         Kubernetes, PostgreSQL, Redis, GraphQL, React, Vue, Swift, Kotlin,
         PHP, Git, Nginx, gRPC). Источник — константа в коде gateway.
+        При передаче Bearer-токена в Authorization теги ранжируются по релевантности
+        для роли/профессии пользователя (claims.profession).
       security: []
       responses:
         '200':

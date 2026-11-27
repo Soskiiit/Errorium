@@ -356,7 +356,20 @@
             "votes": "голосов",
             "Duplicate thread": "Тред-дубликат",
             "Linked thread": "Связанный тред",
-            "Top-K result": "Результат Top-K"
+            "Top-K result": "Результат Top-K",
+            "Choose your role so we can prioritise the most relevant tags for you": "Выберите роль, чтобы мы показали наиболее релевантные теги",
+            "Continue": "Продолжить",
+            "Skip for now": "Пропустить",
+            "Backend": "Бэкенд",
+            "Frontend": "Фронтенд",
+            "Fullstack": "Фулстек",
+            "DevOps": "DevOps",
+            "Mobile": "Мобильная разработка",
+            "Data / ML": "Данные / ML",
+            "QA": "QA",
+            "Architect": "Архитектор",
+            "Security": "Безопасность",
+            "Tech Lead": "Тимлид"
         }
     };
 
@@ -1502,7 +1515,9 @@
     async function loadTags() {
         if (!window.ErroriumAPI) return;
         try {
-            const data = await window.ErroriumAPI.request('GET', '/tags', { auth: false });
+            // Send auth token when available so the backend can personalise tag order by profession.
+            const isLoggedIn = !!getAuthUser();
+            const data = await window.ErroriumAPI.request('GET', '/tags', { auth: isLoggedIn });
             if (data && Array.isArray(data.items)) {
                 renderTagPills(data.items);
                 tagsLoaded = true;
@@ -1875,8 +1890,15 @@
                 } catch (e) {
                     console.error('Failed to load user profile after SSO', e);
                 }
-                showToast(getCurrentLanguage() === 'Русский' ? 'Вход через Яндекс ID выполнен успешно!' : 'Signed in with Yandex ID successfully!');
-                navigateTo('/', true);
+                // Show onboarding for brand-new SSO users (default profession + no prior login).
+                const isNewUser = me && (!me.last_login_at || me.last_login_at === null) && me.profession === 'Backend developer';
+                if (isNewUser) {
+                    navigateTo('/', true);
+                    setTimeout(() => showOnboardingModal(), 300);
+                } else {
+                    showToast(getCurrentLanguage() === 'Русский' ? 'Вход через Яндекс ID выполнен успешно!' : 'Signed in with Yandex ID successfully!');
+                    navigateTo('/', true);
+                }
             } else {
                 showToast(getCurrentLanguage() === 'Русский' ? 'Не удалось выполнить авторизацию' : 'Failed to authorize');
                 navigateTo('/', true);
@@ -2027,8 +2049,9 @@
                 setAuthUser(me);
             }
 
+            // Close register modal and show onboarding role-selection step.
             closeAllModals();
-            showToast(getCurrentLanguage() === 'Русский' ? 'Аккаунт успешно создан!' : 'Account created successfully!');
+            showOnboardingModal();
         } catch (err) {
             const status = err && err.status;
             let errMsg = (err && err.error) || '';
@@ -4107,6 +4130,106 @@
 
     // Initialize cursor comet / star trail
     initCursorComet();
+
+    // =========================================================================
+    // Onboarding: Role Selection Modal
+    // Shows once after first registration so the user can pick their profession.
+    // The profession is persisted via PATCH /api/v1/users/me and baked into the
+    // next JWT, enabling server-side tag personalisation.
+    // =========================================================================
+
+    const ONBOARDING_PROFESSIONS = [
+        { key: 'Backend developer',    icon: '⚙️',  label: 'Backend' },
+        { key: 'Frontend developer',   icon: '🎨',  label: 'Frontend' },
+        { key: 'Fullstack developer',  icon: '🔗',  label: 'Fullstack' },
+        { key: 'DevOps engineer',      icon: '🐳',  label: 'DevOps' },
+        { key: 'Mobile developer',     icon: '📱',  label: 'Mobile' },
+        { key: 'Data engineer / ML',   icon: '🤖',  label: 'Data / ML' },
+        { key: 'QA engineer',          icon: '🧪',  label: 'QA' },
+        { key: 'System architect',     icon: '🏗️',  label: 'Architect' },
+        { key: 'Security engineer',    icon: '🔐',  label: 'Security' },
+        { key: 'Tech lead',            icon: '🚀',  label: 'Tech Lead' },
+    ];
+
+    let onboardingSelectedProfession = null;
+
+    function buildOnboardingRolesGrid() {
+        const grid = document.getElementById('onboarding-roles-grid');
+        if (!grid) return;
+        grid.innerHTML = '';
+        onboardingSelectedProfession = null;
+
+        ONBOARDING_PROFESSIONS.forEach(prof => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'onboarding-role-btn';
+            btn.dataset.profession = prof.key;
+            btn.innerHTML = `<span class="role-icon">${prof.icon}</span><span>${prof.label}</span>`;
+            btn.addEventListener('click', () => {
+                grid.querySelectorAll('.onboarding-role-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                onboardingSelectedProfession = prof.key;
+                const continueBtn = document.getElementById('btn-onboarding-continue');
+                if (continueBtn) continueBtn.disabled = false;
+            });
+            grid.appendChild(btn);
+        });
+    }
+
+    function showOnboardingModal() {
+        buildOnboardingRolesGrid();
+        const modal = document.getElementById('modal-onboarding');
+        if (modal) {
+            modal.style.display = 'flex';
+        }
+    }
+
+    function closeOnboardingModal() {
+        const modal = document.getElementById('modal-onboarding');
+        if (modal) modal.style.display = 'none';
+    }
+
+    document.getElementById('btn-onboarding-skip')?.addEventListener('click', () => {
+        closeOnboardingModal();
+        showToast(getCurrentLanguage() === 'Русский' ? 'Аккаунт успешно создан!' : 'Account created successfully!');
+        loadTags();
+    });
+
+    document.getElementById('btn-onboarding-continue')?.addEventListener('click', async () => {
+        if (!onboardingSelectedProfession) return;
+        try {
+            await window.ErroriumAPI.request('PATCH', '/users/me', {
+                body: { profession: onboardingSelectedProfession },
+                auth: true
+            });
+            // Refresh user object in localStorage.
+            const me = await window.ErroriumAPI.request('GET', '/auth/me', { auth: true });
+            if (me) setAuthUser(me);
+            // Refresh tokens so next JWT contains updated profession claim.
+            const tokens = window.ErroriumAPI.getTokens ? window.ErroriumAPI.getTokens() : null;
+            if (tokens && tokens.refresh_token) {
+                try {
+                    const refreshed = await window.ErroriumAPI.request('POST', '/auth/refresh', {
+                        body: { refresh_token: tokens.refresh_token },
+                        auth: false
+                    });
+                    if (refreshed && refreshed.access_token) {
+                        window.ErroriumAPI.setTokens({
+                            access_token: refreshed.access_token,
+                            refresh_token: refreshed.refresh_token || tokens.refresh_token
+                        });
+                    }
+                } catch (_) { /* silent — tokens still valid */ }
+            }
+        } catch (err) {
+            console.warn('Onboarding: failed to save profession', err);
+        }
+        closeOnboardingModal();
+        showToast(getCurrentLanguage() === 'Русский' ? 'Аккаунт успешно создан!' : 'Account created successfully!');
+        // Reload tags personalised for the new profession.
+        tagsLoaded = false;
+        loadTags();
+    });
 
     // Preload dynamic tags catalog from API
     loadTags();

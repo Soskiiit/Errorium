@@ -40,7 +40,7 @@
 | Чаты | `GET/POST /api/v1/chats`; `GET/PATCH/DELETE /api/v1/chats/{id}`; `POST /api/v1/chats/{id}/messages` | core |
 | Поиск | `POST /api/v1/search`, `POST /api/v1/search/rag` (публичные; gRPC к ядру, LLM, SSE) | core |
 | Граф | `GET /api/v1/graph/threads?doc_ids=…`, `GET /api/v1/graph/threads/{doc_id}` (публичные; gRPC GraphService) | core |
-| Теги | `GET /api/v1/tags` — курируемый список пилюль фронтенда | core |
+| Теги | `GET /api/v1/tags` — курируемый список пилюль фронтенда; при наличии Bearer-токена порядок тегов персонализируется по полю `profession` из JWT (см. §2.4) | core |
 | Статус | `GET /api/v1/status` — состояние ядра/RAG для модалки настроек | core |
 | MCP | `GET /sse`, `POST /mcp/messages` (открытый доступ, лимиты; токенов нет — ADR-012) | core (итерация 2) |
 | Admin | `GET /api/v1/admin/stats`, `POST /api/v1/admin/index/reload`, `GET /api/v1/admin/users`, `PATCH /api/v1/admin/users/{id}`, `GET/PUT /api/v1/admin/rag/config` | core (итерация 2) |
@@ -57,6 +57,14 @@
 - **`gigachat`** — бесплатный для физлиц scope `GIGACHAT_API_PERS`. OAuth: `POST https://ngw.devices.sberbank.ru:9443/api/v2/oauth` (Basic base64(client_id:client_secret), заголовок `RqUID: <uuid>`, тело `scope=GIGACHAT_API_PERS`), токен живёт 30 минут. API: `https://api.giga.chat/v1/chat/completions` (OpenAI-совместимый; новый адрес для подключений после 17.07.2026, старый `gigachat.devices.sberbank.ru` выводится из использования). TLS требует корневого сертификата НУЦ Минцифры (`russian_trusted_root_ca.crt`, путь через `GIGACHAT_CA_CERT`).
 - **`stub`** — детерминированный шаблон без LLM (поведение итерации 1).
 - **Деградация (NFR):** недоступность LLM не ломает поиск: `/search` работает всегда; `/search/rag` и сообщения чата при ошибке LLM используют шаблонный синтез по лучшим источникам.
+
+### 2.4. Персонализация тегов по роли/профессии
+
+При первой регистрации пользователя (или первом входе через SSO) отображается окно онбординга с выбором профессиональной роли (`profession`: Backend developer, Frontend developer, DevOps engineer и др.).
+1. Выбранная роль сохраняется через `PATCH /api/v1/users/me` (`profession`).
+2. Поле `profession` кодируется в access JWT токен пользователя.
+3. Эндпоинт `GET /api/v1/tags` при наличии заголовка `Authorization: Bearer <token>` ранжирует курируемый список из 23 тегов так, чтобы первыми отображались наиболее релевантные технологии для данной профессии (например, Go/Python/SQL для Backend, JS/TypeScript/React для Frontend, Docker/Kubernetes/Linux для DevOps), а остальные теги следовали далее в стандартном порядке.
+4. При отсутствии авторизации теги возвращаются в базовом порядке.
 
 ---
 
