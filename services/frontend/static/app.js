@@ -590,6 +590,7 @@
 
         // Star Map (FR-3: interactive graph of related SO threads)
         starMapView: document.getElementById('star-map-view'),
+        adminView: document.getElementById('admin-view'),
         starMapCanvas: document.getElementById('star-map-canvas'),
         btnStarMapBack: document.getElementById('btn-star-map-back'),
         starMapSubtitle: document.getElementById('star-map-subtitle'),
@@ -1037,6 +1038,8 @@
     }
 
     function renderCurrentRoute() {
+        if (elements.adminView) elements.adminView.style.display = 'none';
+
         const path = window.location.pathname;
 
         if (path === '/auth/callback') {
@@ -1096,6 +1099,16 @@
             return;
         }
 
+        if (path === '/admin' || path.indexOf('/admin') === 0) {
+            if (elements.heroView) elements.heroView.style.display = 'none';
+            if (elements.landingView) elements.landingView.style.display = 'none';
+            if (elements.chatView) elements.chatView.style.display = 'none';
+            if (elements.profileView) elements.profileView.style.display = 'none';
+            if (window.ErroriumAdmin && window.ErroriumAdmin.isAdmin()) { if (elements.adminView) elements.adminView.style.display = 'flex'; if (window.ErroriumAdmin && window.ErroriumAdmin.show) window.ErroriumAdmin.show(); }
+            else { switchToHeroView(false); if (window.showToast) window.showToast('Admin access only'); }
+            return;
+        }
+
         if (path === '/reset-password') {
             const token = new URLSearchParams(window.location.search).get('token') || '';
             switchToHeroView(false);
@@ -1142,6 +1155,12 @@
         renderCurrentRoute();
         isNavigatingFromPopState = false;
     });
+
+    // Shared navigation bridge for admin.js and external clicks (no full reload)
+    window.ErroriumNavigate = function (path) {
+        if (window.location.pathname !== path) window.history.pushState({}, '', path);
+        if (typeof renderCurrentRoute === 'function') renderCurrentRoute();
+    };
 
     function showModal(modalEl, updateRoute = true) {
         closeSidebar();
