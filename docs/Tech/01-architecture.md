@@ -71,7 +71,7 @@
 ### 2.3. Gateway & MCP Service (`services/gateway/`, Роль 3)
 - **Функция:** Центральный шлюз, фасад для фронтенда и AI-агентов, RAG-оркестратор, SSO и админ-сервис.
 - **Подсистемы:**
-  - **Auth & SSO:** Интеграция с GitHub OAuth2 / Google OIDC / Keycloak, генерация access/refresh JWT токенов, выдача Bearer-ключей для MCP.
+  - **Auth & SSO:** Интеграция с GitHub OAuth2 / Google OIDC / Yandex OIDC, генерация access/refresh JWT токенов, выдача Bearer-ключей для MCP.
   - **Admin API:** Управление квотами, мониторинг состояния индексов и серверов, смена системного RAG-промпта.
   - **RAG Orchestrator:** Вызов LLM (OpenAI, Anthropic, vLLM) с формированием очищенного контекста и стримингом ответа клиенту.
   - **Remote MCP Server:** Реализация протокола MCP (HTTP/SSE) с инструментами `errorium_search_solution`, `errorium_explain_error`, `errorium_get_related_errors`.
