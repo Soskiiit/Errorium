@@ -130,7 +130,10 @@ func New(cfg *config.Config) *App {
 	searchHandler := handler.NewSearchHandler(searchClient, graphClient, ragOrch).WithMetrics(metricsInst)
 	searchHandler.RegisterRoutes(mux)
 
-	tagsHandler := handler.NewTagsHandler()
+	// jwtMgrGlobal is created unconditionally so the tags endpoint can personalise
+	// tag ordering by profession even when it is wired before the DB-block below.
+	jwtMgrGlobal := jwtpkg.NewManager(cfg.JWT)
+	tagsHandler := handler.NewTagsHandler(jwtMgrGlobal)
 	tagsHandler.RegisterRoutes(mux)
 
 	statusHandler := handler.NewStatusHandler(cfg.SearchEngineAddr, coreChecker).WithRagConfigStore(ragConfigRepo)
@@ -151,7 +154,7 @@ func New(cfg *config.Config) *App {
 		chatRepo := repository.NewChatRepository(database)
 		tagRepo := repository.NewTagRepository(database)
 
-		jwtMgr := jwtpkg.NewManager(cfg.JWT)
+		jwtMgr := jwtMgrGlobal
 		authMW := middleware.Auth(jwtMgr)
 
 		authHandler := handler.NewAuthHandler(userRepo, sessionRepo, jwtMgr, cfg.JWT.RefreshTokenExpireDays)

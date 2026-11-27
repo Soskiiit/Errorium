@@ -188,8 +188,8 @@ make benchmark
 ## Контрольные точки НИРС
 
 - [x] **КТ 1 (Октябрь):** Документация SDD (`docs/`), регламенты (`README.md`, `AGENTS.md`, `STATUS.md`), контракты gRPC (`protos/search.proto`, `protos/graph.proto`), каркас мультиконтейнерного стека (`docker-compose.yml`).
-- [ ] **КТ 2 (Ноябрь):** Самописный инвертированный индекс и алгоритм BM25. Бенчмарк ($Recall@k$, $MRR$). RAG-генерация ответов через LLM.
-- [ ] **КТ 3 (Декабрь):** Интеграция Frontend + Gateway + Search Engine Core + MCP Server + Thread Graph Visualization + SSO/Admin. Демонстрация работы в Cursor/Claude Code. Итоговый отчёт и защита.
+- [x] **КТ 2 (Ноябрь):** Самописный инвертированный индекс и алгоритм BM25. Бенчмарк ($Recall@k$, $MRR$). RAG-генерация ответов через LLM.
+- [x] **КТ 3 (Декабрь):** Интеграция Frontend + Gateway + Search Engine Core + MCP Server + Thread Graph Visualization + SSO/Admin. Демонстрация работы в Cursor/Claude Code. Итоговый отчёт и защита.
 
 ---
 

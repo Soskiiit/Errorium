@@ -10,6 +10,7 @@ import (
 )
 
 func TestTagsHandler_Exact23TagsInOrder(t *testing.T) {
+	// No JWT → returns default order.
 	h := handler.NewTagsHandler()
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
@@ -48,3 +49,56 @@ func TestTagsHandler_Exact23TagsInOrder(t *testing.T) {
 		}
 	}
 }
+
+func TestTagsHandler_RankTagsForProfession_AllTagsPresent(t *testing.T) {
+	for _, profession := range []string{
+		"Backend developer",
+		"Frontend developer",
+		"Fullstack developer",
+		"DevOps engineer",
+		"QA engineer",
+		"Data engineer / ML",
+		"System architect",
+		"Mobile developer",
+		"Security engineer",
+		"Tech lead",
+		"Unknown profession",
+	} {
+		got := handler.RankTagsForProfession(profession)
+		if len(got) != len(handler.StandardTags) {
+			t.Errorf("profession %q: expected %d tags, got %d", profession, len(handler.StandardTags), len(got))
+			continue
+		}
+		// All standard tags must be present exactly once.
+		seen := make(map[string]int)
+		for _, tag := range got {
+			seen[tag]++
+		}
+		for _, tag := range handler.StandardTags {
+			if seen[tag] != 1 {
+				t.Errorf("profession %q: tag %q appears %d times in result", profession, tag, seen[tag])
+			}
+		}
+	}
+}
+
+func TestTagsHandler_RankTagsForProfession_BackendFirstTag(t *testing.T) {
+	got := handler.RankTagsForProfession("Backend developer")
+	if len(got) == 0 {
+		t.Fatal("empty result for backend developer")
+	}
+	if got[0] != "Go" {
+		t.Errorf("expected first tag 'Go' for Backend developer, got %q", got[0])
+	}
+}
+
+func TestTagsHandler_RankTagsForProfession_FrontendFirstTag(t *testing.T) {
+	got := handler.RankTagsForProfession("Frontend developer")
+	if len(got) == 0 {
+		t.Fatal("empty result for frontend developer")
+	}
+	if got[0] != "JS" {
+		t.Errorf("expected first tag 'JS' for Frontend developer, got %q", got[0])
+	}
+}
+

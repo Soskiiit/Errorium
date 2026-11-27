@@ -1,5 +1,24 @@
 # CHANGE_HISTORY.md — История изменений проекта Errorium
 
+## [2026-11-20] — Онбординг выбора роли и персонализация ранжирования тегов
+
+### Затронутые компоненты и спецификации:
+- `docs/Tech/04-api-and-access.md` (§2.2, §2.4), `services/gateway/api/openapi.yaml` (описание `/api/v1/tags`)
+- `services/gateway/pkg/jwt/jwt.go` (поле `Profession` в access claims), `services/gateway/internal/handler/tags_handler.go`, `services/gateway/internal/handler/tags_handler_test.go`, `services/gateway/internal/app/app.go`
+- `services/frontend/static/index.html` (модальное окно `#modal-onboarding`), `services/frontend/static/css/auth.css` (стили онбординга), `services/frontend/static/app.js` (логика онбординга, вызов `PATCH /users/me`, обновление токенов и перезагрузка ранжированных тегов)
+- `STATUS.md`
+
+### Суть изменений:
+1. **Онбординг при первой авторизации:** После успешной первичной регистрации или первого входа через SSO открывается модальное окно выбора роли/профессии (`Backend developer`, `Frontend developer`, `DevOps engineer`, `QA engineer`, `Data engineer / ML`, `Mobile developer`, `System architect`, `Security engineer`, `Tech lead`). Пользователь может выбрать роль и подтвердить («Continue») либо пропустить («Skip for now»).
+2. **Сохранение и JWT:** Выбранная роль сохраняется через существующий API `PATCH /api/v1/users/me` (`profession`). Поле `profession` добавлено в claims access-токена JWT (`jwt.Claims`).
+3. **Персонализированное ранжирование тегов:** Хэндлер `GET /api/v1/tags` при наличии Bearer-токена считывает claim `profession` и ранжирует стандартный список из 23 тегов в соответствии с матрицей весов релевантности для данной роли (наиболее релевантные технологии для выбранной профессии выводятся в начало списка в поповере выбора тегов). Без авторизации порядок остаётся дефолтным.
+4. **Фронтенд:** Метод `loadTags()` теперь передает заголовок авторизации при наличии сессии, что мгновенно перестраивает поповер тегов с учетом персонализации.
+
+### Результаты тестов/бенчмарка:
+- `go test ./...` в `services/gateway` — все тесты пройдены успешно (включая unit-тесты `TestTagsHandler_*`).
+- `node --check` для `app.js` и `api.js` — синтаксис корректен.
+- Python unit-тесты фронтенда `test_frontend_*.py` — 57 тестов успешно (OK).
+
 ## [2026-11-20] — Память чата для RAG: окно истории + memory-ячейка (ADR-014, ветка fix/chat-memory)
 
 ### Затронутые компоненты и спецификации:
