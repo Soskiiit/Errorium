@@ -382,8 +382,19 @@
 }
 
 .onboarding-role-btn .role-icon {
-    font-size: 1.3rem;
-    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    color: #93c5fd;
+    transition: color 0.15s ease;
+}
+
+.onboarding-role-btn .role-icon svg {
+    width: 20px;
+    height: 20px;
+    display: block;
 }
 
 .onboarding-role-btn:hover {
@@ -392,9 +403,17 @@
     color: #e2e8f0;
 }
 
+.onboarding-role-btn:hover .role-icon {
+    color: #bfdbfe;
+}
+
 .onboarding-role-btn.selected {
     background: rgba(46, 189, 100, 0.15);
     border-color: #2ebd64;
+    color: #ffffff;
+}
+
+.onboarding-role-btn.selected .role-icon {
     color: #ffffff;
 }
 

@@ -4157,17 +4157,59 @@
     // next JWT, enabling server-side tag personalisation.
     // =========================================================================
 
+    const ONBOARDING_SVG_ATTRS = 'viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
+
     const ONBOARDING_PROFESSIONS = [
-        { key: 'Backend developer',    icon: '⚙️',  label: 'Backend' },
-        { key: 'Frontend developer',   icon: '🎨',  label: 'Frontend' },
-        { key: 'Fullstack developer',  icon: '🔗',  label: 'Fullstack' },
-        { key: 'DevOps engineer',      icon: '🐳',  label: 'DevOps' },
-        { key: 'Mobile developer',     icon: '📱',  label: 'Mobile' },
-        { key: 'Data engineer / ML',   icon: '🤖',  label: 'Data / ML' },
-        { key: 'QA engineer',          icon: '🧪',  label: 'QA' },
-        { key: 'System architect',     icon: '🏗️',  label: 'Architect' },
-        { key: 'Security engineer',    icon: '🔐',  label: 'Security' },
-        { key: 'Tech lead',            icon: '🚀',  label: 'Tech Lead' },
+        {
+            key: 'Backend developer',
+            label: 'Backend',
+            icon: `<svg ${ONBOARDING_SVG_ATTRS}><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>`
+        },
+        {
+            key: 'Frontend developer',
+            label: 'Frontend',
+            icon: `<svg ${ONBOARDING_SVG_ATTRS}><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>`
+        },
+        {
+            key: 'Fullstack developer',
+            label: 'Fullstack',
+            icon: `<svg ${ONBOARDING_SVG_ATTRS}><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>`
+        },
+        {
+            key: 'DevOps engineer',
+            label: 'DevOps',
+            icon: `<svg ${ONBOARDING_SVG_ATTRS}><path d="M18.178 8c5.096 0 5.096 8 0 8-5.095 0-7.133-8-12.739-8-4.585 0-4.585 8 0 8 5.606 0 7.644-8 12.74-8z"/></svg>`
+        },
+        {
+            key: 'Mobile developer',
+            label: 'Mobile',
+            icon: `<svg ${ONBOARDING_SVG_ATTRS}><rect width="12" height="18" x="6" y="3" rx="2"/><path d="M10 6h4"/><path d="M12 18h.01"/></svg>`
+        },
+        {
+            key: 'Data engineer / ML',
+            label: 'Data / ML',
+            icon: `<svg ${ONBOARDING_SVG_ATTRS}><path d="M12 8V4"/><circle cx="12" cy="3" r="1"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><circle cx="9.5" cy="13.5" r="1" fill="currentColor"/><circle cx="14.5" cy="13.5" r="1" fill="currentColor"/><path d="M9.5 17h5"/></svg>`
+        },
+        {
+            key: 'QA engineer',
+            label: 'QA',
+            icon: `<svg ${ONBOARDING_SVG_ATTRS}><path d="m8 2 1.88 1.88"/><path d="M14.12 3.88 16 2"/><path d="M9 7.13v-1a3.003 3.003 0 1 1 6 0v1"/><path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6"/><path d="M12 20v-9"/><path d="M6.53 9C4.6 8.8 3 7.1 3 5"/><path d="M6 13H2"/><path d="M3 21c0-2.1 1.7-3.9 3.8-4"/><path d="M20.97 5c0 2.1-1.6 3.8-3.5 4"/><path d="M22 13h-4"/><path d="M17.2 17c2.1.1 3.8 1.9 3.8 4"/></svg>`
+        },
+        {
+            key: 'System architect',
+            label: 'Architect',
+            icon: `<svg ${ONBOARDING_SVG_ATTRS}><path d="M6 4v14a2 2 0 0 1-2 2 2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4"/><path d="M9 8h8v8H9z"/><path d="M13 8v3"/><path d="M13 14v2"/><path d="M9 12h2"/><path d="M15 12h2"/></svg>`
+        },
+        {
+            key: 'Security engineer',
+            label: 'Security',
+            icon: `<svg ${ONBOARDING_SVG_ATTRS}><rect width="10" height="9" x="3" y="11" rx="2"/><path d="M5 11V8a3 3 0 0 1 6 0v3"/><circle cx="8" cy="15.5" r=".75" fill="currentColor"/><circle cx="18" cy="8.5" r="2.5"/><path d="M18 11v9"/><path d="M18 16h2.5"/><path d="M18 19h2"/></svg>`
+        },
+        {
+            key: 'Tech lead',
+            label: 'Tech Lead',
+            icon: `<svg ${ONBOARDING_SVG_ATTRS}><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>`
+        },
     ];
 
     let onboardingSelectedProfession = null;
