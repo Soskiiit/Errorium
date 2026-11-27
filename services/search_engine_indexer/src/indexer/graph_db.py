@@ -4,6 +4,7 @@
 затем ``os.replace``. Ядро открывает его только на чтение (``mode=ro``).
 Только стандартная библиотека (ADR-008).
 """
+import html
 import json
 import os
 import re
@@ -17,6 +18,11 @@ from .tokenizer import clean_html
 SNIPPET_MAX_LEN = 300
 _BATCH = 5000
 _WHITESPACE = re.compile(r"\s+")
+_PARAGRAPH_BREAK = re.compile(r"\n\s*\n")
+
+# Формат текста документов корпуса benchmark: «Question: …\n\nAnswer: …»
+QUESTION_PREFIX = "Question: "
+ANSWER_SEPARATOR = "\n\nAnswer: "
 
 SCHEMA = """
 CREATE TABLE thread_nodes (
@@ -83,11 +89,28 @@ def node_from_thread(thread: Thread) -> GraphNode:
     )
 
 
+def _answer_to_html(answer: str) -> str:
+    """Обычный текст ответа -> HTML: абзацы ``<p>…</p>``, спецсимволы экранированы."""
+    paragraphs = [p.strip("\n") for p in _PARAGRAPH_BREAK.split(answer.strip())]
+    return "\n".join(f"<p>{html.escape(p, quote=False)}</p>" for p in paragraphs if p.strip())
+
+
 def node_from_corpus_doc(doc_id: int, title: str, text: str, tags: Iterable[str] = ()) -> GraphNode:
-    """Узел для режима ``corpus``: обычный текст, принятого ответа нет."""
-    return GraphNode(doc_id=doc_id, title=title, snippet=make_snippet(text, is_html=False),
-                     has_accepted_answer=False, tags=list(tags), question_score=0,
-                     best_answer_score=0, best_answer_body="", accepted_answer_id=0, created_at=0)
+    """Узел для режима ``corpus``: обычный текст.
+
+    Если в тексте есть разделитель ``\\n\\nAnswer: ``, часть до него — вопрос (сниппет), часть
+    после — ответ (``best_answer_body`` в HTML), и ``has_accepted_answer = True``; иначе ответа нет.
+    """
+    question, separator, answer = text.partition(ANSWER_SEPARATOR)
+    has_answer = bool(separator) and bool(answer.strip())
+    if not has_answer:
+        question, answer = text, ""
+    elif question.startswith(QUESTION_PREFIX):
+        question = question[len(QUESTION_PREFIX):]
+    return GraphNode(doc_id=doc_id, title=title, snippet=make_snippet(question, is_html=False),
+                     has_accepted_answer=has_answer, tags=list(tags), question_score=0,
+                     best_answer_score=0, best_answer_body=_answer_to_html(answer) if has_answer else "",
+                     accepted_answer_id=0, created_at=0)
 
 
 def _node_row(n: GraphNode) -> tuple:
