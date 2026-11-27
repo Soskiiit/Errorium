@@ -329,6 +329,12 @@
         clearTokens: clearTokens,
         request: request,
         stream: stream,
-        ssoLogin: ssoLogin
+        ssoLogin: ssoLogin,
+        adminGetStats: function () { return this.request('GET', '/admin/stats'); },
+        adminListUsers: function (q) { return this.request('GET', '/admin/users' + (q ? ('?search=' + encodeURIComponent(q)) : '')); },
+        adminPatchUser: function (id, body) { return this.request('PATCH', '/admin/users/' + encodeURIComponent(id), { body: body }); },
+        adminGetRagConfig: function () { return this.request('GET', '/admin/rag/config'); },
+        adminPutRagConfig: function (body) { return this.request('PUT', '/admin/rag/config', { body: body }); },
+        adminReloadIndex: function () { return this.request('POST', '/admin/index/reload'); }
     };
 })();

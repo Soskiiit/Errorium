@@ -1,5 +1,25 @@
 # CHANGE_HISTORY.md — История изменений проекта Errorium
 
+## [2026-11-27] — Веб-панель администратора (FR-5): Dashboard/Users/RAG config/Index reload
+
+### Затронутые компоненты и спецификации:
+- `services/frontend/static/admin.js` (новый IIFE-модуль, `window.ErroriumAdmin = { isAdmin(), show(), navigate(path) }`), `services/frontend/static/css/admin.css` (новый тёмный т.ема-стиль)
+- `services/frontend/static/app.js` (кэш `elements.adminView`, ветка маршрута `/admin` в `renderCurrentRoute`, мост `window.ErroriumNavigate`), `services/frontend/static/api.js` (методы `adminGetStats/adminListUsers/adminPatchUser/adminGetRagConfig/adminPutRagConfig/adminReloadIndex`)
+- `services/frontend/static/index.html` (подключение `admin.css`, секция `#admin-view` с `#admin-root`, скрипт `admin.js` после `app.js`)
+- `STATUS.md`, `docs/Tech/01-architecture.md` (упоминание панели `/admin`)
+- Бэкенд Admin API существовал ранее (`services/gateway/api/openapi.yaml`: `/api/v1/admin/stats`, `/admin/users`, `/admin/users/{id}`, `/admin/rag/config`, `/admin/index/reload`) — фронтенд только подключается к нему
+
+### Суть изменений:
+1. Новая self-contained панель администратора по маршруту `/admin` (SPA, чистый Vanilla JS, ноль фреймворков — те же ограничения, что у app.js). Модуль `admin.js` не выполняется для не-админов: вся инициализация (кнопка в сайдбаре, слушатели, рендер) гвардируется `isAdmin()` — декодирует `role` из payload JWT access-токена (`window.ErroriumAPI.getTokens()`), читает язык интерфейса из `localStorage['errorium_app_language']` (RU/EN-карта подписей).
+2. Кнопка «Admin» (id `btn-admin`, класс `sidebar-link-btn`, svg-шестерёнка + span) инжектится в `div.sidebar-links-left` только для админа; клик ведёт на `/admin` через `window.ErroriumNavigate` (fallback — `history.pushState` + ручной `renderCurrentRoute`).
+3. Вкладки панели: Dashboard (`GET /admin/stats`: карточки Documents/Vocabulary/Avg doc len/Index size (B→KB/MB)/Core ready-бейдж/Latency p50-p95-p99/Queries total, skeleton при загрузке), Users (поиск + «Load» → `GET /admin/users?search=`, таблица username/email/role/active/last login, на строку кнопки role toggle `PATCH /admin/users/{id}` с `confirm()` и block/unblock `PATCH {is_active}`), RAG config (`GET /admin/rag/config` → форма provider/base_url/model/system_prompt/temperature/max_tokens → `PUT /admin/rag/config`), Index reload (`POST /admin/index/reload`, тост с `build_timestamp`, обработка 502).
+4. Маленькая toast-система (fixed bottom-right, авто-скрытие 3.5с, классы ok/error), тёмная тема в стиле приложения (`admin.css`, классы с префиксом `admin-`), `popstate` + глобальный клик скрывают `#admin-view` при уходе с `/admin`.
+5. app.js: в ветке `/admin` не-админ получает `switchToHeroView(false)` + тост «Admin access only»; `window.ErroriumNavigate` позволяет админ-модулю и внешним кликам маршрутизировать без полной перезагрузки.
+
+### Результаты тестов/бенчмарка:
+- `node --check services/frontend/static/app.js`, `node --check services/frontend/static/api.js`, `node --check services/frontend/static/admin.js` — 0 синтаксических ошибок (OK).
+- Python unit-тесты фронтенда `test_frontend_*.py` — 71 тест OK; полный прогон `tests/unit` — 307 тестов, 2 ошибки только из-за отсутствующего в окружении модуля `grpc` (предсуществующие, не связаны с изменением); регрессий нет, счётчики тестов не изменены, тесты не ослаблялись.
+
 ## [2026-11-20] — Онбординг выбора роли и персонализация ранжирования тегов
 
 ### Затронутые компоненты и спецификации:
